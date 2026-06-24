@@ -69,6 +69,10 @@ img { display: block; max-width: 100%; }
   margin-left: 2px;
 }
 
+/* 로고 이미지 (텍스트 워드마크 대체) */
+.logo { display: inline-flex; align-items: center; }
+.logo img { height: 34px; width: auto; display: block; }
+
 .header-nav {
   display: flex;
   gap: 28px;
