@@ -86,11 +86,11 @@ img { display: block; max-width: 100%; }
 
 /* 홈 헤더 — 큰 로고 + 상단 여백 (세로선·영문·하단 구분선 없음) */
 .header.home { position: static; border-bottom: none; }
-.header.home .header-inner { height: auto; padding: 120px 32px 44px; align-items: center; }
+.header.home .header-inner { height: auto; padding: 80px 32px 44px; align-items: center; }
 .header.home .logo img { height: 71px; }
 
 @media (max-width: 560px) {
-  .header.home .header-inner { padding: 64px 20px 32px; }
+  .header.home .header-inner { padding: 48px 20px 32px; }
   .header.home .logo img { height: 50px; }
 }
 
@@ -119,7 +119,7 @@ img { display: block; max-width: 100%; }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 30%, rgba(0, 0, 0, 0.62) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.20) 20%, rgba(0, 0, 0, 0.78) 100%);
 }
 .sh-caption { position: relative; z-index: 2; padding: 0 44px 48px; color: #fff; }
 .sh-loc { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.92; }
