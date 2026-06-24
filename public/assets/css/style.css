@@ -87,11 +87,11 @@ img { display: block; max-width: 100%; }
 /* 홈 헤더 — 큰 로고 + 상단 여백 (세로선·영문·하단 구분선 없음) */
 .header.home { position: static; border-bottom: none; }
 .header.home .header-inner { height: auto; padding: 80px 32px 44px; align-items: center; }
-.header.home .logo img { height: 71px; }
+.header.home .logo img { height: 85px; }
 
 @media (max-width: 560px) {
   .header.home .header-inner { padding: 48px 20px 32px; }
-  .header.home .logo img { height: 50px; }
+  .header.home .logo img { height: 60px; }
 }
 
 /* ---------- Slide hero (피처드 카루셀) ---------- */
@@ -140,6 +140,7 @@ img { display: block; max-width: 100%; }
   .slidehero { height: auto; min-height: 0; max-height: none; aspect-ratio: 4 / 3; }
   .sh-caption { padding: 0 24px 32px; }
   .sh-dots-wrap { right: 20px; }
+  .menubar { margin-top: 40px; }
   .header-msg { display: none; }
 }
 
@@ -249,6 +250,7 @@ img { display: block; max-width: 100%; }
 }
 
 /* ---------- Menu bar (히어로 아래 카테고리) ---------- */
+.menubar { margin-top: 80px; }
 .menubar-inner {
   display: flex;
   gap: 30px;
