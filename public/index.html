@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>archive L — 로컬 인스퍼레이션 아카이빙</title>
+<meta name="description" content="시선이 머문 공간, 그리고 그 너머의 경험. 로컬 인스퍼레이션 아카이빙." />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="archive L" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:title" content="archive L — 로컬 인스퍼레이션 아카이빙" />
+<meta property="og:description" content="시선이 머문 공간, 그리고 그 너머의 경험. 로컬 인스퍼레이션 아카이빙." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+
+<!-- ============== HEADER ============== -->
+<header class="header">
+  <div class="container header-inner">
+    <a href="/" class="wordmark" aria-label="archive L">archive<span class="mark-l">L</span></a>
+    <nav class="header-nav">
+      <a href="/">Archive</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============== INTRO (히어로 섹션 대체) ============== -->
+  <section class="intro">
+    <div class="container">
+      <p>시선이 머문 공간, 그리고 그 너머의 경험.</p>
+      <div class="intro-sub">로컬 인스퍼레이션 아카이빙</div>
+    </div>
+  </section>
+
+  <!-- ============== ARCHIVE GRID (웹 기준 3열) ============== -->
+  <div class="container">
+    <div class="section-head">
+      <h2>Archive</h2>
+      <span class="meta">로컬에서 길어 올린 장면들</span>
+    </div>
+
+    <div class="grid" id="archiveGrid">
+      <!-- 샘플 카드 (Firestore items 비어있을 때 표시). app.js가 데이터 있으면 교체. -->
+      <article class="card">
+        <div class="card-thumb"><div class="thumb-empty">archive</div></div>
+        <div class="card-loc">을지로 · Seoul</div>
+        <h3 class="card-title">골목의 밀도가 만든 빛</h3>
+      </article>
+
+      <article class="card">
+        <div class="card-thumb"><div class="thumb-empty">archive</div></div>
+        <div class="card-loc">제주 · Jeju</div>
+        <h3 class="card-title">돌담이 드리운 그늘의 결</h3>
+      </article>
+
+      <article class="card">
+        <div class="card-thumb"><div class="thumb-empty">archive</div></div>
+        <div class="card-loc">성수동 · Seoul</div>
+        <h3 class="card-title">공장이 남긴 시간의 질감</h3>
+      </article>
+    </div>
+  </div>
+</main>
+
+<!-- ============== FOOTER ============== -->
+<div class="container">
+  <footer class="footer">
+    <span>© 2026 archive L</span>
+    <span class="footer-links">
+      <a href="/about.html">About</a>
+      <a href="mailto:hello@archive-l.web.app">Contact</a>
+    </span>
+  </footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/assets/js/app.js"></script>
+</body>
+</html>

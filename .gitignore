@@ -1,0 +1,19 @@
+# Logs
+*.log
+firebase-debug.log*
+firebase-debug.*.log*
+
+# Firebase cache
+.firebase/
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / AI agent
+.claude/
+.agents/
+skills-lock.json

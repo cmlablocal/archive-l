@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // 관리자 판별: 이메일 화이트리스트
+    // TODO: archive-l 실제 관리자 이메일로 교체할 것 (현재 자리표시자)
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email in [
+        'ADMIN_EMAIL_PLACEHOLDER@example.com'
+      ];
+    }
+
+    // 아카이브 항목(items): 누구나 읽기, 관리자만 쓰기
+    // 필드 예: { title, locationName, thumb, body, tags[], createdAt, order }
+    match /items/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 그 외 모든 경로 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

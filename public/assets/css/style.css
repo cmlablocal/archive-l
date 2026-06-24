@@ -1,0 +1,203 @@
+/* ===========================================================
+   Archive L — base styles
+   컨셉: 올 화이트 배경 · 블랙 텍스트 · Pretendard
+   =========================================================== */
+
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #8a8a8a;
+  --line: #ececec;
+  --thumb-bg: #f4f4f4;
+  --container: 1200px;
+  --gap: 28px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; text-decoration: none; }
+
+img { display: block; max-width: 100%; }
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ---------- Header ---------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.wordmark {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+}
+.wordmark .mark-l {
+  font-weight: 800;
+  margin-left: 2px;
+}
+
+.header-nav {
+  display: flex;
+  gap: 28px;
+}
+.header-nav a {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+.header-nav a:hover { opacity: 1; }
+
+/* ---------- Intro (히어로 대체 — 텍스트 메시지) ---------- */
+.intro {
+  padding: 88px 0 64px;
+  border-bottom: 1px solid var(--line);
+}
+.intro p {
+  margin: 0;
+  font-size: clamp(22px, 3.2vw, 34px);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  max-width: 760px;
+}
+.intro .intro-sub {
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Section head ---------- */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 56px 0 24px;
+}
+.section-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.section-head .meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Grid (웹 기준 3열) ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  padding-bottom: 80px;
+}
+
+.card { cursor: pointer; }
+.card-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--thumb-bg);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.card:hover .card-thumb img { transform: scale(1.03); }
+.card-thumb .thumb-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cfcfcf;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.card-loc {
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.card-title {
+  margin: 6px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 40px 0 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.footer a { color: var(--muted); }
+.footer a:hover { color: var(--fg); }
+.footer-links { display: flex; gap: 18px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .header-nav { gap: 18px; }
+}
+@media (max-width: 560px) {
+  .container { padding: 0 20px; }
+  .grid { grid-template-columns: 1fr; }
+  .intro { padding: 56px 0 40px; }
+  .header-nav { display: none; }
+}
