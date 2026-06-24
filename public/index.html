@@ -16,25 +16,42 @@
 </head>
 <body>
 
-<!-- ============== HERO (풀 이미지 슬라이드) ============== -->
-<section class="hero" id="hero">
-  <!-- 슬라이드: 지금은 플레이스홀더 그라데이션. 실제 사진은 background-image를 /img/hero/xxx.jpg 로 교체 -->
-  <div class="hero-slide is-active" style="background-image:url('/img/hero/hero-1.jpg')"></div>
-  <div class="hero-slide" style="background-image:url('/img/hero/hero-2.jpg')"></div>
-  <div class="hero-slide" style="background-image:url('/img/hero/hero-3.jpg')"></div>
-  <div class="hero-overlay"></div>
-
-  <div class="container hero-content">
-    <a href="/" class="hero-logo" aria-label="archive L"><img src="/img/logo_white.png" alt="archive L" /></a>
-    <div class="hero-message">
-      <p class="hm-line">시선이 머문 공간,</p>
-      <p class="hm-line hm-bold">그리고 그 너머의 경험</p>
-      <p class="hm-sub">Local inspiration archiving L</p>
+<!-- ============== HEADER (로고 + 브랜드 메시지) ============== -->
+<header class="header">
+  <div class="container header-inner">
+    <div class="masthead">
+      <a href="/" class="logo" aria-label="archive L"><img src="/img/logo.png" alt="archive L" /></a>
+      <p class="header-msg">
+        시선이 머문 공간, <strong>그리고 그 너머의 경험</strong>
+        <span class="header-msg-sub">Local inspiration archiving L</span>
+      </p>
     </div>
   </div>
+</header>
 
-  <div class="container hero-dots-wrap">
-    <div class="hero-dots" id="heroDots">
+<!-- ============== SLIDE HERO (피처드 카루셀) ============== -->
+<section class="slidehero" id="slideHero">
+  <a class="sh-slide is-active" href="/item.html?id=euljiro" style="background-image:url('/img/hero/hero-1.jpg')">
+    <div class="container sh-caption">
+      <span class="sh-loc">을지로 · Seoul</span>
+      <h2 class="sh-title">골목의 밀도가 만든 빛</h2>
+    </div>
+  </a>
+  <a class="sh-slide" href="/item.html?id=jeju" style="background-image:url('/img/hero/hero-2.jpg')">
+    <div class="container sh-caption">
+      <span class="sh-loc">제주 · Jeju</span>
+      <h2 class="sh-title">돌담이 드리운 그늘의 결</h2>
+    </div>
+  </a>
+  <a class="sh-slide" href="/item.html?id=seongsu" style="background-image:url('/img/hero/hero-3.jpg')">
+    <div class="container sh-caption">
+      <span class="sh-loc">성수동 · Seoul</span>
+      <h2 class="sh-title">공장이 남긴 시간의 질감</h2>
+    </div>
+  </a>
+
+  <div class="container sh-dots-wrap">
+    <div class="sh-dots" id="shDots">
       <button class="dot is-active" aria-label="slide 1"></button>
       <button class="dot" aria-label="slide 2"></button>
       <button class="dot" aria-label="slide 3"></button>
@@ -42,15 +59,14 @@
   </div>
 </section>
 
-<!-- ============== MENU BAR (히어로 아래) ============== -->
+<!-- ============== MENU BAR (로컬 콘텐츠 아카이브 카테고리) ============== -->
 <nav class="menubar">
   <div class="container menubar-inner">
     <a class="menu-item is-active" href="/">전체</a>
-    <a class="menu-item" href="#benefits">혜택 안내</a>
-    <a class="menu-item" href="#hubs">멤버 전용 거점</a>
-    <a class="menu-item" href="#goods">로컬 특산품</a>
-    <a class="menu-item" href="#dinner">네트워크 디너</a>
-    <a class="menu-item" href="#archive">아카이브</a>
+    <a class="menu-item" href="#space">공간</a>
+    <a class="menu-item" href="#scene">장면</a>
+    <a class="menu-item" href="#interview">인터뷰</a>
+    <a class="menu-item" href="#note">기록</a>
   </div>
 </nav>
 

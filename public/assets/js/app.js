@@ -47,12 +47,12 @@
       });
   }
 
-  // ---------- 히어로 슬라이드 ----------
+  // ---------- 슬라이드 히어로 ----------
   function initHero() {
-    const hero = document.getElementById('hero');
+    const hero = document.getElementById('slideHero');
     if (!hero) return;
-    const slides = Array.prototype.slice.call(hero.querySelectorAll('.hero-slide'));
-    const dots = Array.prototype.slice.call(hero.querySelectorAll('.hero-dots .dot'));
+    const slides = Array.prototype.slice.call(hero.querySelectorAll('.sh-slide'));
+    const dots = Array.prototype.slice.call(hero.querySelectorAll('.sh-dots .dot'));
     if (slides.length < 2) return;
 
     let cur = 0;
