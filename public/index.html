@@ -19,15 +19,10 @@
 <!-- ============== HERO (풀 이미지 슬라이드) ============== -->
 <section class="hero" id="hero">
   <!-- 슬라이드: 지금은 플레이스홀더 그라데이션. 실제 사진은 background-image를 /img/hero/xxx.jpg 로 교체 -->
-  <div class="hero-slide is-active" style="background-image:linear-gradient(135deg,#3a4a52,#171d21)"></div>
-  <div class="hero-slide" style="background-image:linear-gradient(135deg,#4a403a,#1f1815)"></div>
-  <div class="hero-slide" style="background-image:linear-gradient(135deg,#3b3f4a,#16191f)"></div>
+  <div class="hero-slide is-active" style="background-image:url('https://picsum.photos/seed/archivel-a/1600/900')"></div>
+  <div class="hero-slide" style="background-image:url('https://picsum.photos/seed/archivel-b/1600/900')"></div>
+  <div class="hero-slide" style="background-image:url('https://picsum.photos/seed/archivel-c/1600/900')"></div>
   <div class="hero-overlay"></div>
-
-  <nav class="hero-nav">
-    <a href="/">Archive</a>
-    <a href="/about.html">About</a>
-  </nav>
 
   <div class="container hero-content">
     <a href="/" class="hero-logo" aria-label="archive L"><img src="/img/logo_white.png" alt="archive L" /></a>
@@ -47,6 +42,18 @@
   </div>
 </section>
 
+<!-- ============== MENU BAR (히어로 아래) ============== -->
+<nav class="menubar">
+  <div class="container menubar-inner">
+    <a class="menu-item is-active" href="/">전체</a>
+    <a class="menu-item" href="#benefits">혜택 안내</a>
+    <a class="menu-item" href="#hubs">멤버 전용 거점</a>
+    <a class="menu-item" href="#goods">로컬 특산품</a>
+    <a class="menu-item" href="#dinner">네트워크 디너</a>
+    <a class="menu-item" href="#archive">아카이브</a>
+  </div>
+</nav>
+
 <main>
   <!-- ============== ARCHIVE GRID (웹 기준 3열) ============== -->
   <div class="container">
@@ -57,17 +64,17 @@
 
     <div class="grid" id="archiveGrid">
       <a class="card" href="/item.html?id=euljiro">
-        <div class="card-thumb"><div class="thumb-empty">archive</div></div>
+        <div class="card-thumb"><img src="https://picsum.photos/seed/euljiro/800/600" alt="" loading="lazy" /></div>
         <div class="card-loc">을지로 · Seoul</div>
         <h3 class="card-title">골목의 밀도가 만든 빛</h3>
       </a>
       <a class="card" href="/item.html?id=jeju">
-        <div class="card-thumb"><div class="thumb-empty">archive</div></div>
+        <div class="card-thumb"><img src="https://picsum.photos/seed/jeju/800/600" alt="" loading="lazy" /></div>
         <div class="card-loc">제주 · Jeju</div>
         <h3 class="card-title">돌담이 드리운 그늘의 결</h3>
       </a>
       <a class="card" href="/item.html?id=seongsu">
-        <div class="card-thumb"><div class="thumb-empty">archive</div></div>
+        <div class="card-thumb"><img src="https://picsum.photos/seed/seongsu/800/600" alt="" loading="lazy" /></div>
         <div class="card-loc">성수동 · Seoul</div>
         <h3 class="card-title">공장이 남긴 시간의 질감</h3>
       </a>
@@ -79,10 +86,7 @@
 <div class="container">
   <footer class="footer">
     <span>© 2026 archive L</span>
-    <span class="footer-links">
-      <a href="/about.html">About</a>
-      <a href="mailto:hello@archive-l.web.app">Contact</a>
-    </span>
+    <span class="footer-brand">CM LAB : space &amp; experience</span>
   </footer>
 </div>
 
