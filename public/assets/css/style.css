@@ -79,9 +79,10 @@ img { display: block; max-width: 100%; }
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
+  letter-spacing: -0.02em;
   color: var(--muted);
 }
-.header-msg strong { color: var(--fg); font-weight: 700; }
+.header-msg strong { color: #2b2b2b; font-weight: 700; }
 
 /* 홈 헤더 — 큰 로고 + 상단 여백 (세로선·영문 없음) */
 .header.home { position: static; }
