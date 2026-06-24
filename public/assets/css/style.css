@@ -84,13 +84,13 @@ img { display: block; max-width: 100%; }
 }
 .header-msg strong { color: #2b2b2b; font-weight: 700; }
 
-/* 홈 헤더 — 큰 로고 + 상단 여백 (세로선·영문 없음) */
-.header.home { position: static; }
-.header.home .header-inner { height: auto; padding: 150px 0 56px; align-items: center; }
+/* 홈 헤더 — 큰 로고 + 상단 여백 (세로선·영문·하단 구분선 없음) */
+.header.home { position: static; border-bottom: none; }
+.header.home .header-inner { height: auto; padding: 120px 0 44px; align-items: center; }
 .header.home .logo img { height: 102px; }
 
 @media (max-width: 560px) {
-  .header.home .header-inner { padding: 80px 0 40px; }
+  .header.home .header-inner { padding: 64px 0 32px; }
   .header.home .logo img { height: 72px; }
 }
 
