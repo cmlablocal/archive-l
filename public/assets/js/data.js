@@ -8,7 +8,7 @@ window.ARCHIVE_SAMPLES = {
     title: "골목의 밀도가 만든 빛",
     locationName: "을지로 · Seoul",
     dateLabel: "2026.06.24",
-    thumb: "https://picsum.photos/seed/euljiro/1280/720",
+    thumb: "/img/items/euljiro.jpg",
     lead: "낮은 처마와 좁은 간격이 만들어내는 을지로의 빛은, 넓은 거리에서는 결코 만날 수 없는 종류의 것이다.",
     body: [
       "을지로의 골목은 비좁다. 두 사람이 어깨를 스치며 지나야 하는 폭, 머리 위로 얽힌 간판과 전선, 그리고 그 사이로 비집고 들어오는 빛. 이 밀도가 만들어내는 그림자의 결은 도시의 다른 어떤 곳과도 다르다.",
@@ -21,7 +21,7 @@ window.ARCHIVE_SAMPLES = {
     title: "돌담이 드리운 그늘의 결",
     locationName: "제주 · Jeju",
     dateLabel: "2026.06.20",
-    thumb: "https://picsum.photos/seed/jeju/1280/720",
+    thumb: "/img/items/jeju.jpg",
     lead: "현무암 돌담은 바람을 거르고, 빛을 자른다. 그 사이로 떨어지는 그늘의 무늬가 제주의 시간을 보여준다.",
     body: [
       "제주의 밭담은 쌓되 메우지 않는다. 구멍 숭숭 뚫린 현무암 사이로 바람이 통과하기에, 거센 해풍에도 무너지지 않는다. 비움으로써 버티는 구조다.",
@@ -34,7 +34,7 @@ window.ARCHIVE_SAMPLES = {
     title: "공장이 남긴 시간의 질감",
     locationName: "성수동 · Seoul",
     dateLabel: "2026.06.15",
-    thumb: "https://picsum.photos/seed/seongsu/1280/720",
+    thumb: "/img/items/seongsu.jpg",
     lead: "수제화 공장과 정미소가 떠난 자리에 카페와 갤러리가 들어섰지만, 벽돌과 철골은 여전히 그 시간을 증언한다.",
     body: [
       "성수동의 매력은 덮어쓰지 않은 데 있다. 오래된 공장을 헐어내는 대신, 골조를 남기고 그 위에 새로운 쓰임을 얹었다. 노출된 벽돌, 녹슨 철골, 높은 천장이 그대로 공간의 표정이 된다.",
