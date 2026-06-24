@@ -74,7 +74,7 @@ img { display: block; max-width: 100%; }
 .logo img { height: 34px; width: auto; display: block; }
 
 /* ---------- Masthead (로고 + 브랜드 메시지) ---------- */
-.masthead { display: flex; align-items: center; gap: 20px; }
+.masthead { display: flex; align-items: flex-end; gap: 22px; }
 .header-msg {
   margin: 0;
   font-size: 13px;
@@ -120,11 +120,11 @@ img { display: block; max-width: 100%; }
   inset: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 30%, rgba(0, 0, 0, 0.62) 100%);
 }
-.sh-caption { position: relative; z-index: 2; padding-bottom: 52px; color: #fff; }
+.sh-caption { position: relative; z-index: 2; padding: 0 44px 48px; color: #fff; }
 .sh-loc { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.92; }
 .sh-title { margin: 10px 0 0; font-size: clamp(24px, 3.4vw, 42px); font-weight: 700; line-height: 1.22; letter-spacing: -0.01em; }
 
-.sh-dots-wrap { position: absolute; left: 0; right: 0; bottom: 26px; z-index: 3; display: flex; justify-content: flex-end; }
+.sh-dots-wrap { position: absolute; right: 32px; bottom: 26px; z-index: 3; }
 .sh-dots { display: flex; gap: 8px; }
 .sh-dots .dot {
   width: 30px; height: 3px;
@@ -137,7 +137,8 @@ img { display: block; max-width: 100%; }
 
 @media (max-width: 560px) {
   .slidehero { height: auto; min-height: 0; max-height: none; aspect-ratio: 4 / 3; }
-  .sh-caption { padding-bottom: 40px; }
+  .sh-caption { padding: 0 24px 32px; }
+  .sh-dots-wrap { right: 20px; }
   .header-msg { display: none; }
 }
 
