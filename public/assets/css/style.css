@@ -126,7 +126,6 @@ img { display: block; max-width: 100%; }
   height: 150px;
   width: auto;
   display: block;
-  filter: brightness(0) invert(1); /* 다크 로고 → 화이트 */
 }
 .hero-message {
   color: #fff;
