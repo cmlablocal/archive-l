@@ -80,17 +80,17 @@ img { display: block; max-width: 100%; }
   font-size: 13px;
   line-height: 1.5;
   color: var(--muted);
-  border-left: 1px solid var(--line);
-  padding-left: 20px;
 }
 .header-msg strong { color: var(--fg); font-weight: 700; }
-.header-msg-sub {
-  display: block;
-  margin-top: 2px;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #b5b5b5;
+
+/* 홈 헤더 — 큰 로고 + 상단 여백 (세로선·영문 없음) */
+.header.home { position: static; }
+.header.home .header-inner { height: auto; padding: 150px 0 56px; align-items: center; }
+.header.home .logo img { height: 102px; }
+
+@media (max-width: 560px) {
+  .header.home .header-inner { padding: 80px 0 40px; }
+  .header.home .logo img { height: 72px; }
 }
 
 /* ---------- Slide hero (피처드 카루셀) ---------- */
