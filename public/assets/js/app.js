@@ -47,5 +47,35 @@
       });
   }
 
-  document.addEventListener('DOMContentLoaded', loadArchive);
+  // ---------- 히어로 슬라이드 ----------
+  function initHero() {
+    const hero = document.getElementById('hero');
+    if (!hero) return;
+    const slides = Array.prototype.slice.call(hero.querySelectorAll('.hero-slide'));
+    const dots = Array.prototype.slice.call(hero.querySelectorAll('.hero-dots .dot'));
+    if (slides.length < 2) return;
+
+    let cur = 0;
+    let timer = null;
+
+    function go(n) {
+      slides[cur].classList.remove('is-active');
+      if (dots[cur]) dots[cur].classList.remove('is-active');
+      cur = (n + slides.length) % slides.length;
+      slides[cur].classList.add('is-active');
+      if (dots[cur]) dots[cur].classList.add('is-active');
+    }
+    function start() { stop(); timer = setInterval(function () { go(cur + 1); }, 5000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+    dots.forEach(function (d, n) {
+      d.addEventListener('click', function () { go(n); start(); });
+    });
+    start();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initHero();
+    loadArchive();
+  });
 })();

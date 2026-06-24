@@ -16,26 +16,38 @@
 </head>
 <body>
 
-<!-- ============== HEADER ============== -->
-<header class="header">
-  <div class="container header-inner">
-    <a href="/" class="logo" aria-label="archive L"><img src="/img/logo.png" alt="archive L" /></a>
-    <nav class="header-nav">
-      <a href="/">Archive</a>
-      <a href="/about.html">About</a>
-    </nav>
+<!-- ============== HERO (풀 이미지 슬라이드) ============== -->
+<section class="hero" id="hero">
+  <!-- 슬라이드: 지금은 플레이스홀더 그라데이션. 실제 사진은 background-image를 /img/hero/xxx.jpg 로 교체 -->
+  <div class="hero-slide is-active" style="background-image:linear-gradient(135deg,#3a4a52,#171d21)"></div>
+  <div class="hero-slide" style="background-image:linear-gradient(135deg,#4a403a,#1f1815)"></div>
+  <div class="hero-slide" style="background-image:linear-gradient(135deg,#3b3f4a,#16191f)"></div>
+  <div class="hero-overlay"></div>
+
+  <nav class="hero-nav">
+    <a href="/">Archive</a>
+    <a href="/about.html">About</a>
+  </nav>
+
+  <div class="container hero-content">
+    <a href="/" class="hero-logo" aria-label="archive L"><img src="/img/logo.png" alt="archive L" /></a>
+    <div class="hero-message">
+      <p class="hm-line">시선이 머문 공간,</p>
+      <p class="hm-line hm-bold">그리고 그 너머의 경험</p>
+      <p class="hm-sub">Local inspiration archiving L</p>
+    </div>
   </div>
-</header>
+
+  <div class="container hero-dots-wrap">
+    <div class="hero-dots" id="heroDots">
+      <button class="dot is-active" aria-label="slide 1"></button>
+      <button class="dot" aria-label="slide 2"></button>
+      <button class="dot" aria-label="slide 3"></button>
+    </div>
+  </div>
+</section>
 
 <main>
-  <!-- ============== INTRO (히어로 섹션 대체) ============== -->
-  <section class="intro">
-    <div class="container">
-      <p>시선이 머문 공간, 그리고 그 너머의 경험.</p>
-      <div class="intro-sub">로컬 인스퍼레이션 아카이빙</div>
-    </div>
-  </section>
-
   <!-- ============== ARCHIVE GRID (웹 기준 3열) ============== -->
   <div class="container">
     <div class="section-head">
@@ -44,24 +56,21 @@
     </div>
 
     <div class="grid" id="archiveGrid">
-      <!-- 샘플 카드 (Firestore items 비어있을 때 표시). app.js가 데이터 있으면 교체. -->
-      <article class="card">
+      <a class="card" href="/item.html?id=euljiro">
         <div class="card-thumb"><div class="thumb-empty">archive</div></div>
         <div class="card-loc">을지로 · Seoul</div>
         <h3 class="card-title">골목의 밀도가 만든 빛</h3>
-      </article>
-
-      <article class="card">
+      </a>
+      <a class="card" href="/item.html?id=jeju">
         <div class="card-thumb"><div class="thumb-empty">archive</div></div>
         <div class="card-loc">제주 · Jeju</div>
         <h3 class="card-title">돌담이 드리운 그늘의 결</h3>
-      </article>
-
-      <article class="card">
+      </a>
+      <a class="card" href="/item.html?id=seongsu">
         <div class="card-thumb"><div class="thumb-empty">archive</div></div>
         <div class="card-loc">성수동 · Seoul</div>
         <h3 class="card-title">공장이 남긴 시간의 질감</h3>
-      </article>
+      </a>
     </div>
   </div>
 </main>
