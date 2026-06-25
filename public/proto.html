@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LOCAL LAYERS — 로컬 인스퍼레이션 아카이브</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<!-- 퍼스펙티브 디자인 CSS 그대로 -->
+<link rel="stylesheet" href="/assets/css/persp.css" />
+
+<!-- ===== Local Layers 커스텀 (persp.css 위에 얹어 수정해 나감) ===== -->
+<style>
+  /* 페이지: 무조건 화이트 / 텍스트 블랙 */
+  :root{ --bg:#ffffff; --fg:#111111; }
+  body{ background:#ffffff !important; color:#111111; word-break:keep-all; }
+  .header{ border-bottom:none; }   /* 로고~슬라이드 사이 구분선 삭제 */
+  .container{ padding:0 40px; }    /* 양옆 여백 +25% (32→40) */
+  .header-inner{ height:auto; padding:45px 40px 26px; }   /* 로고 위 여백 */
+  .logo img{ height:30px; }        /* 로고 */
+
+  /* 로고 + 브랜드 메시지 (로고 하단 기준 정렬) */
+  .brand-lockup{ display:flex; align-items:flex-end; gap:11px; }
+  .brand-msg{
+    font-size:9pt; line-height:1; color:var(--muted);
+    letter-spacing:-0.01em; white-space:nowrap; padding-bottom:0;
+  }
+  @media (max-width:680px){ .brand-msg{ display:none; } }
+
+  /* 피처드 슬라이드 컨테이너 (탭 ~ LATEST 그리드 사이) */
+  .ll-feat{ position:relative; width:100%; height:46vh; min-height:360px; max-height:520px; overflow:hidden; background:#0c0c0c; margin:26px 0 40px; }
+  .ll-slide{ position:absolute; inset:0; display:flex; align-items:flex-end;
+    background-size:cover; background-position:center; opacity:0; transition:opacity .8s ease; pointer-events:none; }
+  .ll-slide.on{ opacity:1; pointer-events:auto; }
+  .ll-slide::after{ content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,.05) 40%, rgba(0,0,0,.64) 100%); }
+  .ll-cap{ position:relative; z-index:2; color:#fff; padding:0 40px 44px; max-width:780px; }
+  .ll-cap .c{ font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+  .ll-cap h3{ margin:12px 0 8px; font-size:clamp(24px,3.2vw,40px); font-weight:800; line-height:1.15; letter-spacing:-0.03em; }
+  .ll-cap .loc{ font-size:13px; color:rgba(255,255,255,.82); letter-spacing:.02em; }
+  .ll-dots{ position:absolute; right:36px; bottom:30px; z-index:3; display:flex; gap:7px; }
+  .ll-dots button{ width:30px; height:2px; border:none; padding:0; background:rgba(255,255,255,.42); cursor:pointer; transition:background .3s; }
+  .ll-dots button.on{ background:#fff; }
+  @media (max-width:680px){
+    .ll-feat{ height:auto; aspect-ratio:4/3; min-height:0; max-height:none; }
+    .ll-cap{ padding:0 22px 32px; }
+    .ll-dots{ right:20px; bottom:22px; }
+  }
+
+  /* 카드 (썸네일 아래 텍스트: 아이브로우→타이틀→서브→메타) */
+  /* 오버레이 카드 (텍스트를 이미지 위에) */
+  .ll-card{ position:relative; display:block; aspect-ratio:16/9; overflow:hidden; background:#222; color:#fff; }
+  .ll-card .ph{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .6s ease; }
+  .ll-card:hover .ph{ transform:scale(1.05); }
+  .ll-card .ov{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.22) 20%, rgba(0,0,0,.82) 100%); }
+  .ll-card .txt{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:22px; }
+  .ll-card .eyebrow{ display:inline-block; border:1px solid rgba(255,255,255,.5); padding:4px 9px; line-height:1;
+    font-size:10.5px; font-weight:500; letter-spacing:.02em; text-transform:uppercase; color:rgba(255,255,255,.92); }
+  .ll-card .t{ margin:9px 0 0; font-size:19px; font-weight:700; line-height:1.35; letter-spacing:-0.015em; color:#fff;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ll-card .sub{ margin:7px 0 0; font-size:13px; line-height:1.5; color:rgba(255,255,255,.74);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ll-card .meta{ display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin-top:14px; font-size:12px; color:rgba(255,255,255,.72); }
+  .ll-card .loc{ display:inline-flex; align-items:center; gap:12px; }
+  .ll-card .loc .bar{ width:1px; height:11px; background:rgba(255,255,255,.45); display:inline-block; }
+
+  /* 검색 — 메뉴바(탭) 라인 오른쪽 (원형 호버 없음) */
+  .filterbar{ display:flex; align-items:center; justify-content:space-between; gap:18px; }
+  .ll-search{ display:inline-flex; align-items:center; justify-content:center; color:#111; flex:0 0 auto; transition:opacity .2s; }
+  .ll-search:hover{ opacity:.55; }
+
+  /* 푸터 — 풀폭 검정 */
+  .ll-footer{ background:#111111; margin-top:40px; }
+  .ll-footer-in{ display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding-top:32px; padding-bottom:36px; flex-wrap:wrap; }
+  .ll-copy{ font-size:12.5px; color:#8f8a82; }
+  .ll-about{ font-size:13px; color:#ffffff; font-weight:600; letter-spacing:.01em; }
+  .ll-about:hover{ opacity:.65; }
+
+  /* 그리드 우측 하단 전체보기 */
+  .ll-viewall{ display:flex; justify-content:flex-end; margin-top:30px; }
+  .ll-viewall a{ font-size:13px; font-weight:600; color:#111; letter-spacing:.01em; }
+  .ll-viewall a:hover{ opacity:.55; }
+
+  /* 햄버거 */
+  .hd-actions{ display:flex; align-items:center; gap:18px; }
+  .ll-burger{ display:flex; flex-direction:column; gap:5px; width:24px; padding:0; background:none; border:none; cursor:pointer; }
+  .ll-burger span{ display:block; width:24px; height:2px; background:#111; transition:.25s; }
+  .ll-burger:hover span{ background:#666; }
+
+  /* 풀스크린 오버레이 메뉴 (위에서 내려옴, 흰 글자 중앙) */
+  .ll-menu{ position:fixed; inset:0; z-index:100; background:rgba(15,15,15,.97);
+    transform:translateY(-100%); transition:transform .5s cubic-bezier(.4,0,.1,1);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ll-menu.on{ transform:translateY(0); }
+  .ll-menu-close{ position:absolute; top:22px; right:30px; background:none; border:none; color:#fff; font-size:24px; line-height:1; cursor:pointer; padding:6px; }
+  .ll-menu-close:hover{ opacity:.6; }
+  .ll-menu-nav{ display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; }
+  .ll-menu-nav a{ color:#fff; font-size:clamp(22px,3vw,32px); font-weight:500; letter-spacing:-0.02em; padding:9px 0; opacity:.82; transition:opacity .2s; }
+  .ll-menu-nav a:hover{ opacity:1; }
+
+  /* 검색바 (헤더 아래 드롭다운) */
+  .ll-searchbar{ background:#fff; border-bottom:1px solid var(--line); max-height:0; overflow:hidden; transition:max-height .33s ease; }
+  .ll-searchbar.on{ max-height:88px; }
+  .ll-searchbar-in{ display:flex; align-items:center; gap:14px; height:68px; }
+  .ll-searchbar-in > svg{ color:#999; flex:0 0 auto; }
+  .ll-searchbar-in input{ flex:1; min-width:0; border:none; outline:none; background:none; font-family:inherit; font-size:18px; color:#111; letter-spacing:-0.01em; }
+  .ll-searchbar-in input::placeholder{ color:#c2c2c2; }
+  .ll-searchbar-close{ background:none; border:none; cursor:pointer; font-size:17px; line-height:1; color:#111; padding:6px; flex:0 0 auto; }
+  .ll-searchbar-close:hover{ opacity:.6; }
+</style>
+</head>
+<body data-view="home">
+
+<!-- ============== HEADER ============== -->
+<header class="header">
+  <div class="container header-inner">
+    <div class="brand-lockup">
+      <a href="#" class="logo" data-view="home" aria-label="LOCAL LAYERS">
+        <img src="/img/logo.png" class="logo-black" alt="LOCAL LAYERS" />
+        <img src="/img/logo_white.png" class="logo-white" alt="LOCAL LAYERS" style="display:none" />
+      </a>
+      <span class="brand-msg">시선이 머문 공간, 그리고 그 너머의 경험</span>
+    </div>
+    <div class="hd-actions">
+      <a class="ll-search" href="#" id="llSearchBtn" aria-label="검색">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+      </a>
+      <button class="ll-burger" id="llBurger" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 풀스크린 오버레이 메뉴 (위에서 내려옴) ===== -->
+<div class="ll-menu" id="llMenu" aria-hidden="true">
+  <button class="ll-menu-close" id="llClose" aria-label="닫기">✕</button>
+  <nav class="ll-menu-nav">
+    <a href="/proto.html">메인</a>
+    <a href="#">Space</a>
+    <a href="#">Experience</a>
+    <a href="#">Inspiration</a>
+    <a href="#">지역</a>
+    <a href="/brand.html">About</a>
+  </nav>
+</div>
+
+<!-- ===== 검색바 (헤더 아래로 드롭) ===== -->
+<div class="ll-searchbar" id="llSearchBar">
+  <div class="container ll-searchbar-in">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+    <input type="text" id="llSearchInput" placeholder="공간 · 지역 · 키워드로 검색" autocomplete="off" />
+    <button class="ll-searchbar-close" id="llSearchClose" aria-label="검색 닫기">✕</button>
+  </div>
+</div>
+
+<!-- ============== HOME VIEW ============== -->
+<main class="home-view">
+  <div class="container">
+
+    <!-- ===== Featured 슬라이드 컨테이너 ===== -->
+    <section class="ll-feat" id="llFeat">
+      <a class="ll-slide on" href="#" style="background-image:url('/img/items/seongsu.jpg')">
+        <div class="ll-cap"><span class="c">Experience</span><h3>공장 골조 위에 얹은 스테이</h3><span class="loc">서울 · 성수</span></div>
+      </a>
+      <a class="ll-slide" href="#" style="background-image:url('/img/items/jeju.jpg')">
+        <div class="ll-cap"><span class="c">Space</span><h3>낮은 채광이 머무는 단층 다실</h3><span class="loc">제주 · 한림</span></div>
+      </a>
+      <a class="ll-slide" href="#" style="background-image:url('/img/hero/hero-1.jpg')">
+        <div class="ll-cap"><span class="c">Inspiration</span><h3>골목 끝에서 시간을 볶는 로스터리</h3><span class="loc">부산 · 영도</span></div>
+      </a>
+      <div class="ll-dots" id="llDots"><button class="on"></button><button></button><button></button></div>
+    </section>
+
+    <section class="grid-section">
+      <div class="article-grid" id="latestGrid">
+
+        <a class="ll-card" data-cat="experience" href="/article.html">
+          <img class="ph" src="/img/items/seongsu.jpg" alt="공장 골조 위에 얹은 스테이" loading="lazy" />
+          <div class="ov"></div>
+          <div class="txt">
+            <div class="eyebrow">Experience</div>
+            <h3 class="t">공장 골조 위에 얹은 스테이</h3>
+            <p class="sub">40년 된 봉제공장의 철골을 남기고 머무는 동선만 새로 설계했다.</p>
+            <div class="meta"><span class="loc">서울 <i class="bar"></i> 성수</span><span class="date">2026.06.24</span></div>
+          </div>
+        </a>
+
+        <a class="ll-card" data-cat="space" href="/article.html">
+          <img class="ph" src="/img/items/jeju.jpg" alt="낮은 채광이 머무는 단층 다실" loading="lazy" />
+          <div class="ov"></div>
+          <div class="txt">
+            <div class="eyebrow">Space</div>
+            <h3 class="t">낮은 채광이 머무는 단층 다실</h3>
+            <p class="sub">처마를 낮춰 들인 빛이 바닥에 머무는 시간을 길게 늘인다.</p>
+            <div class="meta"><span class="loc">제주 <i class="bar"></i> 한림</span><span class="date">2026.06.20</span></div>
+          </div>
+        </a>
+
+        <a class="ll-card" data-cat="inspiration" href="/article.html">
+          <img class="ph" src="/img/hero/hero-1.jpg" alt="골목 끝의 작은 로스터리" loading="lazy" />
+          <div class="ov"></div>
+          <div class="txt">
+            <div class="eyebrow">Inspiration</div>
+            <h3 class="t">골목 끝에서 시간을 볶는 로스터리</h3>
+            <p class="sub">좁은 골목의 밀도가 만든 동선이 곧 브랜드의 리듬이 된다.</p>
+            <div class="meta"><span class="loc">부산 <i class="bar"></i> 영도</span><span class="date">2026.06.15</span></div>
+          </div>
+        </a>
+
+        <a class="ll-card" data-cat="inspiration" href="/article.html">
+          <img class="ph" src="/img/hero/hero-3.jpg" alt="폐교를 고친 마을 라이브러리" loading="lazy" />
+          <div class="ov"></div>
+          <div class="txt">
+            <div class="eyebrow">Inspiration</div>
+            <h3 class="t">폐교를 고친 마을 라이브러리</h3>
+            <p class="sub">운동장의 스케일을 그대로 둔 채 책장의 밀도만 채워 넣었다.</p>
+            <div class="meta"><span class="loc">전주 <i class="bar"></i> 한옥마을</span><span class="date">2026.06.10</span></div>
+          </div>
+        </a>
+
+        <a class="ll-card" data-cat="experience" href="/article.html">
+          <img class="ph" src="/img/items/euljiro.jpg" alt="방앗간을 개조한 베이커리" loading="lazy" />
+          <div class="ov"></div>
+          <div class="txt">
+            <div class="eyebrow">Experience</div>
+            <h3 class="t">방앗간을 개조한 베이커리</h3>
+            <p class="sub">곡물을 빻던 자리에 오븐을 앉히고 향의 동선을 다시 짰다.</p>
+            <div class="meta"><span class="loc">서울 <i class="bar"></i> 창신동</span><span class="date">2026.06.06</span></div>
+          </div>
+        </a>
+
+        <a class="ll-card" data-cat="space" href="/article.html">
+          <img class="ph" src="/img/hero/hero-2.jpg" alt="물길을 따라 앉힌 다이닝" loading="lazy" />
+          <div class="ov"></div>
+          <div class="txt">
+            <div class="eyebrow">Space</div>
+            <h3 class="t">물길을 따라 앉힌 다이닝</h3>
+            <p class="sub">개울의 곡선을 따라 테이블을 흩어 자리마다 다른 풍경을 준다.</p>
+            <div class="meta"><span class="loc">강릉 <i class="bar"></i> 교동</span><span class="date">2026.06.01</span></div>
+          </div>
+        </a>
+
+      </div>
+
+      <div class="ll-viewall"><a href="#">전체보기 →</a></div>
+    </section>
+
+  </div>
+
+  <!-- Footer (풀폭 검정) -->
+  <footer class="ll-footer">
+    <div class="container ll-footer-in">
+      <span class="ll-copy">© 2026 LOCAL LAYERS — CM LAB : space &amp; experience</span>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  (function(){
+    var feat=document.getElementById('llFeat'); if(!feat) return;
+    var slides=[].slice.call(feat.querySelectorAll('.ll-slide'));
+    var dots=[].slice.call(document.querySelectorAll('#llDots button'));
+    var i=0, timer=null;
+    function go(n){
+      slides[i].classList.remove('on'); if(dots[i])dots[i].classList.remove('on');
+      i=(n+slides.length)%slides.length;
+      slides[i].classList.add('on'); if(dots[i])dots[i].classList.add('on');
+    }
+    function start(){ stop(); timer=setInterval(function(){go(i+1);},5000); }
+    function stop(){ if(timer){clearInterval(timer); timer=null;} }
+    dots.forEach(function(d,n){ d.addEventListener('click',function(){go(n); start();}); });
+    start();
+  })();
+
+  // 풀스크린 오버레이 메뉴 (햄버거)
+  (function(){
+    var burger=document.getElementById('llBurger');
+    var menu=document.getElementById('llMenu');
+    var closeBtn=document.getElementById('llClose');
+    if(!burger||!menu) return;
+    function open(){ menu.classList.add('on'); document.body.style.overflow='hidden'; }
+    function close(){ menu.classList.remove('on'); document.body.style.overflow=''; }
+    burger.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    menu.addEventListener('click', function(e){ if(e.target===menu) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+  })();
+
+  // 검색바 드롭다운
+  (function(){
+    var btn=document.getElementById('llSearchBtn');
+    var bar=document.getElementById('llSearchBar');
+    var input=document.getElementById('llSearchInput');
+    var closeBtn=document.getElementById('llSearchClose');
+    if(!btn||!bar) return;
+    function open(){ bar.classList.add('on'); setTimeout(function(){ if(input) input.focus(); }, 130); }
+    function close(){ bar.classList.remove('on'); }
+    btn.addEventListener('click', function(e){ e.preventDefault(); bar.classList.contains('on') ? close() : open(); });
+    closeBtn.addEventListener('click', close);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+  })();
+</script>
+
+</body>
+</html>

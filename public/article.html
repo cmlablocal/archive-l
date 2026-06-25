@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>공장 골조 위에 얹은 스테이 — LOCAL LAYERS</title>
+<meta name="description" content="40년 된 봉제공장의 철골을 남기고 머무는 동선만 새로 설계한 성수동 스테이. Local Layers가 세 가지 층위로 들여다본 기록." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/persp.css" />
+<style>
+  :root{ --bg:#ffffff; --fg:#111111; --accent:#9a6a43; }
+  body{ background:#ffffff !important; color:#111111; word-break:keep-all; }
+  .header{ border-bottom:none; }
+  .container{ padding:0 40px; }
+  .header-inner{ height:auto; padding:45px 40px 26px; }
+  .logo img{ height:30px; }
+
+  .brand-lockup{ display:flex; align-items:flex-end; gap:11px; }
+  .brand-msg{ font-size:9pt; line-height:1; color:var(--muted); letter-spacing:-0.01em; white-space:nowrap; }
+  @media (max-width:680px){ .brand-msg{ display:none; } }
+
+  .art-col{ max-width:740px; margin:0 auto; }
+
+  /* 제목 블록 (이미지보다 먼저) */
+  .art-head{ padding:64px 0 0; }
+  .art-cat{ display:inline-block; border:1px solid #d8d6d1; padding:5px 10px; line-height:1; font-size:10.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:#333; }
+  .art-title{ margin:22px 0 22px; font-size:clamp(32px,5vw,56px); font-weight:800; line-height:1.14; letter-spacing:-0.04em; }
+  .art-lead{ margin:0; font-size:clamp(18px,2.1vw,22px); font-weight:500; line-height:1.75; color:#46423b; }
+  .art-byline{ display:flex; align-items:center; gap:12px; margin-top:26px; font-size:13px; color:var(--muted); letter-spacing:.01em; }
+  .art-byline .dot{ width:3px; height:3px; border-radius:50%; background:#c9c7c2; display:inline-block; }
+
+  /* 도판 */
+  .art-fig{ margin:46px 0; }
+  .art-fig.hero{ margin:44px 0 8px; }
+  .art-fig img{ width:100%; aspect-ratio:16/10; max-height:520px; object-fit:cover; background:#eee; display:block; }
+  .art-fig figcaption{ margin-top:12px; max-width:740px; margin-left:auto; margin-right:auto; font-size:12.5px; color:var(--muted); line-height:1.65; }
+
+  /* 본문 */
+  .art-body{ padding:30px 0 84px; }
+  .art-layer{ margin-top:56px; }
+  .art-layer:first-child{ margin-top:0; }
+  .art-k{ font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); }
+  .art-layer h2{ margin:10px 0 18px; font-size:25px; font-weight:700; letter-spacing:-0.025em; }
+  .art-body p{ margin:0 0 21px; font-size:17.5px; line-height:1.95; color:#1d1d1d; }
+
+  /* 풀쿼트 */
+  .art-quote{ margin:54px 0; padding:6px 0 6px 24px; border-left:3px solid #111; }
+  .art-quote p{ margin:0; font-size:clamp(21px,2.8vw,30px); font-weight:700; line-height:1.45; letter-spacing:-0.03em; color:#111; }
+
+  .art-foot{ margin-top:60px; padding-top:28px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .art-tags{ display:flex; gap:14px; flex-wrap:wrap; }
+  .art-tag{ font-size:12.5px; color:var(--muted); }
+  .art-back{ font-size:13px; font-weight:600; color:#111; }
+  .art-back:hover{ opacity:.6; }
+
+  .ll-footer{ background:#111111; }
+  .ll-footer-in{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:30px; padding-bottom:36px; flex-wrap:wrap; }
+  .ll-copy{ font-size:12.5px; color:#8f8a82; }
+  .ll-about{ font-size:13px; color:#fff; font-weight:600; }
+  .ll-about:hover{ opacity:.65; }
+
+  @media (max-width:680px){
+    .art-head{ padding:40px 0 0; }
+    .art-fig img{ aspect-ratio:4/3; }
+  }
+</style>
+</head>
+<body data-view="article">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="container header-inner">
+    <div class="brand-lockup">
+      <a href="/proto.html" class="logo" aria-label="LOCAL LAYERS">
+        <img src="/img/logo.png" class="logo-black" alt="LOCAL LAYERS" />
+        <img src="/img/logo_white.png" class="logo-white" alt="LOCAL LAYERS" style="display:none" />
+      </a>
+      <span class="brand-msg">시선이 머문 공간, 그리고 그 너머의 경험</span>
+    </div>
+    <nav class="header-nav">
+      <a class="nav-link" href="/proto.html">Archive</a>
+      <a class="nav-link" href="/brand.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- 제목 블록 (이미지보다 먼저) -->
+  <div class="container">
+    <div class="art-col art-head">
+      <span class="art-cat">Experience</span>
+      <h1 class="art-title">공장 골조 위에 얹은 스테이</h1>
+      <p class="art-lead">40년 된 봉제공장의 철골을 그대로 남기고, 머무는 사람의 동선만 새로 설계했다. 성수동 골목 안쪽, 간판도 없는 이 스테이의 결을 천천히 따라가 봤다.</p>
+      <div class="art-byline">
+        <span>서울 · 성수</span><i class="dot"></i><span>2026.06.24</span><i class="dot"></i><span>Editor. CM LAB</span>
+      </div>
+      <!-- lead: 레이어 언급 제거 -->
+    </div>
+  </div>
+
+  <!-- 히어로 도판 (제목 뒤, 본문과 같은 리딩 컬럼 폭) -->
+  <div class="container">
+    <div class="art-col">
+      <figure class="art-fig hero">
+        <img src="/img/items/seongsu.jpg" alt="공장 골조 위에 얹은 스테이" />
+        <figcaption>8미터 높이의 박공 지붕과 그 아래를 가로지르는 녹슨 철골. 공장이었던 시간을 가장 잘 보이는 자리에 남겨두었다.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- 본문 -->
+  <div class="container">
+    <article class="art-col art-body">
+
+      <section class="art-layer">
+        <h2>지우지 않은 천장</h2>
+        <p>문을 열면 가장 먼저 천장이 보인다. 8미터 높이의 박공 지붕과 그 아래를 가로지르는 녹슨 철골. 공장이었던 시간을 지우지 않고, 오히려 가장 잘 보이는 자리에 남겨두었다.</p>
+        <p>낮에는 톱라이트로 들어온 빛이 콘크리트 바닥에 길게 떨어지고, 해가 기울면 그 빛은 벽돌 벽의 결을 따라 천천히 옮겨간다. 가구는 의도적으로 낮다. 시선이 자꾸 위로, 구조로 향하도록.</p>
+      </section>
+
+      <figure class="art-fig">
+        <img src="/img/hero/hero-2.jpg" alt="" loading="lazy" />
+        <figcaption>새것의 매끈함 대신 오래된 표면의 깊이를 택한 선택이 공간 전체의 톤을 만든다.</figcaption>
+      </figure>
+
+      <section class="art-layer">
+        <h2>리셉션 없는 체크인</h2>
+        <p>이곳의 경험은 체크인부터 다르다. 리셉션이 없다. 도착하면 문자로 받은 도어록 번호를 누르고, 텅 빈 1층을 가로질러 계단을 오른다. 안내받는 대신 스스로 공간을 발견하게 하는, 설계된 비움이다.</p>
+        <p>운영자는 ‘머무는 시간을 방해하지 않는 것’을 원칙으로 삼았다. 비품은 최소한으로, 그러나 필요한 순간엔 정확히 그 자리에 있다. 보이지 않게 작동하는 운영의 촘촘함이 이 스테이의 진짜 완성도다.</p>
+      </section>
+
+      <blockquote class="art-quote">
+        <p>“무엇을 지우고 무엇을 남길지 — 그 편집의 기준이 곧 이 로컬의 정체성이 된다.”</p>
+      </blockquote>
+
+      <section class="art-layer">
+        <h2>지우지 말아야 할 시간</h2>
+        <p>공장을 헐지 않고 남긴 결정은 비용이 아니라 태도의 문제였다. 화려한 신축 대신 ‘남길 것’을 고른 편집의 감각이, 결국 이 로컬을 다른 곳과 구별 짓는다.</p>
+        <p>다른 로컬을 기획하는 사람에게 이 스테이가 건네는 질문은 단순하다. 당신의 공간에서, 지우지 말아야 할 시간은 무엇인가.</p>
+      </section>
+
+      <div class="art-foot">
+        <div class="art-tags">
+          <span class="art-tag">#성수</span>
+          <span class="art-tag">#스테이</span>
+          <span class="art-tag">#적응적재사용</span>
+        </div>
+        <a class="art-back" href="/proto.html">← 아카이브</a>
+      </div>
+
+    </article>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="ll-footer">
+    <div class="container ll-footer-in">
+      <span class="ll-copy">© 2026 LOCAL LAYERS — CM LAB : space &amp; experience</span>
+    </div>
+  </footer>
+</main>
+
+</body>
+</html>
