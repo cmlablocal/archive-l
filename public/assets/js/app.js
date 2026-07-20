@@ -331,7 +331,7 @@
   function _initBrandModal() {
     document.querySelectorAll('.footer-bottom span').forEach(sp => {
       if (sp.dataset.brandBound) return;
-      if ((sp.textContent || '').toUpperCase().includes('CM LAB')) {
+      if ((sp.textContent || '').includes('시엔플레이스')) {
         sp.dataset.brandBound = '1';
         sp.classList.add('brand-link');
         sp.setAttribute('role', 'button');
@@ -614,7 +614,7 @@
       if (submitBtn) submitBtn.textContent = '회원가입';
       if (toggleLink) { toggleLink.textContent = '← 로그인'; toggleLink.setAttribute('onclick', 'toggleLoginMode(); return false;'); }
       if (title) title.textContent = '회원가입';
-      if (sub) sub.innerHTML = '이메일·비밀번호·이름으로 가입하세요.<br/>독자가 되면 Local Layers 콘텐츠를 모두 이용하실 수 있습니다.';
+      if (sub) sub.innerHTML = '이메일·비밀번호·이름으로 가입하세요.<br/>독자가 되면 LOCALLAYER 콘텐츠를 모두 이용하실 수 있습니다.';
       _setAgreeVisible(true);
       _setSignupPwVisible(true);
       _setEmailCheckVisible(true);
@@ -637,7 +637,7 @@
       if (submitBtn) submitBtn.textContent = '로그인';
       if (toggleLink) { toggleLink.textContent = '회원가입 →'; toggleLink.setAttribute('onclick', 'toggleLoginMode(); return false;'); }
       if (title) title.textContent = '로그인';
-      if (sub) sub.innerHTML = 'Local Layers 독자가 되면<br/>모든 아티클을 끝까지 읽을 수 있어요.';
+      if (sub) sub.innerHTML = 'LOCALLAYER 독자가 되면<br/>모든 아티클을 끝까지 읽을 수 있어요.';
       _setAgreeVisible(false);
       _setSignupPwVisible(false);
       _setEmailCheckVisible(false);
@@ -1278,7 +1278,7 @@
       if (desc) { leadEl.textContent = desc; leadEl.style.display = ''; }
       else { leadEl.textContent = ''; leadEl.style.display = 'none'; }
     }
-    document.title = listPageCategory + ' · Local Layers';
+    document.title = listPageCategory + ' · LOCALLAYER';
   }
 
   // 목록 페이지 진입 시: 카테고리 + 발행 글을 불러와 필터/목록 갱신
@@ -2051,7 +2051,7 @@
     // 브랜드 푸터
     ctx.fillStyle = fg;
     ctx.font = '700 30px Pretendard, sans-serif';
-    ctx.fillText('LOCAL LAYERS', padX, H - 96);
+    ctx.fillText('LOCALLAYER', padX, H - 96);
     ctx.fillStyle = muted;
     ctx.font = '400 24px Pretendard, sans-serif';
     ctx.fillText('Another Movement · archive-l.web.app', padX, H - 60);
@@ -2069,7 +2069,7 @@
       if (!blob) throw new Error('blob 생성 실패');
       const file = new File([blob], 'perspective-sentence.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Local Layers 문장' });
+        await navigator.share({ files: [file], title: 'LOCALLAYER 문장' });
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -2352,7 +2352,7 @@
     let html = '';
     html += '<div class="recap-card" id="recapCard">';
     html += '  <div class="recap-head">';
-    html += '    <span class="recap-kicker">' + YEAR + ' LOCAL LAYERS</span>';
+    html += '    <span class="recap-kicker">' + YEAR + ' LOCALLAYER</span>';
     html += '    <h2 class="recap-title">' + (userName ? escHTML(userName) + ' 님의<br/>' : '') + '올해의 생각 정리</h2>';
     html += '  </div>';
     html += '  <div class="recap-stats">';
@@ -3108,9 +3108,9 @@
 
     let html = '<div class="library-card">';
 
-    // 헤더 — Local Layers 에디토리얼 스타일 (박스/그라데이션 제거, 타이포 중심)
+    // 헤더 — LOCALLAYER 에디토리얼 스타일 (박스/그라데이션 제거, 타이포 중심)
     html += '<header class="library-head">';
-    html += '<div class="library-eyebrow">LOCAL LAYERS · READER LIBRARY</div>';
+    html += '<div class="library-eyebrow">LOCALLAYER · READER LIBRARY</div>';
     html += '<h1 class="library-name">' + escHTML(p.handle || '독자') + '</h1>';
     if (p.bio) html += '<p class="library-bio">' + escHTML(p.bio) + '</p>';
     // 통계 — 인라인 스트립(구분선)
@@ -3183,12 +3183,12 @@
         '<a href="/mypage.html">나의 서재</a> 상단의 책갈피 아이콘에서 업데이트하거나 공개를 중지할 수 있어요.</div>';
     }
 
-    html += '<div class="library-foot"><a class="library-cta" href="/">Local Layers에서 더 많은 글 만나기 →</a></div>';
+    html += '<div class="library-foot"><a class="library-cta" href="/">LOCALLAYER에서 더 많은 글 만나기 →</a></div>';
     html += '</div>';
     root.innerHTML = html;
 
     // 페이지 제목 갱신
-    try { document.title = (p.handle || '독자') + '님의 공개 서재 | Local Layers'; } catch (e) {}
+    try { document.title = (p.handle || '독자') + '님의 공개 서재 | LOCALLAYER'; } catch (e) {}
   }
   window.renderPublicLibrary = renderPublicLibrary;
 
@@ -3318,7 +3318,7 @@
 
     // 헤더 — 타이포 중심 에디토리얼 (설정 버튼 제거 — 내용 영역 클릭으로 편집)
     html += '<header class="editor-head">';
-    html += '<div class="editor-eyebrow">LOCAL LAYERS EDITOR</div>';
+    html += '<div class="editor-eyebrow">LOCALLAYER EDITOR</div>';
     html += '<div class="editor-name-row">';
     html += '<h1 class="editor-name">' + escHTML(name) + '</h1>';
     html += '</div>';
@@ -3369,7 +3369,7 @@
 
     _epRenderSections();
 
-    try { document.title = name + ' · 에디터 | Local Layers'; } catch (e) {}
+    try { document.title = name + ' · 에디터 | LOCALLAYER'; } catch (e) {}
   }
   window.renderEditorProfile = renderEditorProfile;
 
@@ -4186,7 +4186,7 @@
     const a = ARTICLES[collectingArticleId];
     if (!a) return;
     const url = window.location.href.split('#')[0] + '#' + collectingArticleId;
-    const citation = `"${text}"\n— ${a.title}, Local Layers, ${a.date}\n${url}`;
+    const citation = `"${text}"\n— ${a.title}, LOCALLAYER, ${a.date}\n${url}`;
     const finish = () => {
       _pendingSelectionText = '';
       collectingArticleId = null;
@@ -5329,7 +5329,7 @@
   /* ===== Share / Copy link ===== */
   function shareTo(platform, articleId) {
     const url = window.location.href.split('#')[0] + '#' + articleId;
-    const text = 'LOCAL LAYERS — ' + (document.querySelector('#article-' + articleId + ' .article-title')?.textContent || '');
+    const text = 'LOCALLAYER — ' + (document.querySelector('#article-' + articleId + ' .article-title')?.textContent || '');
     if (platform === 'x') {
       window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
     } else if (platform === 'instagram') {
@@ -7604,8 +7604,8 @@
     // ---- 폼 구성 정의 ----
     const INQUIRY_FORMS = {
       general: {
-        title: 'Local Layers 콘텐츠 이용 문의',
-        intro: '어나더무브먼트 · Local Layers 아티클을 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있습니다.',
+        title: 'LOCALLAYER 콘텐츠 이용 문의',
+        intro: '어나더무브먼트 · LOCALLAYER 아티클을 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
@@ -7659,8 +7659,8 @@
         ]
       },
       editor: {
-        title: 'Local Layers 에디터 지원',
-        intro: '당신의 관점을 Local Layers에서 직접 발행해보세요. 아래 양식을 남겨주시면 검토 후 결과를 마이페이지(나의 서재)의 메시지함에서 안내드립니다. 이름·이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
+        title: 'LOCALLAYER 에디터 지원',
+        intro: '당신의 관점을 LOCALLAYER에서 직접 발행해보세요. 아래 양식을 남겨주시면 검토 후 결과를 마이페이지(나의 서재)의 메시지함에서 안내드립니다. 이름·이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
         submit: '에디터 지원하기',
         collection: 'editorApplications',
         successMsg: '에디터 지원이 접수되었어요.<br/>검토 후 결과는 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있어요.',
@@ -7733,7 +7733,7 @@
             <span class="meta-label">ABOUT</span>
             <h2 class="inq-title" id="amvTitle">another movement</h2>
             <div class="amv-body">
-              <p>Local Layers 아티클은 <strong>어나더무브먼트(Another Movement)</strong>가 발행하는 디자인 인사이트 채널입니다.</p>
+              <p>LOCALLAYER 아티클은 <strong>어나더무브먼트(Another Movement)</strong>가 발행하는 디자인 인사이트 채널입니다.</p>
               <p>우리는 디자인을 단순한 결과물이 아니라 ‘생각하는 방식’과 ‘문제를 푸는 프레임’으로 바라봅니다. 브랜드의 철학과 맥락을 읽어내고, 이를 시각 언어와 콘텐츠로 풀어내는 일을 합니다.</p>
               <p>관점을 함께 나누고, 디자인으로 한 걸음 더 나아가고자 하는 모든 분들과 연결되기를 바랍니다.</p>
               <div class="amv-meta">

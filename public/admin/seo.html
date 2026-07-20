@@ -4,7 +4,7 @@
 <script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SEO · Local Layers Admin</title>
+<title>SEO · LOCALLAYER Admin</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -73,8 +73,8 @@
 <div class="admin-shell">
   <aside class="admin-sidebar">
     <a href="/admin/" class="admin-brand">
-      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
-      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <img src="/assets/img/black_logo.png" alt="LOCALLAYER" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCALLAYER" class="brand-logo-dark" style="display:none" />
       <span class="admin-brand-label">ADMIN</span>
     </a>
     <nav class="admin-nav">
@@ -130,7 +130,7 @@
 
       <div class="field">
         <label for="siteName">사이트 이름 (og:site_name)</label>
-        <input type="text" id="siteName" placeholder="Local Layers" autocomplete="off" />
+        <input type="text" id="siteName" placeholder="LOCALLAYER" autocomplete="off" />
       </div>
       <div class="grid2">
         <div class="field">
@@ -200,23 +200,23 @@
   ];
 
   // 빈 값일 때 placeholder로 보여줄 권장 기본값(seo-meta.js와 동일 의도)
-  const SITE_DESC_DEFAULT = 'Local Layers는 시선이 머문 공간, 그리고 그 너머의 경험을 기록하는 로컬 인스퍼레이션 아카이브입니다.';
+  const SITE_DESC_DEFAULT = 'LOCALLAYER는 시선이 머문 공간, 그리고 그 너머의 경험을 기록하는 로컬 인스퍼레이션 아카이브입니다.';
   const PAGE_DEFAULTS = {
-    home:    { title: 'Local Layers | 시선이 머문 공간, 그리고 그 너머의 경험', ogTitle: 'Local Layers — 시선이 머문 공간, 그리고 그 너머의 경험', desc: SITE_DESC_DEFAULT },
-    list:    { title: '아티클 전체 | Local Layers', ogTitle: '아티클 전체 · Local Layers', desc: 'Local Layers의 모든 디자인 아티클을 카테고리별로 만나보세요.' },
-    series:  { title: '시리즈 | Local Layers', ogTitle: '시리즈 · Local Layers', desc: '하나의 주제를 깊이 있게 따라가는 Local Layers 시리즈.' },
-    notes:   { title: '디자인 노트 | Local Layers', ogTitle: '디자인 노트 · Local Layers', desc: '디자인에 대한 짧은 생각과 관점을 모은 디자인 노트.' },
-    about:   { title: 'About | Local Layers', ogTitle: 'About · Local Layers', desc: 'Local Layers와 Another Movement가 디자인을 바라보는 방식.' },
-    notices: { title: '공지사항 | Local Layers', ogTitle: '공지사항 · Local Layers', desc: 'Local Layers의 발행 일정과 신규 콘텐츠, 서비스 소식을 전합니다.' },
-    opinion: { title: '오피니언 | Local Layers', ogTitle: '오피니언 · Local Layers', desc: '디자인에 대한 다양한 관점과 의견을 나누는 오피니언.' },
-    mypage:  { title: 'My Archive | Local Layers', ogTitle: 'My Archive · Local Layers', desc: '내가 저장한 글, 수집한 문장, 남긴 반응을 한 곳에서 — My Archive.' },
-    terms:   { title: '이용약관 | Local Layers', ogTitle: '이용약관 · Local Layers', desc: 'Local Layers 서비스 이용약관입니다.' },
-    privacy: { title: '개인정보처리방침 | Local Layers', ogTitle: '개인정보처리방침 · Local Layers', desc: 'Local Layers 개인정보처리방침입니다.' },
+    home:    { title: 'LOCALLAYER | 시선이 머문 공간, 그리고 그 너머의 경험', ogTitle: 'LOCALLAYER — 시선이 머문 공간, 그리고 그 너머의 경험', desc: SITE_DESC_DEFAULT },
+    list:    { title: '아티클 전체 | LOCALLAYER', ogTitle: '아티클 전체 · LOCALLAYER', desc: 'LOCALLAYER의 모든 디자인 아티클을 카테고리별로 만나보세요.' },
+    series:  { title: '시리즈 | LOCALLAYER', ogTitle: '시리즈 · LOCALLAYER', desc: '하나의 주제를 깊이 있게 따라가는 LOCALLAYER 시리즈.' },
+    notes:   { title: '디자인 노트 | LOCALLAYER', ogTitle: '디자인 노트 · LOCALLAYER', desc: '디자인에 대한 짧은 생각과 관점을 모은 디자인 노트.' },
+    about:   { title: 'About | LOCALLAYER', ogTitle: 'About · LOCALLAYER', desc: 'LOCALLAYER와 Another Movement가 디자인을 바라보는 방식.' },
+    notices: { title: '공지사항 | LOCALLAYER', ogTitle: '공지사항 · LOCALLAYER', desc: 'LOCALLAYER의 발행 일정과 신규 콘텐츠, 서비스 소식을 전합니다.' },
+    opinion: { title: '오피니언 | LOCALLAYER', ogTitle: '오피니언 · LOCALLAYER', desc: '디자인에 대한 다양한 관점과 의견을 나누는 오피니언.' },
+    mypage:  { title: 'My Archive | LOCALLAYER', ogTitle: 'My Archive · LOCALLAYER', desc: '내가 저장한 글, 수집한 문장, 남긴 반응을 한 곳에서 — My Archive.' },
+    terms:   { title: '이용약관 | LOCALLAYER', ogTitle: '이용약관 · LOCALLAYER', desc: 'LOCALLAYER 서비스 이용약관입니다.' },
+    privacy: { title: '개인정보처리방침 | LOCALLAYER', ogTitle: '개인정보처리방침 · LOCALLAYER', desc: 'LOCALLAYER 개인정보처리방침입니다.' },
   };
 
   const SITE_DEFAULTS = {
-    siteName: 'Local Layers',
-    defaultTitle: 'Local Layers | 시선이 머문 공간, 그리고 그 너머의 경험',
+    siteName: 'LOCALLAYER',
+    defaultTitle: 'LOCALLAYER | 시선이 머문 공간, 그리고 그 너머의 경험',
     defaultDesc: SITE_DESC_DEFAULT,
   };
 

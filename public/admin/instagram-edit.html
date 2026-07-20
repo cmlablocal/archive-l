@@ -4,7 +4,7 @@
 <script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Instagram 편집 · Local Layers Admin</title>
+<title>Instagram 편집 · LOCALLAYER Admin</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -173,8 +173,8 @@
 <div class="admin-shell">
   <aside class="admin-sidebar">
     <a href="/admin/" class="admin-brand">
-      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
-      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <img src="/assets/img/black_logo.png" alt="LOCALLAYER" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCALLAYER" class="brand-logo-dark" style="display:none" />
       <span class="admin-brand-label">ADMIN</span>
     </a>
     <nav class="admin-nav">
@@ -235,7 +235,7 @@
       </div>
       <div class="ig-field" style="width:200px;margin:0;">
         <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">브랜드 워드마크</label>
-        <input type="text" id="projBrand" placeholder="LOCAL LAYERS"
+        <input type="text" id="projBrand" placeholder="LOCALLAYER"
           style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:13px;background:transparent;border:1px solid var(--admin-border);border-radius:8px;color:var(--fg);font-family:inherit;" />
       </div>
       <div class="ig-field" style="width:120px;margin:0;">
@@ -278,7 +278,7 @@
               <button class="admin-btn ghost admin-btn-sm" id="tagGroupSave" title="현재 해시태그를 새 묶음으로 저장"><i class="fa-regular fa-floppy-disk"></i> 저장</button>
               <button class="admin-btn ghost admin-btn-sm" id="tagGroupDel" title="선택한 묶음 삭제"><i class="fa-regular fa-trash-can"></i></button>
             </div>
-            <textarea id="capTags" rows="3" placeholder="Local Layers 칼럼 another movement"
+            <textarea id="capTags" rows="3" placeholder="LOCALLAYER 칼럼 another movement"
               style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;background:var(--bg);border:1px solid var(--admin-border);border-radius:8px;color:var(--fg);font-family:inherit;resize:vertical;"></textarea>
           </div>
         </div>
@@ -409,7 +409,7 @@
     docId: qs.get('id') || null,
     articleId: qs.get('articleId') || null,
     title: '',
-    brand: 'LOCAL LAYERS',
+    brand: 'LOCALLAYER',
     accent: '#e23b3b',
     pages: [],
     caption: { body:'', tags:'' },
@@ -489,7 +489,7 @@
     const mig = migrateLayout(page.type, page.layout, page.vAlign);
     const layout = mig.layout;
     const vAlign = page.vAlign || mig.vAlign;
-    const brand = `<div class="ig-brand" style="color:${fg}">${escText(state.brand || 'LOCAL LAYERS')}</div>`;
+    const brand = `<div class="ig-brand" style="color:${fg}">${escText(state.brand || 'LOCALLAYER')}</div>`;
     // 보정막: 표지가 하단 위치일 때만 하단 그라데이션, 그 외는 균일
     let scrim = '';
     if (imgSrc && page.scrimMode !== 'none'){
@@ -706,7 +706,7 @@
         ${page.type==='cover' ? `
         <div class="ig-field">
           <label>태그 (쉼표 또는 줄바꿈으로 구분, # 없이)</label>
-          <textarea id="fTags" rows="2" placeholder="인스타그램, Local Layers">${escText(page.tags)}</textarea>
+          <textarea id="fTags" rows="2" placeholder="인스타그램, LOCALLAYER">${escText(page.tags)}</textarea>
         </div>` : `
         <div class="ig-field">
           <label>하단 안내 문구 (선택)</label>
@@ -1053,7 +1053,7 @@
       title: state.title || '',
       articleId: state.articleId || null,
       ratio: '4:5',
-      brand: state.brand || 'LOCAL LAYERS',
+      brand: state.brand || 'LOCALLAYER',
       accent: state.accent || '#e23b3b',
       caption: { body: state.caption.body||'', tags: state.caption.tags||'' },
       pages: state.pages.map(p => ({
@@ -1090,7 +1090,7 @@
   function hydrate(d){
     state.title = d.title || '';
     state.articleId = d.articleId || state.articleId;
-    state.brand = d.brand || 'LOCAL LAYERS';
+    state.brand = d.brand || 'LOCALLAYER';
     state.accent = d.accent || '#e23b3b';
     state.caption = { body: (d.caption&&d.caption.body)||'', tags: (d.caption&&d.caption.tags)||'' };
     state.pages = (Array.isArray(d.pages)?d.pages:[]).map(p => ({
@@ -1136,7 +1136,7 @@
         state.pages[1].body = a.sub || '';
         state.pages[1].cta = '뒷 페이지에서 확인해 보세요!';
         state.caption.body = (a.title ? a.title + '\n\n' : '') + (a.sub || '');
-        state.caption.tags = 'Local Layers another movement';
+        state.caption.tags = 'LOCALLAYER another movement';
       }
     } catch(e){ console.warn('[ig] 아티클 로드 실패:', e.message); }
   }
@@ -1252,7 +1252,7 @@
     else state.pages = [makePage('cover')];
 
     document.getElementById('projTitle').value = state.title || '';
-    document.getElementById('projBrand').value = state.brand || 'LOCAL LAYERS';
+    document.getElementById('projBrand').value = state.brand || 'LOCALLAYER';
     document.getElementById('projAccent').value = /^#/.test(state.accent) ? state.accent : '#e23b3b';
     document.getElementById('capBody').value = state.caption.body || '';
     document.getElementById('capTags').value = state.caption.tags || '';

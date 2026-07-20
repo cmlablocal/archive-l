@@ -5,7 +5,7 @@
 <script>/*editor-popup-init*/(function(){try{if(location.search.indexOf("editorPopup")>-1)document.documentElement.classList.add("is-editor-popup");}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>새 콘텐츠 작성 · Local Layers Admin</title>
+<title>새 콘텐츠 작성 · LOCALLAYER Admin</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -418,7 +418,7 @@
           </div>
           <div class="field">
             <label for="fAuthor">작성자</label>
-            <input type="text" id="fAuthor" value="Local Layers" />
+            <input type="text" id="fAuthor" value="LOCALLAYER" />
           </div>
         </div>
         <div class="field">
@@ -2585,7 +2585,7 @@ function collectFormData() {
     date: isoToDisplay(F.date.value) || isoToDisplay(todayISO()),
     free: F.free.checked,
     tags: tags.slice(),
-    author: F.author.value.trim() || 'Local Layers',
+    author: F.author.value.trim() || 'LOCALLAYER',
     thanks: getThanks(),
     videoUrl: F.videoUrl ? F.videoUrl.value.trim() : '',
     videoId: F.videoUrl ? extractYouTubeId(F.videoUrl.value.trim()) : '',
@@ -2626,7 +2626,7 @@ function buildArticleHTML(s) {
 
   // 헤더 공통 (라이브 article.html과 동일 위계): 카테고리/시리즈 + 포맷 라벨 + 서브
   const _catText = s.cat || s.category || '';
-  const _formatLabel = s.videoMode ? 'Local Layers Video' : 'Local Layers';
+  const _formatLabel = s.videoMode ? 'LOCALLAYER Video' : 'LOCALLAYER';
   const _isSeries = !!(seriesName && partLabel);
   let _eyebrowInner;
   if (_isSeries) {
@@ -2660,7 +2660,7 @@ function buildArticleHTML(s) {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
           <h3 class="gate-title">이 글의 나머지는<br/>독자에게 공개됩니다</h3>
-          <p class="gate-sub">Local Layers에 가입하고 모든 아티클을 끝까지 읽어보세요.<br/>3분이면 충분합니다.</p>
+          <p class="gate-sub">LOCALLAYER에 가입하고 모든 아티클을 끝까지 읽어보세요.<br/>3분이면 충분합니다.</p>
           <div class="gate-actions">
             <button class="gate-btn primary">로그인 / 가입</button>
             <a class="gate-btn ghost" href="#">홈으로 돌아가기</a>
@@ -2750,7 +2750,7 @@ function buildArticleHTML(s) {
     const podSub = (s.sub || s.lead) ? `<p class="pod-sub">${escapeHTML(s.sub || s.lead).replace(/\n/g,'<br/>')}</p>` : '';
     return `<article id="article-${previewId}" class="article-content"${s.free ? ' data-free="true"' : ''}>
       <section class="pod-hero"><div class="pod-wrap">
-        <div class="pod-eyebrow">${escapeHTML(s.cat || s.category || '')}${(s.cat||s.category)?' · ':''}Local Layers Audio</div>
+        <div class="pod-eyebrow">${escapeHTML(s.cat || s.category || '')}${(s.cat||s.category)?' · ':''}LOCALLAYER Audio</div>
         <h1 class="pod-title">${escapeHTML(s.title || '')}</h1>
         ${podSub}
         <div class="article-meta"><span><strong>${escapeHTML(s.date)}</strong></span><span class="article-author">${escapeHTML(s.author)}</span></div>
@@ -2850,7 +2850,7 @@ function buildPrereleaseHTML(s) {
         <h1 class="article-title">${escapeHTML(s.title || '')}</h1>
         <div class="article-meta">
           <span><strong>${escapeHTML(dateLabel)}</strong></span>
-          <span class="article-author">${escapeHTML(s.author || 'Local Layers')}</span>
+          <span class="article-author">${escapeHTML(s.author || 'LOCALLAYER')}</span>
         </div>
       </div>
     </section>
@@ -3040,7 +3040,7 @@ async function saveArticle(targetStatus, silent) {
     ogDesc: data.ogDesc || '',
     ogImage: ogImageUrl || '',
     tags: data.tags,
-    author: data.author || (user && user.displayName) || 'Local Layers',
+    author: data.author || (user && user.displayName) || 'LOCALLAYER',
     authorId: user ? user.uid : '',
     authorEmail: user ? user.email : '',
     thanks: data.thanks,
@@ -3261,7 +3261,7 @@ async function loadExistingArticle(id) {
       free: !!legacy.free,
       tags: legacy.tags || [],
       thumb: legacy.thumb || '',
-      author: 'Local Layers',
+      author: 'LOCALLAYER',
       lead: '',
       bodyHtml: '',
       thanks: []
@@ -3282,7 +3282,7 @@ function populateForm(d) {
   setContentType(loadedType);
   // 카테고리(단편·영상): 말단 카테고리 → 1차/2차 캐스케이드 복원
   setCascadeFromCategory(d.category || '');
-  F.author.value = d.author || 'Local Layers';
+  F.author.value = d.author || 'LOCALLAYER';
   // 공개 범위 라디오 동기화
   setAccess(!!d.free);
   F.free.checked = !!d.free;
