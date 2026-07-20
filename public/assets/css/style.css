@@ -6001,3 +6001,25 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 .profile-msg.err { color: #c0392b; }
 .profile-save { width: 100%; padding: 14px; font-family: inherit; font-size: 14px; font-weight: 700; color: #fff; background: var(--fg); border: none; cursor: pointer; }
 .profile-save:disabled { opacity: .6; cursor: default; }
+
+/* ===== 메시지함 모달 ===== */
+.inbox-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 24px; }
+.inbox-modal.open { display: flex; }
+.inbox-modal-inner { position: relative; width: 100%; max-width: 560px; max-height: 82vh; overflow-y: auto; background: var(--bg); color: var(--fg); padding: 34px 30px 30px; }
+.inbox-close { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 24px; line-height: 1; color: var(--muted); cursor: pointer; }
+.inbox-close:hover { color: var(--fg); }
+.inbox-title { margin: 0 0 6px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.inbox-sub { margin: 0 0 22px; font-size: 13px; color: var(--muted); }
+.inbox-empty { padding: 34px 0; text-align: center; font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+.inbox-item { padding: 20px 0; border-top: 1px solid var(--line); }
+.inbox-item:last-child { border-bottom: 1px solid var(--line); }
+.inbox-item-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.inbox-type { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+.inbox-badge { flex: 0 0 auto; font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 4px 9px; border: 1px solid var(--line); color: var(--muted); }
+.inbox-badge.done { border-color: var(--fg); color: var(--fg); }
+.inbox-date { margin-top: 6px; font-size: 12px; color: var(--muted); }
+.inbox-body { margin-top: 12px; }
+.inbox-f { font-size: 13px; line-height: 1.7; color: var(--fg); margin-bottom: 4px; }
+.inbox-f span { display: inline-block; min-width: 84px; color: var(--muted); }
+.inbox-reply { margin-top: 14px; padding: 14px 16px; background: var(--panel, rgba(0,0,0,.04)); font-size: 13.5px; line-height: 1.75; }
+.inbox-reply-h { margin-bottom: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }

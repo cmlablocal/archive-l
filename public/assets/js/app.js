@@ -21,7 +21,6 @@
     about: '/about.html',
     series: '/series.html',
     notes: '/notes.html',
-    notice: '/notice.html',
     list: '/list.html',
     mypage: '/mypage.html',
     saved: '/mypage.html'
@@ -710,6 +709,8 @@
       menu.setAttribute('role', 'menu');
       menu.innerHTML =
         '<div class="account-menu-name"></div>' +
+        '<button type="button" class="account-menu-item account-menu-inbox" role="menuitem">' +
+          '<i class="fa-regular fa-envelope"></i> 메시지함</button>' +
         '<button type="button" class="account-menu-item account-menu-profile" role="menuitem">' +
           '<i class="fa-solid fa-user-pen"></i> 개인정보 수정</button>' +
         '<a class="account-menu-item account-menu-admin" href="/admin/index.html" role="menuitem" style="display:none;">' +
@@ -725,6 +726,10 @@
       menu.querySelector('.account-menu-profile').addEventListener('click', function() {
         closeAccountMenu();
         openProfileModal();
+      });
+      menu.querySelector('.account-menu-inbox').addEventListener('click', function() {
+        closeAccountMenu();
+        openInboxModal();
       });
     }
     const nameEl = menu.querySelector('.account-menu-name');
@@ -742,6 +747,93 @@
       document.addEventListener('keydown', _accountMenuEsc, true);
     }, 0);
   }
+  /* 메시지함 — 내가 보낸 문의와 관리자 답변 */
+  function openInboxModal() {
+    if (!window.fb || !fb.auth) return;
+    const user = fb.auth.currentUser;
+    if (!user) { if (typeof openLogin === 'function') openLogin(); return; }
+
+    let m = document.getElementById('inboxModal');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'inboxModal';
+      m.className = 'inbox-modal';
+      m.innerHTML =
+        '<div class="inbox-modal-inner">' +
+          '<button class="inbox-close" type="button" aria-label="닫기">&times;</button>' +
+          '<h2 class="inbox-title">메시지함</h2>' +
+          '<p class="inbox-sub">보내신 문의와 답변을 확인할 수 있습니다.</p>' +
+          '<div class="inbox-list" id="inboxList"></div>' +
+        '</div>';
+      document.body.appendChild(m);
+      m.querySelector('.inbox-close').addEventListener('click', function() { m.classList.remove('open'); });
+      m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('open'); });
+    }
+    m.classList.add('open');
+    _loadInbox();
+  }
+
+  function _inboxDate(ts) {
+    if (!ts || !ts.toDate) return '';
+    const t = ts.toDate();
+    const p = (n) => String(n).padStart(2, '0');
+    return t.getFullYear() + '.' + p(t.getMonth() + 1) + '.' + p(t.getDate());
+  }
+
+  function _inboxItemHTML(d) {
+    const answered = !!(d.reply && String(d.reply).trim());
+    const when = _inboxDate(d.createdAt);
+    const rwhen = _inboxDate(d.repliedAt);
+    let body = '';
+    if (d.fields && typeof d.fields === 'object') {
+      body = Object.keys(d.fields).map(function(k) {
+        const v = d.fields[k];
+        if (v == null || String(v).trim() === '') return '';
+        return '<div class="inbox-f"><span>' + escHTML(k) + '</span>' + escHTML(String(v)) + '</div>';
+      }).join('');
+    }
+    return '<article class="inbox-item">' +
+      '<div class="inbox-item-top">' +
+        '<span class="inbox-type">' + escHTML(d.typeLabel || d.type || '문의') +
+          (d.category ? ' · ' + escHTML(d.category) : '') + '</span>' +
+        '<span class="inbox-badge ' + (answered ? 'done' : 'wait') + '">' +
+          (answered ? '답변 완료' : '답변 대기') + '</span>' +
+      '</div>' +
+      (when ? '<div class="inbox-date">' + when + '</div>' : '') +
+      (body ? '<div class="inbox-body">' + body + '</div>' : '') +
+      (answered
+        ? '<div class="inbox-reply"><div class="inbox-reply-h">답변' + (rwhen ? ' · ' + rwhen : '') + '</div>' +
+            _nlToBr(escHTML(String(d.reply))) + '</div>'
+        : '') +
+      '</article>';
+  }
+
+  async function _loadInbox() {
+    const list = document.getElementById('inboxList');
+    if (!list || !window.fb || !fb.db || !fb.auth) return;
+    const user = fb.auth.currentUser;
+    if (!user) return;
+    list.innerHTML = '<div class="inbox-empty">불러오는 중…</div>';
+    try {
+      const snap = await fb.db.collection('inquiries').where('userId', '==', user.uid).get();
+      const items = snap.docs
+        .map(function(doc) { return Object.assign({ id: doc.id }, doc.data()); })
+        .filter(function(d) { return d.hiddenForUser !== true; })
+        .sort(function(a, b) {
+          const ta = (a.createdAt && a.createdAt.toMillis) ? a.createdAt.toMillis() : 0;
+          const tb = (b.createdAt && b.createdAt.toMillis) ? b.createdAt.toMillis() : 0;
+          return tb - ta;
+        });
+      if (!items.length) {
+        list.innerHTML = '<div class="inbox-empty">보내신 문의가 없습니다.</div>';
+        return;
+      }
+      list.innerHTML = items.map(_inboxItemHTML).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="inbox-empty">불러오지 못했습니다.<br/>' + escHTML((e && e.message) || '') + '</div>';
+    }
+  }
+
   /* 개인정보 수정 (이름 / 비밀번호) */
   function openProfileModal() {
     if (!window.fb || !fb.auth) return;
@@ -5141,7 +5233,7 @@
       '/notes': 'notes', '/notes.html': 'notes',
       '/about': 'about', '/about.html': 'about',
       '/notices': 'notices', '/notices.html': 'notices',
-      '/notice': 'notice', '/notice.html': 'notice',
+      
       '/opinion': 'opinion', '/opinion.html': 'opinion',
       '/opinion-lounge': 'opinion', '/opinion-lounge.html': 'opinion',
       '/mypage': 'mypage', '/mypage.html': 'mypage',
@@ -6196,13 +6288,7 @@
         const meta = editor.querySelector('.editor-meta');
         if (note && d.editor.note != null) note.innerHTML = _nlToBr(d.editor.note);
         if (meta && d.editor.meta != null) {
-          // 기존 마크업의 '저작권 안내 보기' 링크는 유지 — meta 텍스트만 교체 후 링크 다시 붙임
-          const link = meta.querySelector('a');
           meta.innerHTML = _nlToBr(d.editor.meta);
-          if (link) {
-            meta.insertAdjacentHTML('beforeend',
-              '<br/><a href="/notice.html" data-view="notice" style="text-decoration:underline">저작권 안내 보기</a>');
-          }
         }
       }
     }
@@ -7523,7 +7609,7 @@
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
-            options: ['논문 및 아티클 인용 문의', '저작권 침해 신고', '콘텐츠 활용 문의', '콘텐츠 제작 협업 문의', '기타 저작권 문의', '오류 리포트 (오타·잘못된 정보 등)', '콘텐츠 제안', '서비스 개선 아이디어'] },
+            options: ['저작권 침해 신고', '콘텐츠 활용 문의', '콘텐츠 제작 협업 문의', '기타 저작권 문의', '오류 리포트 (오타·잘못된 정보 등)', '콘텐츠 제안', '서비스 개선 아이디어'] },
           { id: 'name', label: '이름', type: 'text', required: true, isName: true },
           { id: 'email', label: '이메일', type: 'email', required: true, isEmail: true },
           { id: 'contentTitle', label: '관련 콘텐츠 제목', type: 'text', required: false, placeholder: '특정 아티클 관련 문의라면 제목을 적어주세요 (선택)' },
@@ -7942,7 +8028,7 @@
           });
         }
         closeInquiry();
-        showToast(cfg.successMsg || '문의가 접수되었어요.<br/>답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있어요.');
+        showToast(cfg.successMsg || '문의가 접수되었어요.<br/>답변은 메시지함에서 확인하실 수 있어요.');
       } catch (err) {
         errEl.textContent = '전송 실패: ' + err.message;
       } finally {
