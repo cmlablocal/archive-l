@@ -5980,7 +5980,7 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 .brand-lockup { display: flex; align-items: flex-end; gap: 11px; }
 .brand-msg {
   font-size: 9pt; line-height: 1; color: var(--muted);
-  letter-spacing: -0.01em; white-space: nowrap; padding-bottom: 4px;
+  letter-spacing: -0.01em; white-space: nowrap; padding-bottom: 0;
 }
 @media (max-width: 760px) { .brand-msg { display: none; } }
 
