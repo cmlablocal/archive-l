@@ -37,9 +37,7 @@
     </a><span class="brand-msg">시선이 머문 공간, 그리고 그 너머의 경험</span></div>
 
     <nav class="header-nav">
-      <a class="nav-link" data-view="series" href="/series.html">Series</a>
-      <a class="nav-link" data-view="notes" href="/notes.html">Notes</a>
-      <a class="nav-link" data-view="mypage" href="/mypage.html">My Archive</a>
+      <a class="nav-link" data-view="list" href="/list.html">Archive</a>
       <a class="nav-link" data-view="about" href="/about.html">About</a>
     </nav>
 
@@ -77,9 +75,7 @@
     <nav class="drawer-nav">
       <a href="/" data-view="home">Home</a>
       <a href="/about.html" data-view="about">About</a>
-      <a href="/series.html" data-view="series">Series</a>
-      <a href="/notes.html" data-view="notes">Notes</a>
-      <a href="/mypage.html" data-view="mypage">My Archive</a>
+      <a href="/list.html" data-view="list">Archive</a>
       <a href="/notices.html" data-view="notices">Notice</a>
     </nav>
     <div class="drawer-foot">
@@ -162,46 +158,6 @@
       </div>
       <div class="article-grid" id="latestGrid">
 
-        <article class="card opinion-card" onclick="openOpinion()">
-          <div class="card-top">
-            <span class="card-cat">오피니언 라운지</span>
-          </div>
-          <div class="card-bottom">
-            <h3 class="card-title" id="homeOpinionTitle">의견을 나눠보세요</h3>
-            <p class="card-sub" id="homeOpinionDesc">독자들의 다양한 관점이 한 곳에 모입니다.</p>
-            <div class="card-meta">
-              <i class="fa-regular fa-comments"></i> <span id="homeOpinionCount">0</span>개의 의견 · 참여하기 →
-            </div>
-            <div class="opinion-rotator-dots" id="homeOpinionDots" hidden></div>
-          </div>
-        </article>
-
-        <article class="card poll-card" id="homePollCard" onclick="openPoll()" style="display:none;">
-          <div class="card-top">
-            <span class="card-cat">설문조사</span>
-          </div>
-          <div class="card-bottom">
-            <h3 class="card-title" id="homePollQuestion">설문에 참여해보세요</h3>
-            <p class="card-sub" id="homePollDesc">한 번의 선택으로 의견을 더해주세요.</p>
-            <div class="card-meta">
-              <i class="fa-solid fa-square-poll-vertical"></i> <span id="homePollCount">0</span>명 참여 · 투표하기 →
-            </div>
-          </div>
-        </article>
-
-        <article class="card recruit-card" id="homeRecruitCard" onclick="openEditorApply()" style="display:none;">
-          <div class="card-top">
-            <span class="card-cat">에디터 모집</span>
-          </div>
-          <div class="card-bottom">
-            <h3 class="card-title" id="homeRecruitTitle">에디터로 함께해요</h3>
-            <p class="card-sub" id="homeRecruitDesc">당신의 관점을 Local Layers에서 발행해보세요.</p>
-            <div class="card-meta">
-              <i class="fa-regular fa-pen-to-square"></i> 에디터 지원하기 →
-            </div>
-          </div>
-        </article>
-
       </div>
       <div class="home-loadmore" id="homeLoadMoreWrap" hidden>
         <button type="button" class="home-loadmore-btn" id="homeLoadMoreBtn">더보기</button>
@@ -229,7 +185,7 @@
         </div>
         <div class="footer-links">
           <a href="/about.html" data-view="about">About</a>
-          <a href="/series.html" data-view="series">Series</a>
+          <a href="/list.html" data-view="list">Archive</a>
           <a href="/list.html" data-view="list">Articles</a>
           <a href="/notices.html" data-view="notices">Notice</a>
           <a href="mailto:cmlab.local@gmail.com">Contact</a>
