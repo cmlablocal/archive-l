@@ -25,6 +25,45 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  /* ===== About — Local Layers 전용 디자인 ===== */
+  .lla { word-break: keep-all; --lla-line:#e6e3de; --lla-muted:#8b867e; }
+  .lla-eyebrow{ display:inline-block; font-size:11px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--lla-muted); }
+
+  .lla-hero{ padding:92px 0 54px; }
+  .lla-hero h1{ margin:22px 0 18px; font-size:clamp(34px,5.6vw,72px); font-weight:800; line-height:1.08; letter-spacing:-0.045em; }
+  .lla-hero .lla-sub{ margin:0; font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--lla-muted); }
+
+  .lla-band{ width:100%; height:clamp(230px,36vw,420px); overflow:hidden; }
+  .lla-band img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  .lla-two{ display:grid; grid-template-columns:220px 1fr; gap:48px; padding:88px 0; border-bottom:1px solid var(--lla-line); }
+  .lla-col-label{ font-size:13px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--lla-muted); line-height:1.7; }
+  .lla-col-body p{ margin:0 0 24px; font-size:clamp(17px,1.9vw,20px); line-height:1.85; color:#1f1d1a; }
+  .lla-col-body p:last-child{ margin-bottom:0; }
+  .lla-col-body strong{ font-weight:800; }
+
+  .lla-layers{ padding:86px 0 96px; }
+  .lla-layers h2{ margin:14px 0 48px; font-size:clamp(24px,3.2vw,38px); font-weight:800; letter-spacing:-0.035em; line-height:1.25; }
+  .lla-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:32px; }
+  .lla-card{ border-top:2px solid #1a1a1a; padding:22px 0 0; }
+  .lla-card .n{ font-size:12px; font-weight:800; letter-spacing:.14em; color:var(--lla-muted); }
+  .lla-card h3{ margin:14px 0 12px; font-size:20px; font-weight:700; letter-spacing:-0.02em; line-height:1.35; }
+  .lla-card h3 em{ display:block; font-style:normal; font-size:11.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--lla-muted); margin-top:7px; }
+  .lla-card p{ margin:0; font-size:15px; line-height:1.8; color:#57534c; }
+
+  .lla-closing{ background:#141310; color:#efeae1; padding:86px 0; }
+  .lla-closing p{ margin:0 0 30px; max-width:20em; font-size:clamp(20px,2.6vw,30px); font-weight:600; line-height:1.55; letter-spacing:-0.025em; }
+  .lla-cm{ font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:#a49d92; }
+
+  @media (max-width:860px){
+    .lla-hero{ padding:60px 0 38px; }
+    .lla-two{ grid-template-columns:1fr; gap:18px; padding:56px 0; }
+    .lla-grid{ grid-template-columns:1fr; gap:34px; }
+    .lla-layers{ padding:56px 0 64px; }
+    .lla-closing{ padding:60px 0; }
+  }
+</style>
 </head>
 <body data-view="about">
 <script>try{if(localStorage.getItem("pv:auth")==="1")document.body.classList.add("logged-in");}catch(e){}</script>
@@ -94,104 +133,62 @@
 </div>
 
 <!-- ============== ABOUT VIEW ============== -->
-<main class="about-view">
-  <section class="about-hero">
+<main class="lla">
+
+  <section class="lla-hero">
     <div class="container">
-      <span class="meta-label">ABOUT LOCAL LAYERS</span>
-      <h1 class="about-title">시선이 머문 공간,<br/>그리고 그 너머의 경험.</h1>
-      <p class="about-lead">
-        우리가 마주하는 모든 공간에는 저마다의 결이 있습니다.
-        처음 문을 열고 들어설 때 마주하는 낯선 분위기, 공간을 채우는 조도의 정서,
-        그리고 그곳에 머무는 사람들이 만들어내는 고유한 온도까지.
-      </p>
-      <p class="about-quote-inline">
-        "이 공간은 왜 이렇게 완성되었을까?"<br/>
-        "그 뒤에는 어떤 층위가 쌓여 있을까?"
-      </p>
-      <p class="about-lead">
-        <strong>Local Layers는 그 두터운 시간과 경험의 층위를 들여다보고 기록하는 로컬 인스퍼레이션 아카이브입니다.</strong>
-      </p>
+      <span class="lla-eyebrow">About</span>
+      <h1>시선이 머문 공간,<br/>그리고 그 너머의 경험.</h1>
+      <p class="lla-sub">Local Inspiration Archive</p>
     </div>
   </section>
 
-  <section class="about-section">
-    <div class="container">
-      <span class="meta-label">WHY LOCAL LAYERS</span>
-      <h2 class="about-h">보이지 않는 층위를<br/>들여다봅니다.</h2>
-      <div class="about-text">
-        <p>
-          매력적인 로컬은 단지 눈에 보이는 물리적 공간을 넘어,
-          보이지 않는 무수한 맥락과 이야기의 <strong>레이어(Layers)</strong>가
-          켜켜이 쌓여 완성됩니다.
-        </p>
-        <p>
-          하나의 로컬이 누군가의 마음을 움직이는 장소로 거듭나기까지,
-          그 뒤에는 수많은 고민과 기획의 흔적들이 겹겹이 쌓여 있습니다.
-          표면적인 화려함 대신 그 보이지 않는 층위를 들여다봅니다.
-        </p>
-        <p>
-          공간을 감각하고 경험을 설계하는 기획자의 시선으로,
-          유독 오래 시선이 머물렀던 로컬의 조각들을 꺼내어 놓습니다.
-        </p>
+  <section class="lla-band">
+    <img src="/img/hero/hero-3.jpg" alt="" />
+  </section>
+
+  <section>
+    <div class="container lla-two">
+      <div class="lla-col-label">Why<br/>Local Layers</div>
+      <div class="lla-col-body">
+        <p>우리가 마주하는 모든 공간에는 저마다의 결이 있습니다. 처음 문을 열고 들어설 때 마주하는 낯선 분위기, 공간을 채우는 조도의 정서, 그리고 그곳에 머무는 사람들이 만들어내는 고유한 온도까지.</p>
+        <p>매력적인 로컬은 단지 눈에 보이는 물리적 공간을 넘어, 보이지 않는 무수한 맥락과 이야기의 <strong>레이어(Layers)</strong>가 켜켜이 쌓여 완성됩니다.</p>
+        <p>표면적인 화려함 대신 그 보이지 않는 층위를 들여다봅니다. 공간을 감각하고 경험을 설계하는 기획자의 시선으로, 유독 오래 시선이 머물렀던 로컬의 조각들을 꺼내어 놓습니다.</p>
       </div>
     </div>
   </section>
 
-  <section class="about-steps">
+  <section class="lla-layers">
     <div class="container">
-      <div class="about-section-head">
-        <span class="meta-label">THREE LAYERS OF LOCAL</span>
-        <h2>로컬을 세 가지 층위로<br/>바라봅니다</h2>
-        <p class="steps-intro">
-          같은 장소를 세 번 다른 깊이로 들여다보는 일.<br/>
-          Local Layers의 모든 기록은 이 층위를 따라갑니다.
-        </p>
-      </div>
-      <div class="step-timeline">
-
-        <div class="step-row">
-          <span class="step-no">01</span>
-          <div class="step-body">
-            <h3 class="step-kr">시선이 머문 공간 <span class="step-en">Space</span></h3>
-            <p class="step-desc">직관적인 매력과 미학적 감각. 공간이 주는 첫인상과 디테일을 수집합니다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">02</span>
-          <div class="step-body">
-            <h3 class="step-kr">그 너머의 경험 <span class="step-en">Experience</span></h3>
-            <p class="step-desc">표면적인 형태를 넘어, 그곳을 설계한 사람의 의도와 촘촘하게 작동하는 운영의 맥락을 읽어냅니다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">03</span>
-          <div class="step-body">
-            <h3 class="step-kr">축적된 영감 <span class="step-en">Inspiration</span></h3>
-            <p class="step-desc">현장에서 발견한 단단한 통찰과, 다른 로컬을 풍요롭게 만들 새로운 기획의 씨앗을 공유합니다.</p>
-          </div>
-        </div>
-
+      <span class="lla-eyebrow">Three Layers of Local</span>
+      <h2>로컬을 세 가지 층위로<br/>바라봅니다</h2>
+      <div class="lla-grid">
+        <article class="lla-card">
+          <span class="n">01</span>
+          <h3>시선이 머문 공간<em>Space</em></h3>
+          <p>직관적인 매력과 미학적 감각. 공간이 주는 첫인상과 디테일을 수집합니다.</p>
+        </article>
+        <article class="lla-card">
+          <span class="n">02</span>
+          <h3>그 너머의 경험<em>Experience</em></h3>
+          <p>표면적인 형태를 넘어, 그곳을 설계한 사람의 의도와 촘촘하게 작동하는 운영의 맥락을 읽어냅니다.</p>
+        </article>
+        <article class="lla-card">
+          <span class="n">03</span>
+          <h3>축적된 영감<em>Inspiration</em></h3>
+          <p>현장에서 발견한 단단한 통찰과, 다른 로컬을 풍요롭게 만들 새로운 기획의 씨앗을 공유합니다.</p>
+        </article>
       </div>
     </div>
   </section>
 
-  <section class="about-section alt">
+  <section class="lla-closing">
     <div class="container">
-      <span class="meta-label">WHO WE ARE</span>
-      <h2 class="about-h">공간과 경험을<br/>설계하는 시선으로.</h2>
-      <div class="about-text">
-        <p>
-          스쳐 지나가는 관광 정보 대신, 머무르는 순간을 온전히 음미하며 얻은 기록들.
-        </p>
-        <p>
-          공간과 경험을 설계하는 <strong>CM LAB : space &amp; experience</strong>의 시선으로
-          로컬의 깊은 결을 펼쳐 보입니다.
-        </p>
-      </div>
+      <p>공간과 경험을 설계하는 시선으로<br/>로컬의 깊은 결을 펼쳐 보입니다.</p>
+      <div class="lla-cm">CM LAB : space &amp; experience</div>
     </div>
   </section>
+
 </main>
 
 <!-- ============== FOOTER ============== -->
