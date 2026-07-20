@@ -403,6 +403,7 @@
   .carousel {
     position: relative;
     overflow: hidden;
+    margin-top: 36px;
     margin-bottom: 80px;
     background: #111;
   }
@@ -5979,6 +5980,24 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 .brand-lockup { display: flex; align-items: flex-end; gap: 11px; }
 .brand-msg {
   font-size: 9pt; line-height: 1; color: var(--muted);
-  letter-spacing: -0.01em; white-space: nowrap; padding-bottom: 2px;
+  letter-spacing: -0.01em; white-space: nowrap; padding-bottom: 4px;
 }
 @media (max-width: 760px) { .brand-msg { display: none; } }
+
+/* ===== 개인정보 수정 모달 ===== */
+.profile-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 24px; }
+.profile-modal.open { display: flex; }
+.profile-modal-inner { position: relative; width: 100%; max-width: 400px; background: var(--bg); color: var(--fg); padding: 34px 30px 30px; }
+.profile-close { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 24px; line-height: 1; color: var(--muted); cursor: pointer; }
+.profile-close:hover { color: var(--fg); }
+.profile-title { margin: 0 0 6px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.profile-sub { margin: 0 0 22px; font-size: 13px; color: var(--muted); }
+.profile-label { display: block; margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--fg); }
+.profile-label span { font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.profile-input { width: 100%; box-sizing: border-box; padding: 12px 14px; margin-bottom: 10px; font-family: inherit; font-size: 14px; color: var(--fg); background: transparent; border: 1px solid var(--line); outline: none; }
+.profile-input:focus { border-color: var(--fg); }
+.profile-div { height: 1px; background: var(--line); margin: 18px 0 20px; }
+.profile-msg { min-height: 18px; margin: 6px 0 12px; font-size: 12.5px; color: var(--muted); }
+.profile-msg.err { color: #c0392b; }
+.profile-save { width: 100%; padding: 14px; font-family: inherit; font-size: 14px; font-weight: 700; color: #fff; background: var(--fg); border: none; cursor: pointer; }
+.profile-save:disabled { opacity: .6; cursor: default; }

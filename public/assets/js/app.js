@@ -710,12 +710,10 @@
       menu.setAttribute('role', 'menu');
       menu.innerHTML =
         '<div class="account-menu-name"></div>' +
-        '<a class="account-menu-item" href="/mypage.html" role="menuitem">' +
-          '<i class="fa-solid fa-book-open"></i> 나의 서재</a>' +
+        '<button type="button" class="account-menu-item account-menu-profile" role="menuitem">' +
+          '<i class="fa-solid fa-user-pen"></i> 개인정보 수정</button>' +
         '<a class="account-menu-item account-menu-admin" href="/admin/index.html" role="menuitem" style="display:none;">' +
           '<i class="fa-solid fa-gear"></i> 관리자 모드</a>' +
-        '<a class="account-menu-item account-menu-editor" href="/editor.html" role="menuitem" style="display:none;">' +
-          '<i class="fa-solid fa-pen-nib"></i> 에디터의 책상</a>' +
         '<button type="button" class="account-menu-item account-menu-logout" role="menuitem">' +
           '<i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃</button>';
       const parent = btn.closest('.header-right') || btn.parentNode;
@@ -723,6 +721,10 @@
       menu.querySelector('.account-menu-logout').addEventListener('click', function() {
         closeAccountMenu();
         _logout();
+      });
+      menu.querySelector('.account-menu-profile').addEventListener('click', function() {
+        closeAccountMenu();
+        openProfileModal();
       });
     }
     const nameEl = menu.querySelector('.account-menu-name');
@@ -734,19 +736,103 @@
       showAd();
       if (fb.roleReady) fb.roleReady().then(showAd).catch(() => {});
     }
-    // 에디터 권한자에게만 '에디터의 책상' 메뉴 노출 (관리자는 admin/editors.html에서 관리)
-    const edItem = menu.querySelector('.account-menu-editor');
-    if (edItem && window.fb) {
-      const showEd = () => { edItem.style.display = (fb.isEditorRole && fb.isEditorRole()) ? '' : 'none'; };
-      showEd();
-      if (fb.roleReady) fb.roleReady().then(showEd).catch(() => {});
-    }
     menu.classList.add('open');
     setTimeout(function() {
       document.addEventListener('click', _accountMenuOutside, true);
       document.addEventListener('keydown', _accountMenuEsc, true);
     }, 0);
   }
+  /* 개인정보 수정 (이름 / 비밀번호) */
+  function openProfileModal() {
+    if (!window.fb || !fb.auth) return;
+    const user = fb.auth.currentUser;
+    if (!user) { if (typeof openLogin === 'function') openLogin(); return; }
+
+    let m = document.getElementById('profileModal');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'profileModal';
+      m.className = 'profile-modal';
+      m.innerHTML =
+        '<div class="profile-modal-inner">' +
+          '<button class="profile-close" type="button" aria-label="닫기">&times;</button>' +
+          '<h2 class="profile-title">개인정보 수정</h2>' +
+          '<p class="profile-sub">이름과 비밀번호를 변경할 수 있습니다.</p>' +
+          '<label class="profile-label" for="pfName">이름</label>' +
+          '<input type="text" id="pfName" class="profile-input" placeholder="이름" autocomplete="name" />' +
+          '<div class="profile-div"></div>' +
+          '<label class="profile-label" for="pfNew">비밀번호 변경 <span>(변경할 때만 입력)</span></label>' +
+          '<input type="password" id="pfCur" class="profile-input" placeholder="현재 비밀번호" autocomplete="current-password" />' +
+          '<input type="password" id="pfNew" class="profile-input" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password" />' +
+          '<input type="password" id="pfNew2" class="profile-input" placeholder="새 비밀번호 확인" autocomplete="new-password" />' +
+          '<div class="profile-msg" id="pfMsg"></div>' +
+          '<button type="button" class="profile-save" id="pfSave">저장</button>' +
+        '</div>';
+      document.body.appendChild(m);
+      m.querySelector('.profile-close').addEventListener('click', function() { m.classList.remove('open'); });
+      m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('open'); });
+      m.querySelector('#pfSave').addEventListener('click', _saveProfile);
+    }
+    m.querySelector('#pfName').value = user.displayName || '';
+    m.querySelector('#pfCur').value = '';
+    m.querySelector('#pfNew').value = '';
+    m.querySelector('#pfNew2').value = '';
+    m.querySelector('#pfMsg').textContent = '';
+    m.querySelector('#pfMsg').className = 'profile-msg';
+    m.classList.add('open');
+  }
+
+  async function _saveProfile() {
+    const m = document.getElementById('profileModal');
+    if (!m || !window.fb || !fb.auth) return;
+    const user = fb.auth.currentUser;
+    if (!user) return;
+    const msg = m.querySelector('#pfMsg');
+    const btn = m.querySelector('#pfSave');
+    const name = m.querySelector('#pfName').value.trim();
+    const cur = m.querySelector('#pfCur').value;
+    const np = m.querySelector('#pfNew').value;
+    const np2 = m.querySelector('#pfNew2').value;
+
+    msg.className = 'profile-msg';
+    msg.textContent = '';
+    const fail = (t) => { msg.textContent = t; msg.className = 'profile-msg err'; };
+
+    if (!name) return fail('이름을 입력해 주세요.');
+    if (np || np2 || cur) {
+      if (np.length < 6) return fail('새 비밀번호는 6자 이상이어야 합니다.');
+      if (np !== np2) return fail('새 비밀번호가 서로 다릅니다.');
+      if (!cur) return fail('현재 비밀번호를 입력해 주세요.');
+    }
+
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
+    try {
+      if (name !== (user.displayName || '')) {
+        await user.updateProfile({ displayName: name });
+        try { await fb.db.collection('users').doc(user.uid).set({ displayName: name }, { merge: true }); } catch (e) {}
+      }
+      if (np) {
+        const cred = firebase.auth.EmailAuthProvider.credential(user.email, cur);
+        await user.reauthenticateWithCredential(cred);
+        await user.updatePassword(np);
+      }
+      m.classList.remove('open');
+      if (typeof showToast === 'function') showToast('개인정보가 저장되었습니다.');
+      const nameEl = document.querySelector('.account-menu-name');
+      if (nameEl) nameEl.textContent = name + ' 님';
+    } catch (e) {
+      const code = (e && e.code) || '';
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') fail('현재 비밀번호가 올바르지 않습니다.');
+      else if (code === 'auth/weak-password') fail('비밀번호가 너무 약합니다.');
+      else if (code === 'auth/requires-recent-login') fail('보안을 위해 다시 로그인한 뒤 시도해 주세요.');
+      else fail('저장 실패: ' + ((e && e.message) || ''));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '저장';
+    }
+  }
+
   /* Generic confirm modal */
   function openConfirm({ title, msg, confirmText = '확인', cancelText = '취소', onConfirm, onCancel }) {
     const cm = document.getElementById('confirmModal');
