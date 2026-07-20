@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Users · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  /* Stats grid */
+  .users-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 900px) { .users-stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    border: 1px solid var(--admin-border);
+    border-radius: 12px; padding: 16px 18px;
+    background: var(--bg);
+  }
+  .stat-label {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .stat-value { font-size: 24px; font-weight: 600; color: var(--fg); }
+
+  /* Toolbar */
+  .users-toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px; align-items: center;
+  }
+  .users-toolbar .filter-btn.active {
+    background: var(--admin-accent); color: var(--bg);
+    border-color: var(--admin-accent);
+  }
+  .users-search {
+    flex: 1; min-width: 220px;
+    padding: 8px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--fg);
+    font-family: inherit;
+  }
+  .users-search:focus { outline: none; border-color: var(--fg); }
+  .cnt-badge {
+    display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 6px;
+    background: rgba(0,0,0,0.08); border-radius: 999px; font-size: 10px;
+  }
+  body.dark .cnt-badge { background: rgba(255,255,255,0.12); }
+  .filter-btn.active .cnt-badge { background: rgba(255,255,255,0.18); }
+
+  /* Row kebab menu styles live in admin.css */
+  /* 테이블 래퍼/td의 overflow:hidden이 absolute popover를 잘라내지 않도록 */
+  .admin-table-wrap { overflow: visible; }
+  .admin-table td { position: relative; }
+
+  /* Role badges */
+  .role-cell { display: inline-block; }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">독자 관리</h1>
+        <p class="admin-page-sub">가입한 독자 계정을 조회하고 관리합니다.</p>
+      </div>
+    </div>
+
+    <!-- ===== 독자 기능 설정 ===== -->
+    <section class="admin-feature-flags" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;">
+      <label class="feature-toggle" style="display:inline-flex;align-items:center;gap:12px;cursor:pointer;padding:14px 18px;border:1px solid var(--admin-border);border-radius:12px;background:var(--bg);">
+        <span style="display:flex;flex-direction:column;gap:2px;">
+          <span style="font-size:13px;font-weight:600;color:var(--fg);">마이 아카이브 결산</span>
+          <span style="font-size:11px;color:var(--muted);">독자의 마이 아카이브에 ‘결산’ 탭을 노출합니다.</span>
+        </span>
+        <input type="checkbox" id="recapEnabledToggle" style="width:38px;height:22px;appearance:none;background:var(--admin-row);border:1px solid var(--admin-border);border-radius:999px;position:relative;cursor:pointer;outline:none;transition:background .2s;" />
+        <span id="recapEnabledLabel" style="font-size:13px;font-weight:600;color:var(--fg);min-width:32px;">OFF</span>
+      </label>
+    </section>
+    <style>
+      #recapEnabledToggle::before {
+        content:''; position:absolute; top:2px; left:2px;
+        width:16px; height:16px; border-radius:50%;
+        background: var(--muted); transition: transform .2s, background .2s;
+      }
+      #recapEnabledToggle:checked { background: var(--admin-accent); border-color: var(--admin-accent); }
+      #recapEnabledToggle:checked::before { background: var(--bg); transform: translateX(16px); }
+    </style>
+
+    <!-- ===== Stats ===== -->
+    <div class="users-stats">
+      <div class="stat-card">
+        <div class="stat-label">총 독자 수</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">오늘 가입</div>
+        <div class="stat-value" id="statToday">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">이번 주 가입</div>
+        <div class="stat-value" id="statWeek">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">이번 달 가입</div>
+        <div class="stat-value" id="statMonth">0</div>
+      </div>
+    </div>
+
+    <!-- ===== Toolbar (filter chips + search) ===== -->
+    <div class="users-toolbar">
+      <button class="admin-btn ghost admin-btn-sm filter-btn active" data-filter="all">전체 <span class="cnt-badge" id="cntAll">0</span></button>
+      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="reader">일반 독자 <span class="cnt-badge" id="cntReader">0</span></button>
+      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="admin">관리자 <span class="cnt-badge" id="cntAdmin">0</span></button>
+      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="disabled">비활성 <span class="cnt-badge" id="cntDisabled">0</span></button>
+      <select class="users-search" id="periodFilter" style="flex:0 0 auto;min-width:150px;cursor:pointer;">
+        <option value="all">가입 기간 전체</option>
+        <option value="7">최근 7일 가입</option>
+        <option value="30">최근 30일 가입</option>
+        <option value="90">최근 90일 가입</option>
+      </select>
+      <input type="text" class="users-search" id="userSearch" placeholder="이메일·이름으로 검색" />
+    </div>
+
+    <!-- ===== Users table ===== -->
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>이메일</th>
+            <th style="width:140px;">이름</th>
+            <th style="width:90px;">권한</th>
+            <th style="width:80px;">상태</th>
+            <th style="width:120px;">가입일</th>
+            <th style="width:130px;">마지막 로그인</th>
+            <th style="width:80px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"><tr><td colspan="7" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7;">
+      ※ 권한을 "관리자"로 바꿔도, 시스템 설정에 별도로 등록해야 실제 관리자 권한이 작동합니다.<br/>
+      ※ "계정 비활성화"는 해당 독자의 다음 로그인 시도를 차단합니다. (이미 열려 있는 세션은 다음 로그인 때 막힙니다.)<br/>
+      ※ "로그인 계정 완전 삭제"는 별도 서버 작업이 필요합니다. 여기서는 독자 정보(프로필 문서) 삭제만 가능합니다.
+    </p>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  let usersList = [];          // [{ id, data }]
+  let currentFilter = 'all';   // 'all' | 'reader' | 'admin' | 'disabled'
+  let periodDays = 'all';      // 'all' | '7' | '30' | '90'
+  let searchTerm = '';
+
+  // ===== Helpers =====
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    let d;
+    if (ts.toDate) d = ts.toDate();
+    else if (ts instanceof Date) d = ts;
+    else if (typeof ts === 'number') d = new Date(ts);
+    else return '—';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}.${m}.${dd}`;
+  }
+
+  function tsToDate(ts) {
+    if (!ts) return null;
+    if (ts.toDate) return ts.toDate();
+    if (ts instanceof Date) return ts;
+    if (typeof ts === 'number') return new Date(ts);
+    return null;
+  }
+
+  function isSameDay(a, b) {
+    return a.getFullYear() === b.getFullYear()
+      && a.getMonth() === b.getMonth()
+      && a.getDate() === b.getDate();
+  }
+
+  function roleBadge(role) {
+    if (role === 'admin') return '<span class="admin-tag" style="color:#2563eb">관리자</span>';
+    return '<span class="admin-tag">독자</span>';
+  }
+
+  function statusBadge(disabled) {
+    if (disabled) return '<span class="admin-tag" style="color:#dc2626">비활성</span>';
+    return '<span class="admin-tag" style="color:#16a34a">활성</span>';
+  }
+
+  // 마지막 로그인 — 상대 시간(예: "3일 전") + 절대 날짜
+  function fmtRelative(ts) {
+    const d = tsToDate(ts);
+    if (!d) return '<span style="color:var(--muted)">기록 없음</span>';
+    const diff = Date.now() - d.getTime();
+    const min = Math.floor(diff / 60000);
+    const hr = Math.floor(diff / 3600000);
+    const day = Math.floor(diff / 86400000);
+    let rel;
+    if (min < 1) rel = '방금';
+    else if (min < 60) rel = min + '분 전';
+    else if (hr < 24) rel = hr + '시간 전';
+    else if (day < 30) rel = day + '일 전';
+    else rel = fmtDate(d);
+    return `<span title="${fmtDate(d)}">${rel}</span>`;
+  }
+
+  // ===== Stats =====
+  function renderStats() {
+    const total = usersList.length;
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(now.getDate() - 6); // 7일 이내 (오늘 포함)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let today = 0, week = 0, month = 0;
+    usersList.forEach(u => {
+      const d = tsToDate(u.data.createdAt);
+      if (!d) return;
+      if (isSameDay(d, now)) today++;
+      if (d.getTime() >= startOfWeek.getTime()) week++;
+      if (d.getTime() >= startOfMonth.getTime()) month++;
+    });
+
+    document.getElementById('statTotal').textContent = fmtNum(total);
+    document.getElementById('statToday').textContent = fmtNum(today);
+    document.getElementById('statWeek').textContent = fmtNum(week);
+    document.getElementById('statMonth').textContent = fmtNum(month);
+
+    // 필터 카운트
+    const readerCnt = usersList.filter(u => (u.data.role || 'reader') !== 'admin').length;
+    const adminCnt = usersList.filter(u => u.data.role === 'admin').length;
+    const disabledCnt = usersList.filter(u => u.data.disabled === true).length;
+    document.getElementById('cntAll').textContent = total;
+    document.getElementById('cntReader').textContent = readerCnt;
+    document.getElementById('cntAdmin').textContent = adminCnt;
+    document.getElementById('cntDisabled').textContent = disabledCnt;
+  }
+
+  // ===== Table =====
+  function renderTable() {
+    const tbody = document.getElementById('usersTable');
+    let rows = usersList.slice();
+
+    // Filter
+    if (currentFilter === 'admin') {
+      rows = rows.filter(u => u.data.role === 'admin');
+    } else if (currentFilter === 'reader') {
+      rows = rows.filter(u => (u.data.role || 'reader') !== 'admin');
+    } else if (currentFilter === 'disabled') {
+      rows = rows.filter(u => u.data.disabled === true);
+    }
+
+    // 가입 기간 필터
+    if (periodDays !== 'all') {
+      const cutoff = Date.now() - parseInt(periodDays, 10) * 86400000;
+      rows = rows.filter(u => {
+        const d = tsToDate(u.data.createdAt);
+        return d && d.getTime() >= cutoff;
+      });
+    }
+
+    // Search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      rows = rows.filter(u => {
+        const email = (u.data.email || '').toLowerCase();
+        const name = (u.data.displayName || '').toLowerCase();
+        return email.includes(term) || name.includes(term);
+      });
+    }
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="admin-empty">해당 조건의 독자가 없습니다.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(u => {
+      const d = u.data;
+      const id = u.id;
+      const role = d.role || 'reader';
+      const isAdminRole = role === 'admin';
+      const isDisabled = d.disabled === true;
+      const nextRoleLabel = isAdminRole ? '독자로 변경' : '관리자로 변경';
+      const nextRole = isAdminRole ? 'reader' : 'admin';
+      const disableLabel = isDisabled ? '계정 활성화' : '계정 비활성화';
+      const disableIcon = isDisabled ? 'fa-unlock' : 'fa-ban';
+      return `
+        <tr${isDisabled ? ' style="opacity:.6"' : ''}>
+          <td><span class="title-cell">${adminEscHTML(d.email || '—')}</span></td>
+          <td>${adminEscHTML(d.displayName || '—')}</td>
+          <td><span class="role-cell">${roleBadge(role)}</span></td>
+          <td>${statusBadge(isDisabled)}</td>
+          <td>${fmtDate(d.createdAt)}</td>
+          <td>${fmtRelative(d.lastLoginAt)}</td>
+          <td>
+            <div class="admin-actions" style="justify-content:flex-end;gap:6px;">
+              <details class="row-menu">
+                <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+                <div class="row-menu-pop">
+                  <button data-action="message" data-id="${adminEscHTML(id)}" data-email="${adminEscHTML(d.email || '')}" data-name="${adminEscHTML(d.displayName || '')}"><i class="fa-regular fa-paper-plane"></i> 메시지 보내기</button>
+                  <button data-action="role" data-id="${adminEscHTML(id)}" data-next="${nextRole}"><i class="fa-solid fa-user-shield"></i> ${nextRoleLabel}</button>
+                  <button data-action="disable" data-id="${adminEscHTML(id)}" data-next="${isDisabled ? '0' : '1'}" data-email="${adminEscHTML(d.email || '')}"><i class="fa-solid ${disableIcon}"></i> ${disableLabel}</button>
+                  <button data-action="resetpw" data-id="${adminEscHTML(id)}" data-email="${adminEscHTML(d.email || '')}"><i class="fa-solid fa-envelope-circle-check"></i> 비밀번호 재설정 메일</button>
+                  <button data-action="delete" data-id="${adminEscHTML(id)}" data-email="${adminEscHTML(d.email || '')}" class="danger"><i class="fa-regular fa-trash-can"></i> 독자 정보 삭제</button>
+                </div>
+              </details>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        // close any open dropdown
+        btn.closest('.row-menu')?.removeAttribute('open');
+        if (action === 'message') window.openAdminMsgModal(id, { name: btn.dataset.name || '', email: btn.dataset.email || '', kind: 'reader' });
+        else if (action === 'role') changeRole(id, btn.dataset.next);
+        else if (action === 'disable') toggleDisabled(id, btn.dataset.next === '1', btn.dataset.email);
+        else if (action === 'resetpw') sendResetEmail(btn.dataset.email);
+        else if (action === 'delete') deleteUserDoc(id, btn.dataset.email);
+      });
+    });
+  }
+
+  // ===== Row actions =====
+  async function changeRole(uid, nextRole) {
+    const item = usersList.find(u => u.id === uid);
+    const label = item ? (item.data.email || uid) : uid;
+    if (!(await sysConfirm(`'${label}'의 권한을 '${nextRole === 'admin' ? '관리자' : '독자'}'로 변경할까요?\n\n참고: 시스템 설정에 별도로 등록해야 실제 관리자 권한이 작동합니다.`))) return;
+    try {
+      await fb.db.collection('users').doc(uid).update({ role: nextRole });
+    } catch (err) {
+      sysAlert('권한 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  async function toggleDisabled(uid, disable, email) {
+    const label = email || uid;
+    const msg = disable
+      ? `'${label}' 계정을 비활성화할까요?\n\n비활성화하면 다음 로그인 시도 시 즉시 로그아웃되어 사이트를 이용할 수 없습니다. (이미 로그인된 세션은 다음 로그인 때 차단됩니다.)`
+      : `'${label}' 계정을 다시 활성화할까요?`;
+    if (!(await sysConfirm(msg, disable ? { danger: true, okLabel: '비활성화' } : {}))) return;
+    try {
+      await fb.db.collection('users').doc(uid).set({
+        disabled: disable,
+        disabledAt: disable ? fb.FieldValue.serverTimestamp() : null
+      }, { merge: true });
+      sysAlert(disable ? '계정을 비활성화했습니다.' : '계정을 활성화했습니다.', { icon: 'success' });
+    } catch (err) {
+      sysAlert('상태 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  async function sendResetEmail(email) {
+    if (!email) { sysAlert('이메일이 없는 사용자입니다.', { icon: 'danger' }); return; }
+    if (!(await sysConfirm(`'${email}' 주소로 비밀번호 재설정 메일을 보낼까요?`))) return;
+    try {
+      await fb.auth.sendPasswordResetEmail(email);
+      sysAlert('재설정 메일을 보냈습니다.', { icon: 'success' });
+    } catch (err) {
+      sysAlert('메일 전송 실패: ' + (err.message || err.code || ''), { icon: 'danger' });
+    }
+  }
+
+  async function deleteUserDoc(uid, email) {
+    if (!(await sysConfirm(`'${email || uid}'의 독자 정보를 삭제할까요?\n\n주의: 로그인 계정 자체는 남아 있어 같은 이메일로 다시 가입 가능합니다. 완전 탈퇴는 본인이 마이페이지에서 진행해야 합니다.`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('users').doc(uid).delete();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  // ===== Toolbar wiring =====
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderTable();
+    });
+  });
+
+  document.getElementById('userSearch').addEventListener('input', e => {
+    searchTerm = (e.target.value || '').trim();
+    renderTable();
+  });
+
+  document.getElementById('periodFilter').addEventListener('change', e => {
+    periodDays = e.target.value;
+    renderTable();
+  });
+
+  // row-menu close handlers live in admin.js (global)
+
+  // ===== Subscribe =====
+  function subscribeUsers() {
+    // orderBy('createdAt')를 쓰면 createdAt 필드가 없는 독자 문서가 쿼리에서 제외되어
+    // 목록에 안 뜬다. 전체를 읽어 클라이언트에서 정렬한다(없으면 0으로 후순위).
+    fb.db.collection('users').onSnapshot(snap => {
+      usersList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      usersList.sort((a, b) => {
+        const ta = a.data.createdAt && a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0;
+        const tb = b.data.createdAt && b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0;
+        return tb - ta;
+      });
+      renderStats();
+      renderTable();
+    }, err => {
+      console.error('[users] 구독 실패:', err);
+      document.getElementById('usersTable').innerHTML =
+        `<tr><td colspan="5" class="admin-empty">로딩 실패: ${adminEscHTML(err.message)}</td></tr>`;
+    });
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      subscribeUsers();
+
+      // 기능 설정 — 마이 아카이브 결산 ON/OFF (site/settings.recapEnabled)
+      const recapToggle = document.getElementById('recapEnabledToggle');
+      const recapLabel = document.getElementById('recapEnabledLabel');
+      if (recapToggle) {
+        fb.db.collection('site').doc('settings').onSnapshot(snap => {
+          const enabled = snap.exists ? (snap.data().recapEnabled !== false) : true;
+          recapToggle.checked = enabled;
+          if (recapLabel) recapLabel.textContent = enabled ? 'ON' : 'OFF';
+        }, err => console.warn('[users] recap setting:', err.message));
+        recapToggle.addEventListener('change', async () => {
+          const enabled = recapToggle.checked;
+          if (recapLabel) recapLabel.textContent = enabled ? 'ON' : 'OFF';
+          try {
+            await fb.db.collection('site').doc('settings').set({
+              recapEnabled: enabled,
+              updatedAt: fb.FieldValue.serverTimestamp()
+            }, { merge: true });
+          } catch (err) {
+            (window.sysAlert ? sysAlert('저장 실패: ' + err.message, { icon: 'danger' }) : alert('저장 실패: ' + err.message));
+            recapToggle.checked = !enabled;
+            if (recapLabel) recapLabel.textContent = !enabled ? 'ON' : 'OFF';
+          }
+        });
+      }
+    }
+  });
+</script>
+</body>
+</html>

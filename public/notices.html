@@ -5,28 +5,74 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <!-- SEO:START -->
-<title>About | Local Layers</title>
-<meta name="description" content="Local Layers와 Another Movement가 디자인을 바라보는 방식." />
-<link rel="canonical" href="https://archive-l.web.app/about" />
+<title>공지사항 | Local Layers</title>
+<meta name="description" content="Local Layers의 발행 일정과 신규 콘텐츠, 서비스 소식을 전합니다." />
+<link rel="canonical" href="https://archive-l.web.app/notices" />
 <meta name="robots" content="index, follow" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Local Layers" />
 <meta property="og:locale" content="ko_KR" />
-<meta property="og:title" content="About · Local Layers" />
-<meta property="og:description" content="Local Layers와 Another Movement가 디자인을 바라보는 방식." />
-<meta property="og:url" content="https://archive-l.web.app/about" />
+<meta property="og:title" content="공지사항 · Local Layers" />
+<meta property="og:description" content="Local Layers의 발행 일정과 신규 콘텐츠, 서비스 소식을 전합니다." />
+<meta property="og:url" content="https://archive-l.web.app/notices" />
 <meta property="og:image" content="https://archive-l.web.app/assets/img/anothermovement_logo.png" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="About · Local Layers" />
-<meta name="twitter:description" content="Local Layers와 Another Movement가 디자인을 바라보는 방식." />
+<meta name="twitter:title" content="공지사항 · Local Layers" />
+<meta name="twitter:description" content="Local Layers의 발행 일정과 신규 콘텐츠, 서비스 소식을 전합니다." />
 <meta name="twitter:image" content="https://archive-l.web.app/assets/img/anothermovement_logo.png" />
 <!-- SEO:END -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .notices-list { display: flex; flex-direction: column; margin-top: 8px; }
+  .notice-row-item { border-bottom: 1px solid var(--line); }
+  /* 마지막 항목은 아래 구분선 제거 → notice-actions 구분선과 겹치지 않게 */
+  .notice-row-item:last-child { border-bottom: none; }
+  .nr-head {
+    display: flex; align-items: baseline; gap: 20px; width: 100%;
+    padding: 22px 4px; background: transparent; border: none;
+    text-align: left; font-family: inherit; color: inherit; cursor: default;
+  }
+  .notice-row-item.has-detail .nr-head { cursor: pointer; }
+  .nr-head .nr-date {
+    flex-shrink: 0; width: 96px; font-size: 13px; color: var(--muted);
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .nr-head .nr-text { flex: 1; font-size: 15px; line-height: 1.6; color: var(--fg); font-weight: 600; letter-spacing: -0.01em; }
+  .nr-chevron {
+    flex-shrink: 0; font-size: 12px; color: var(--muted);
+    transition: transform .2s; margin-top: 3px;
+  }
+  .notice-row-item.open .nr-chevron { transform: rotate(180deg); }
+  /* 상세 내용 토글 — grid-rows 0fr→1fr 부드러운 펼침 */
+  .nr-detail {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows .25s ease;
+  }
+  .notice-row-item.open .nr-detail { grid-template-rows: 1fr; }
+  .nr-detail-inner { overflow: hidden; }
+  .nr-detail-text {
+    padding: 0 4px 22px 116px; font-size: 14px; line-height: 1.75;
+    color: var(--body, var(--muted)); white-space: pre-wrap; word-break: keep-all;
+  }
+  /* 아코디언 집중 효과: 열린 토글이 있으면 닫힌 항목을 연하게 */
+  .notice-row-item { transition: opacity .3s ease; }
+  .has-open .notice-row-item:not(.open) { opacity: 0.22; }
+  .has-open .notice-row-item:not(.open):hover { opacity: 1; }
+  .notices-empty { padding: 60px 0; text-align: center; color: var(--muted); font-size: 14px; }
+  /* 공지 목록과 푸터 사이 구분선이 두 줄로 겹쳐 보이지 않게 — notice-actions 위 구분선 제거 */
+  .notice-view .notice-actions { border-top: none; padding-top: 0; }
+  @media (max-width: 700px) {
+    .nr-head { flex-wrap: wrap; gap: 4px 12px; padding: 18px 2px; }
+    .nr-head .nr-date { width: auto; font-size: 12px; }
+    .nr-head .nr-text { font-size: 14px; flex: 1 1 auto; }
+    .nr-detail-text { padding: 0 2px 18px; }
+  }
+</style>
 </head>
-<body data-view="about">
+<body data-view="notices">
 <script>try{if(localStorage.getItem("pv:auth")==="1")document.body.classList.add("logged-in");}catch(e){}</script>
 <div class="toast" id="toast" aria-live="polite"></div>
 
@@ -97,216 +143,28 @@
   </div>
 </div>
 
-<!-- ============== ABOUT VIEW ============== -->
-<main class="about-view">
-  <section class="about-hero">
+<!-- ============== NOTICES LIST VIEW ============== -->
+<main class="notice-view">
+  <section class="page-hero">
     <div class="container">
-      <span class="meta-label">ABOUT LOCAL LAYERS</span>
-      <h1 class="about-title">관심을 관점으로<br/>전환하는 디자인 인사이트</h1>
-      <p class="about-lead">
-        우리는 디자인이 그 어느 때보다 가까워진 시대에 살고 있습니다.
-        멋진 로고, 감각적인 포스터, 편리한 앱 디자인 등 수많은 디자인 결과물에
-        쉽게 감탄하고 좋아하죠. 하지만 혹시 이렇게 생각해 보신 적 있나요?
-      </p>
-      <p class="about-quote-inline">
-        "이 디자인은 왜 이렇게 만들어졌을까?"<br/>
-        "이 안에는 어떤 이야기가 숨어 있을까?"
-      </p>
-      <p class="about-lead">
-        <strong>Local Layers는 바로 이 질문에서 시작합니다.</strong>
-        디자인을 단순히 '보는 것'을 넘어, 그 이면의 사고와 의도, 그리고 맥락을
-        깊이 읽어내는 '관점'으로 전환시키는 과정을 탐구하는 곳입니다.
+      <span class="meta-label">NOTICE</span>
+      <h1 class="page-title">Local Layers 공지사항</h1>
+      <p class="page-lead">
+        발행 일정, 신규 콘텐츠 오픈, 서비스 소식 등 Local Layers의 공지사항을 모았습니다.
       </p>
     </div>
   </section>
 
-  <section class="about-section">
+  <section class="notice-body">
     <div class="container">
-      <span class="meta-label">WHY LOCAL LAYERS</span>
-      <h2 class="about-h">디자인은 더 이상<br/>기술이 아닙니다.</h2>
-      <div class="about-text">
-        <p>
-          디자인은 더 이상 예쁘게 만드는 기술에만 머물지 않습니다.
-          우리의 생각, 행동, 심지어 사회와 문화를 바꾸는 강력하고 복합적인
-          언어로서 기능하고 있죠.
-        </p>
-        <p>
-          Local Layers 아티클은 바로 이 디자인이라는 언어를 해체하고 재해석하며,
-          모두가 디자인에 대한 기존의 '관심'이라는 틀에서 벗어나 새로운 '시각'으로
-          바라볼 수 있도록 탐구 내용을 제공합니다.
-        </p>
-        <p>
-          디자인을 통해 세상의 변화를 읽고, 숨겨진 가치를 발견하며,
-          더 나은 방향으로 나아가는 방법을 함께 찾아가는 여정인 셈입니다.
-        </p>
+      <div class="notices-list" id="noticesList">
+        <div class="notices-empty">불러오는 중…</div>
       </div>
-    </div>
-  </section>
+      <div class="pagination" id="noticesPagination"></div>
 
-  <section class="about-section alt">
-    <div class="container">
-      <span class="meta-label">WHAT WE EXPLORE</span>
-      <h2 class="about-h">우리가 탐구하는<br/>주제들</h2>
-      <div class="about-text">
-        <p>
-          우리는 디자인 트렌드의 흐름, 소비자 행동의 변화, 사회적 이슈의 반영,
-          브랜드 아이덴티티의 구축 등 디자인이 관여하는 다양한 분야를 탐구합니다.
-          이때 단순히 정보를 나열하는 것이 아니라, 각 현상에 대해 <strong>"왜?"</strong>라는 질문을
-          던지고 깊이 있게 분석하며 <strong>'관점의 흐름'</strong>을 만들어냅니다.
-        </p>
-        <p>
-          이러한 탐구를 통해 디자인이 어떻게 사람들의 마음을 움직이고 특정 행동을
-          유도하는지 이해하고, 나아가 디자인적 사유가 사회에 긍정적인 혁신을
-          가져올 가능성을 모색하고 이야기하고자 합니다.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="about-section">
-    <div class="container">
-      <span class="meta-label">WHO WE ARE</span>
-      <h2 class="about-h">글을 빚어내는<br/>사람들</h2>
-      <div class="about-text">
-        <p>
-          Local Layers 아티클은 한 명의 시선에 국한되지 않습니다.
-          디자인, 브랜딩 등 다양한 배경과 분야에서 활동하는 에디터들이 모여
-          함께 쓰고, 토론하고, 편집합니다.
-        </p>
-        <p>
-          우리는 각기 다른 출발점에서 시작했지만, 디자인을 통해 복잡한 현상을 정리하고,
-          추상적인 사고를 언어화하며, 당연해 보이는 것에 질문을 던진다는
-          공통의 방향성 아래 모였습니다.
-        </p>
-        <p>
-          팀 Local Layers는 이러한 다양한 시선이 충돌하고 융합하는 과정을 거쳐,
-          당신의 관점을 확장시킬 수 있는 풍부하고 입체적인 아티클을 빚어냅니다.
-          Local Layers 아티클은 당신이 디자인을 보는 <strong>'눈'</strong>을 바꾸고,
-          세상을 <strong>'해석'</strong>하는 새로운 도구를 얻도록 돕는 여정의 동반자입니다.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="about-steps">
-    <div class="container">
-      <div class="about-section-head">
-        <span class="meta-label">FIVE STEPS OF SEEING</span>
-        <h2>관점은 다섯 단계로<br/>빚어집니다</h2>
-        <p class="steps-intro">
-          같은 풍경을 다섯 번 다른 각도로 들여다보는 일.<br/>
-          Local Layers의 모든 글은 이 순서를 거칩니다. 어느 행을 눌러도 그 단계를 더 가까이 볼 수 있습니다.
-        </p>
-      </div>
-      <div class="step-timeline">
-
-        <div class="step-row">
-          <span class="step-no">01</span>
-          <div class="step-body">
-            <h3 class="step-kr">관찰 <span class="step-en">Observation</span></h3>
-            <p class="step-desc">무엇이 일어나고 있는가. 판단하기 전에 충분히 본다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">02</span>
-          <div class="step-body">
-            <h3 class="step-kr">의문 <span class="step-en">Question</span></h3>
-            <p class="step-desc">왜 그러한가. 익숙한 것에 다시 묻는다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">03</span>
-          <div class="step-body">
-            <h3 class="step-kr">탐색 <span class="step-en">Investigation</span></h3>
-            <p class="step-desc">어떤 맥락에서 작동하는가. 주변을 함께 살핀다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">04</span>
-          <div class="step-body">
-            <h3 class="step-kr">구조 해석 <span class="step-en">Structural Reading</span></h3>
-            <p class="step-desc">어떤 구조가 발견되는가. 패턴을 엮어 통찰로 바꾼다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">05</span>
-          <div class="step-body">
-            <h3 class="step-kr">관점 <span class="step-en">Local Layers</span></h3>
-            <p class="step-desc">이것은 무엇을 의미하는가. 우리의 자리를 밝힌다.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <section class="about-quote-block">
-    <div class="container">
-      <p class="aq-quote">우리의 이야기가 당신의 관점을 만날 때,<br/>디자인을 통해 세상이 더욱 <strong>흥미롭게</strong><br/>보이기 시작할 것입니다.</p>
-      <p class="aq-attr">— LOCAL LAYERS</p>
-    </div>
-  </section>
-
-  <section class="about-services">
-    <div class="container">
-
-      <div class="services-block">
-        <div class="services-head">
-          <h3 class="services-title">explore<br/>perspective</h3>
-          <p>디자인을 향한 다양한 시선과 가능성을 함께 살펴 보고 나눕니다.</p>
-        </div>
-        <div class="services-grid">
-          <a class="service-card" href="#" data-about-movement>
-            <span class="service-name">about : another movement</span>
-          </a>
-          <a class="service-card" href="/notices.html" data-view="notices">
-            <span class="service-name">Local Layers 공지사항</span>
-          </a>
-          <a class="service-card" href="#" data-inquiry="general">
-            <span class="service-name">문의하기</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="services-block">
-        <div class="services-head">
-          <h3 class="services-title">with<br/>perspective</h3>
-          <p>관점을 공유하고, 생각을 나누고, 디자인을 실천합니다.</p>
-        </div>
-        <div class="services-grid">
-          <a class="service-card" href="#" data-inquiry="b2b">
-            <span class="service-name">B2B 콘텐츠 제작</span>
-            <span class="service-sub">디자인 오리지널 콘텐츠 기획·제작</span>
-          </a>
-          <a class="service-card" href="#" data-inquiry="lecture">
-            <span class="service-name">디자인 강의 제안</span>
-            <span class="service-sub">브랜드·디자인 관련 특강·워크숍</span>
-          </a>
-          <a class="service-card" href="#" data-inquiry="curation">
-            <span class="service-name">디자인 기획·전략 큐레이션</span>
-            <span class="service-sub">아이디어 기반 디자인 전략 컨설팅</span>
-          </a>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <section class="about-editor">
-    <div class="container">
-      <span class="meta-label">CONTACT</span>
-      <p class="editor-note">
-        Local Layers 아티클의 모든 글은 어나더무브먼트와 Local Layers 팀이 함께 발행합니다.
-        제휴, 강의, 인터뷰, 콘텐츠 제작 문의는 아래로 연락 주세요.
-      </p>
-      <div class="editor-meta">
-        편집 · 어나더무브먼트 <br/>
-        문의 — cmlab.local@gmail.com<br/>
-        <a href="/notice.html" data-view="notice" style="text-decoration:underline">저작권 안내 보기</a>
+      <div class="notice-actions" style="margin-top:40px;">
+        <a class="notice-back" href="/about.html" data-view="about">← About Local Layers</a>
+        <a class="notice-cta" href="/notice.html" data-view="notice">저작권 안내 →</a>
       </div>
     </div>
   </section>
@@ -409,5 +267,127 @@
 <script src="/assets/js/firebase.js"></script>
 <script src="/assets/js/data.js"></script>
 <script src="/assets/js/app.js"></script>
+<script>
+  // 공지사항 전체 리스트 — 활성(active) 노티스만, order→날짜 내림차순
+  (function loadNoticesList() {
+    var PAGE_SIZE = 10;
+    var listEl  = document.getElementById('noticesList');
+    var pagerEl = document.getElementById('noticesPagination');
+    var allItems = [];
+    var currentPage = 1;
+    // 티커에서 넘어온 ?open=<id> — 해당 공지를 펼친 상태로 표시
+    var openId = '';
+    try { openId = new URLSearchParams(location.search).get('open') || ''; } catch (e) {}
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+        return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+      });
+    }
+    function nl2br(s) { return esc(s).replace(/\n/g, '<br/>'); }
+
+    function render() {
+      if (!allItems.length) {
+        listEl.innerHTML = '<div class="notices-empty">등록된 공지사항이 없습니다.</div>';
+        pagerEl.innerHTML = '';
+        return;
+      }
+      var totalPages = Math.max(1, Math.ceil(allItems.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+      var start = (currentPage - 1) * PAGE_SIZE;
+      var pageItems = allItems.slice(start, start + PAGE_SIZE);
+      listEl.innerHTML = pageItems.map(function(n) {
+        var detail = String(n.detail || '').trim();
+        var hasDetail = !!detail;
+        var willOpen = hasDetail && openId && n.id === openId;
+        return '<div class="notice-row-item' + (hasDetail ? ' has-detail' : '') + (willOpen ? ' open' : '') + '"' +
+            ' id="notice-' + esc(n.id) + '" data-id="' + esc(n.id) + '">' +
+          '<button class="nr-head" type="button" aria-expanded="' + (willOpen ? 'true' : 'false') + '"' + (hasDetail ? '' : ' tabindex="-1"') + '>' +
+            '<span class="nr-date">' + esc(n.date || '') + '</span>' +
+            '<span class="nr-text">' + esc(n.text || '') + '</span>' +
+            (hasDetail ? '<i class="nr-chevron fa-solid fa-chevron-down"></i>' : '') +
+          '</button>' +
+          (hasDetail
+            ? '<div class="nr-detail"><div class="nr-detail-inner"><div class="nr-detail-text">' + nl2br(detail) + '</div></div></div>'
+            : '') +
+        '</div>';
+      }).join('');
+      // 열린 항목이 있으면 나머지를 연하게(집중) — 초기 ?open 자동 열림에도 적용
+      listEl.classList.toggle('has-open', !!listEl.querySelector('.notice-row-item.open'));
+      renderPager(totalPages);
+    }
+
+    function renderPager(totalPages) {
+      if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
+      var html = '';
+      html += '<button class="page-btn" data-page="' + (currentPage - 1) + '"' + (currentPage === 1 ? ' disabled' : '') + '>이전</button>';
+      for (var p = 1; p <= totalPages; p++) {
+        html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+      }
+      html += '<button class="page-btn" data-page="' + (currentPage + 1) + '"' + (currentPage === totalPages ? ' disabled' : '') + '>다음</button>';
+      pagerEl.innerHTML = html;
+    }
+
+    // ?open=<id> 가 있으면 해당 공지가 위치한 페이지로 이동 후 펼치고 스크롤
+    function focusOpenTarget() {
+      if (!openId) return;
+      var idx = allItems.findIndex(function(n) { return n.id === openId; });
+      if (idx < 0) return;
+      currentPage = Math.floor(idx / PAGE_SIZE) + 1;
+      render();
+      var row = document.getElementById('notice-' + openId);
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        openId = ''; // 한 번만 자동 오픈
+      }
+    }
+
+    // 제목 클릭 시 상세 내용 토글 (이벤트 위임 — 한 번만 바인딩)
+    // 아코디언: 하나를 열면 다른 토글은 모두 닫히고, 나머지는 연하게 처리해 집중
+    listEl.addEventListener('click', function(e) {
+      var head = e.target.closest('.nr-head');
+      if (!head) return;
+      var row = head.closest('.notice-row-item');
+      if (!row || !row.classList.contains('has-detail')) return;
+      var willOpen = !row.classList.contains('open');
+      listEl.querySelectorAll('.notice-row-item.open').forEach(function (r) {
+        if (r !== row) {
+          r.classList.remove('open');
+          var h = r.querySelector('.nr-head');
+          if (h) h.setAttribute('aria-expanded', 'false');
+        }
+      });
+      row.classList.toggle('open', willOpen);
+      head.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      listEl.classList.toggle('has-open', willOpen);
+    });
+    pagerEl.addEventListener('click', function(e) {
+      var b = e.target.closest('[data-page]');
+      if (!b || b.disabled) return;
+      var p = parseInt(b.getAttribute('data-page'), 10);
+      if (!isNaN(p)) { currentPage = p; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    });
+
+    if (!window.fb || !fb.db) {
+      listEl.innerHTML = '<div class="notices-empty">불러오지 못했습니다.</div>';
+      return;
+    }
+    var firstLoad = true;
+    fb.db.collection('notices').where('active', '==', true).onSnapshot(function(snap) {
+      allItems = snap.docs.map(function(d) { var o = d.data() || {}; o.id = d.id; return o; }).sort(function(a, b) {
+        var oa = a.order != null ? a.order : 0;
+        var ob = b.order != null ? b.order : 0;
+        if (oa !== ob) return oa - ob;
+        return String(b.date || '').localeCompare(String(a.date || ''));
+      });
+      render();
+      if (firstLoad) { firstLoad = false; focusOpenTarget(); }
+    }, function(err) {
+      console.warn('[notices-list] 구독 실패:', err.message);
+      listEl.innerHTML = '<div class="notices-empty">불러오지 못했습니다.</div>';
+    });
+  })();
+</script>
 </body>
 </html>

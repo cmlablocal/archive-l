@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instagram 편집 · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  /* ===== 편집기 레이아웃 ===== */
+  .ig-editor { display:grid; grid-template-columns: 116px minmax(0,1fr) 300px; gap:18px; align-items:start; }
+  @media (max-width: 1100px){ .ig-editor { grid-template-columns: 96px minmax(0,1fr); } .ig-controls { grid-column:1/-1; } }
+
+  /* 썸네일 레일 */
+  .ig-rail { display:flex; flex-direction:column; gap:10px; }
+  .ig-thumb {
+    position:relative; width:100%; aspect-ratio:4/5; border-radius:8px; overflow:hidden;
+    border:2px solid var(--admin-border); cursor:pointer; background:#111;
+  }
+  .ig-thumb.active { border-color:var(--admin-accent); }
+  .ig-thumb .ig-card-scaler { transform-origin:top left; position:absolute; top:0; left:0; }
+  .ig-thumb .ig-tnum {
+    position:absolute; left:4px; top:4px; z-index:5; background:rgba(0,0,0,0.6); color:#fff;
+    font-size:10px; padding:1px 6px; border-radius:999px; font-weight:600;
+  }
+  .ig-thumb .ig-tdel {
+    position:absolute; right:4px; top:4px; z-index:5; background:rgba(0,0,0,0.55); color:#fff;
+    border:none; width:18px; height:18px; border-radius:50%; font-size:9px; cursor:pointer; display:none;
+  }
+  .ig-thumb:hover .ig-tdel { display:block; }
+  .ig-addpage {
+    width:100%; aspect-ratio:4/5; border:2px dashed var(--admin-border); border-radius:8px;
+    background:transparent; color:var(--muted); cursor:pointer; font-size:20px;
+  }
+  .ig-addpage:hover { border-color:var(--fg); color:var(--fg); }
+  .ig-thumb.dragging { opacity:.4; }
+  .ig-thumb.drag-over { border-color:var(--fg); box-shadow:0 0 0 2px var(--fg) inset; }
+  .ig-thumb .ig-tgrip {
+    position:absolute; right:4px; bottom:4px; z-index:5; color:rgba(255,255,255,.8);
+    font-size:11px; cursor:grab; text-shadow:0 1px 2px rgba(0,0,0,.6); display:none;
+  }
+  .ig-thumb:hover .ig-tgrip { display:block; }
+
+  /* 미리보기 무대 */
+  .ig-stage-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  #igStage { position:relative; overflow:hidden; border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,0.18); }
+  #igStage .ig-card-scaler { transform-origin:top left; position:absolute; top:0; left:0; }
+  .ig-stage-hint { font-size:11px; color:var(--muted); }
+
+  /* 카드(실측 1080×1350) */
+  .ig-card { position:relative; width:1080px; height:1350px; overflow:hidden; font-family:'Pretendard',sans-serif; }
+  .ig-bg { position:absolute; inset:0; background-repeat:no-repeat; background-position:center; background-size:cover; }
+  .ig-scrim { position:absolute; inset:0; }
+  .ig-inner { position:absolute; inset:0; padding:96px 90px; display:flex; flex-direction:column; box-sizing:border-box; }
+  .ig-brand { font-size:30px; font-weight:800; letter-spacing:.22em; }
+  .ig-card .ig-head-row { display:flex; justify-content:space-between; align-items:flex-start; }
+  .ig-heading { font-weight:800; line-height:1.18; white-space:pre-wrap; word-break:keep-all; }
+  .ig-body { line-height:1.55; white-space:pre-wrap; word-break:keep-all; font-weight:500; }
+  .ig-rule-full { height:3px; width:100%; margin-top:24px; }
+  .ig-tags { display:flex; flex-wrap:wrap; gap:14px; }
+  .ig-tag { background:#ffffff; color:#16181a; font-size:30px; font-weight:700; padding:10px 24px; border-radius:10px; line-height:1; }
+  .ig-cta { font-size:42px; font-weight:800; display:flex; align-items:center; gap:24px; }
+  .ig-cta .ig-arrow { font-size:46px; }
+  .ig-quotemark { font-size:200px; font-weight:900; line-height:.55; margin-bottom:8px; font-family:Georgia,'Times New Roman',serif; }
+  .ig-bignum { font-size:170px; font-weight:900; line-height:.9; margin-bottom:8px; }
+
+  /* 컨트롤 패널 */
+  .ig-controls { display:flex; flex-direction:column; gap:18px; }
+  .ig-panel { border:1px solid var(--admin-border); border-radius:10px; padding:14px; background:var(--admin-row); }
+  .ig-panel h3 { font-size:12px; font-weight:700; margin:0 0 10px; color:var(--fg); text-transform:uppercase; letter-spacing:.04em; }
+  .ig-field { margin-bottom:12px; }
+  .ig-field:last-child { margin-bottom:0; }
+  .ig-field label { display:block; font-size:11px; color:var(--muted); margin-bottom:5px; }
+  .ig-field textarea, .ig-field input[type=text] {
+    width:100%; box-sizing:border-box; padding:8px 10px; font-size:13px; background:var(--bg);
+    border:1px solid var(--admin-border); border-radius:6px; color:var(--fg); font-family:inherit; resize:vertical;
+  }
+  .ig-field textarea:focus, .ig-field input:focus { outline:none; border-color:var(--fg); }
+  .ig-field select {
+    width:100%; box-sizing:border-box; padding:8px 10px; font-size:13px; background:var(--bg);
+    border:1px solid var(--admin-border); border-radius:6px; color:var(--fg); font-family:inherit; cursor:pointer;
+  }
+  .ig-field select:focus { outline:none; border-color:var(--fg); }
+
+  .ig-swatches { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+  .ig-swatch { aspect-ratio:1; border-radius:6px; border:2px solid transparent; cursor:pointer; position:relative; }
+  .ig-swatch.active { border-color:var(--fg); box-shadow:0 0 0 2px var(--bg) inset; }
+  .ig-sub-label { font-size:10px; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+
+  .ig-seg { display:flex; gap:4px; }
+  .ig-seg button {
+    flex:1; padding:6px 0; font-size:12px; border:1px solid var(--admin-border); background:var(--bg);
+    color:var(--fg); border-radius:6px; cursor:pointer;
+  }
+  .ig-seg button.active { background:var(--admin-accent); color:var(--bg); border-color:var(--admin-accent); }
+
+  .ig-range { display:flex; align-items:center; gap:8px; }
+  .ig-range input[type=range] { flex:1; }
+  .ig-range .val { font-size:11px; color:var(--muted); min-width:38px; text-align:right; }
+
+  .ig-row2 { display:flex; gap:8px; }
+  .ig-row2 > * { flex:1; }
+
+  /* 캡션 */
+  .ig-caption-wrap { margin-top:26px; border-top:1px solid var(--admin-border); padding-top:20px; }
+  .ig-caption-grid { display:grid; grid-template-columns:1fr 320px; gap:18px; align-items:start; }
+  @media (max-width: 900px){ .ig-caption-grid { grid-template-columns:1fr; } }
+  .ig-cap-preview {
+    border:1px solid var(--admin-border); border-radius:10px; padding:14px; background:var(--admin-row);
+    font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; min-height:120px; color:var(--fg);
+  }
+  .ig-cap-tags { color:#3b82f6; }
+
+  /* 해시태그 묶음 바 */
+  .ig-tagbar { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  .ig-tagbar select { flex:1; min-width:140px; padding:6px 8px; font-size:12px; background:var(--bg); border:1px solid var(--admin-border); border-radius:6px; color:var(--fg); font-family:inherit; cursor:pointer; }
+  .ig-tagbar .admin-btn-sm { white-space:nowrap; }
+
+  /* 모달 공통(자동 분할) */
+  .ig-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.55); padding:20px; }
+  .ig-modal.show { display:flex; }
+  .ig-modal-box { width:540px; max-width:100%; max-height:90vh; overflow:auto; background:var(--bg); border:1px solid var(--admin-border); border-radius:14px; padding:22px; box-shadow:0 16px 50px rgba(0,0,0,.45); }
+  .ig-modal-box h2 { font-size:15px; font-weight:700; margin:0 0 14px; color:var(--fg); }
+  .ig-modal-box label { display:block; font-size:11px; color:var(--muted); margin:0 0 5px; }
+  .ig-modal-box textarea, .ig-modal-box input[type=text], .ig-modal-box input[type=number] {
+    width:100%; box-sizing:border-box; padding:9px 11px; font-size:13px; background:var(--admin-row);
+    border:1px solid var(--admin-border); border-radius:7px; color:var(--fg); font-family:inherit; resize:vertical;
+  }
+  .ig-modal-box textarea:focus, .ig-modal-box input:focus { outline:none; border-color:var(--fg); }
+  .ig-modal-foot { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  .ig-check { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--fg); margin-top:12px; cursor:pointer; }
+  .ig-check input { width:auto; }
+
+  .ig-toolbar { display:flex; gap:8px; flex-wrap:wrap; }
+  .ig-busy { display:none; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+  .ig-busy.show { display:flex; }
+  .ig-spin { width:14px; height:14px; border:2px solid var(--admin-border); border-top-color:var(--fg); border-radius:50%; animation:igspin .7s linear infinite; }
+  @keyframes igspin { to { transform:rotate(360deg); } }
+
+  /* 화면 밖 내보내기 호스트 */
+  #igExportHost { position:fixed; left:-99999px; top:0; width:1080px; height:1350px; pointer-events:none; }
+
+  /* ===== 인스타그램 피드 미리보기 모달 ===== */
+  #igPreviewModal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.6); padding:20px; }
+  #igPreviewModal.show { display:flex; }
+  .ig-post { width:380px; max-width:100%; background:var(--bg); border:1px solid var(--admin-border); border-radius:14px; overflow:hidden; box-shadow:0 16px 50px rgba(0,0,0,.45); font-family:'Pretendard',sans-serif; max-height:92vh; display:flex; flex-direction:column; }
+  .ig-post-head { display:flex; align-items:center; gap:10px; padding:12px 14px; flex-shrink:0; }
+  .ig-post-ava { width:34px; height:34px; border-radius:50%; background:linear-gradient(45deg,#f09433,#dc2743,#bc1888); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:14px; }
+  .ig-post-user { font-size:13px; font-weight:600; color:var(--fg); flex:1; }
+  .ig-post-media { position:relative; width:380px; height:475px; background:#000; overflow:hidden; flex-shrink:0; }
+  .ig-post-media .ig-card-scaler { transform-origin:top left; position:absolute; top:0; left:0; }
+  .ig-pmedia-dots { position:absolute; top:10px; left:0; right:0; display:flex; justify-content:center; gap:5px; z-index:5; }
+  .ig-pmedia-dots span { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.5); }
+  .ig-pmedia-dots span.on { background:#fff; }
+  .ig-pmedia-count { position:absolute; top:9px; right:10px; background:rgba(0,0,0,.6); color:#fff; font-size:11px; padding:2px 9px; border-radius:999px; z-index:5; }
+  .ig-pmedia-nav { position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.85); border:none; cursor:pointer; z-index:5; font-size:18px; line-height:1; color:#222; }
+  .ig-pmedia-nav.prev { left:8px; } .ig-pmedia-nav.next { right:8px; }
+  .ig-post-actions { display:flex; gap:16px; padding:11px 14px 4px; font-size:21px; color:var(--fg); flex-shrink:0; }
+  .ig-post-actions .spacer { flex:1; }
+  .ig-post-likes { padding:2px 14px; font-size:13px; font-weight:600; color:var(--fg); flex-shrink:0; }
+  .ig-post-cap { padding:4px 14px 16px; font-size:13px; line-height:1.55; color:var(--fg); overflow:auto; }
+  .ig-post-cap .u { font-weight:600; margin-right:6px; }
+  .ig-post-cap .tag { color:#3b82f6; }
+  .ig-post-close { position:absolute; top:14px; right:20px; color:#fff; font-size:30px; background:none; border:none; cursor:pointer; z-index:5; line-height:1; }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <a href="/admin/instagram.html" style="font-size:12px;color:var(--muted);text-decoration:none;"><i class="fa-solid fa-chevron-left"></i> 인스타그램 콘텐츠</a>
+        <h1 class="admin-page-title" style="margin-top:4px;">인스타그램 콘텐츠 편집</h1>
+      </div>
+      <div class="ig-toolbar">
+        <div class="ig-busy" id="busy"><span class="ig-spin"></span> <span id="busyTxt">처리 중…</span></div>
+        <button class="admin-btn ghost admin-btn-sm" id="btnAutoSplit"><i class="fa-solid fa-wand-magic-sparkles"></i> 본문 자동 분할</button>
+        <button class="admin-btn ghost admin-btn-sm" id="btnIgPreview"><i class="fa-brands fa-instagram"></i> 인스타 미리보기</button>
+        <button class="admin-btn ghost admin-btn-sm" id="btnDownOne"><i class="fa-regular fa-image"></i> 현재 페이지 PNG</button>
+        <button class="admin-btn ghost admin-btn-sm" id="btnDownZip"><i class="fa-regular fa-file-zipper"></i> 전체 ZIP</button>
+        <button class="admin-btn" id="btnSave"><i class="fa-regular fa-floppy-disk"></i> 저장</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px;">
+      <div class="ig-field" style="flex:1;min-width:240px;max-width:420px;margin:0;">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">작업 이름 (내부 관리용)</label>
+        <input type="text" id="projTitle" placeholder="예: 5월 칼럼 — 인스타 캐러셀"
+          style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:13px;background:transparent;border:1px solid var(--admin-border);border-radius:8px;color:var(--fg);font-family:inherit;" />
+      </div>
+      <div class="ig-field" style="width:200px;margin:0;">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">브랜드 워드마크</label>
+        <input type="text" id="projBrand" placeholder="LOCAL LAYERS"
+          style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:13px;background:transparent;border:1px solid var(--admin-border);border-radius:8px;color:var(--fg);font-family:inherit;" />
+      </div>
+      <div class="ig-field" style="width:120px;margin:0;">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">강조색</label>
+        <input type="color" id="projAccent" value="#e23b3b"
+          style="width:100%;height:36px;border:1px solid var(--admin-border);border-radius:8px;background:var(--bg);cursor:pointer;" />
+      </div>
+    </div>
+
+    <!-- ===== 편집기 ===== -->
+    <div class="ig-editor">
+      <!-- 썸네일 레일 -->
+      <div class="ig-rail" id="rail"></div>
+
+      <!-- 미리보기 -->
+      <div class="ig-stage-wrap">
+        <div id="igStage"></div>
+        <div class="ig-stage-hint">1080 × 1350 (4:5) · 배경 이미지는 드래그해 위치를 조정할 수 있습니다.</div>
+      </div>
+
+      <!-- 컨트롤 -->
+      <div class="ig-controls" id="controls"></div>
+    </div>
+
+    <!-- ===== 캡션 ===== -->
+    <div class="ig-caption-wrap">
+      <h2 class="ig-section-title" style="font-size:14px;font-weight:700;margin:0 0 12px;">인스타그램 캡션</h2>
+      <div class="ig-caption-grid">
+        <div>
+          <div class="ig-field">
+            <label>본문</label>
+            <textarea id="capBody" rows="6" placeholder="게시물 본문을 입력하세요."
+              style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;background:var(--bg);border:1px solid var(--admin-border);border-radius:8px;color:var(--fg);font-family:inherit;resize:vertical;"></textarea>
+          </div>
+          <div class="ig-field">
+            <label>해시태그 (공백 또는 줄바꿈으로 구분, # 없이 입력해도 됩니다)</label>
+            <div class="ig-tagbar">
+              <select id="tagGroupSel"><option value="">저장된 해시태그 묶음…</option></select>
+              <button class="admin-btn ghost admin-btn-sm" id="tagGroupLoad" title="현재 해시태그 칸에 불러오기"><i class="fa-solid fa-download"></i> 불러오기</button>
+              <button class="admin-btn ghost admin-btn-sm" id="tagGroupSave" title="현재 해시태그를 새 묶음으로 저장"><i class="fa-regular fa-floppy-disk"></i> 저장</button>
+              <button class="admin-btn ghost admin-btn-sm" id="tagGroupDel" title="선택한 묶음 삭제"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+            <textarea id="capTags" rows="3" placeholder="Local Layers 칼럼 another movement"
+              style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;background:var(--bg);border:1px solid var(--admin-border);border-radius:8px;color:var(--fg);font-family:inherit;resize:vertical;"></textarea>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">복사 미리보기</label>
+          <div class="ig-cap-preview" id="capPreview"></div>
+          <button class="admin-btn" id="btnCopyCap" style="width:100%;justify-content:center;margin-top:10px;">
+            <i class="fa-regular fa-copy"></i> 캡션 복사
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 인스타그램 피드 미리보기 -->
+<div id="igPreviewModal">
+  <button class="ig-post-close" id="igPrevClose" aria-label="닫기">&times;</button>
+  <div class="ig-post">
+    <div class="ig-post-head">
+      <div class="ig-post-ava" id="igpAva">P</div>
+      <div class="ig-post-user" id="igpUser">perspective</div>
+      <i class="fa-solid fa-ellipsis" style="color:var(--fg);"></i>
+    </div>
+    <div class="ig-post-media" id="igpMedia"></div>
+    <div class="ig-post-actions">
+      <i class="fa-regular fa-heart"></i>
+      <i class="fa-regular fa-comment"></i>
+      <i class="fa-regular fa-paper-plane"></i>
+      <span class="spacer"></span>
+      <i class="fa-regular fa-bookmark"></i>
+    </div>
+    <div class="ig-post-likes">좋아요 0개</div>
+    <div class="ig-post-cap" id="igpCap"></div>
+  </div>
+</div>
+
+<!-- 본문 자동 분할 모달 -->
+<div class="ig-modal" id="splitModal">
+  <div class="ig-modal-box">
+    <h2><i class="fa-solid fa-wand-magic-sparkles"></i> 본문 글 자동 분할</h2>
+    <div class="ig-field" style="margin-bottom:12px;">
+      <label>전체 본문 (문단/문장 단위로 페이지에 나눠 담습니다)</label>
+      <textarea id="splitText" rows="8" placeholder="여기에 전체 본문을 붙여넣으세요."></textarea>
+    </div>
+    <div class="ig-row2" style="display:flex;gap:12px;">
+      <div class="ig-field" style="flex:1;margin:0;">
+        <label>페이지당 글자 수(대략)</label>
+        <input type="number" id="splitLen" value="220" min="80" max="600" step="10">
+      </div>
+    </div>
+    <label class="ig-check"><input type="checkbox" id="splitReplace" checked> 기존 본문 페이지를 교체합니다 (표지는 유지)</label>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">최대 9개 본문 페이지(표지 포함 10장)까지 생성됩니다.</div>
+    <div class="ig-modal-foot">
+      <button class="admin-btn ghost admin-btn-sm" id="splitCancel">취소</button>
+      <button class="admin-btn" id="splitGo"><i class="fa-solid fa-wand-magic-sparkles"></i> 초안 만들기</button>
+    </div>
+  </div>
+</div>
+
+<div id="igExportHost"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+(function(){
+  // ===== 프리셋 =====
+  const MONO_PRESETS = [
+    { id:'ink',      bg:'#111315', fg:'#ffffff' },
+    { id:'paper',    bg:'#f6f4ef', fg:'#16181a' },
+    { id:'graphite', bg:'#2b2f33', fg:'#f2f2f2' },
+    { id:'cream',    bg:'#efe7d8', fg:'#2a2620' },
+    { id:'mist',     bg:'#e7ebee', fg:'#1d2226' }
+  ];
+  const GRAD_PRESETS = [
+    { id:'sunset',  bg:'linear-gradient(135deg,#ff7e5f,#feb47b)', fg:'#231410' },
+    { id:'ocean',   bg:'linear-gradient(135deg,#2193b0,#6dd5ed)', fg:'#06222b' },
+    { id:'violet',  bg:'linear-gradient(135deg,#654ea3,#3b2f73)', fg:'#ffffff' },
+    { id:'forest',  bg:'linear-gradient(135deg,#134e5e,#71b280)', fg:'#ffffff' },
+    { id:'rose',    bg:'linear-gradient(135deg,#e96443,#904e95)', fg:'#ffffff' },
+    { id:'night',   bg:'linear-gradient(160deg,#0f2027,#203a43,#2c5364)', fg:'#ffffff' },
+    { id:'graymist',bg:'linear-gradient(135deg,#3a3a3a,#101010)', fg:'#ffffff' },
+    { id:'gold',    bg:'linear-gradient(135deg,#c79a3a,#8a6a1f)', fg:'#fff8e7' }
+  ];
+  const ALL_PRESETS = [...MONO_PRESETS, ...GRAD_PRESETS];
+  function presetById(id){ return ALL_PRESETS.find(p => p.id === id) || MONO_PRESETS[0]; }
+
+  // ===== 레이아웃 템플릿(스타일) + 세로 위치 =====
+  const COVER_LAYOUTS = [
+    { id:'basic', label:'기본' },
+    { id:'quote', label:'인용구형' }
+  ];
+  const CONTENT_LAYOUTS = [
+    { id:'standard', label:'표준 (구분선)' },
+    { id:'simple',   label:'심플' },
+    { id:'quote',    label:'인용구형' },
+    { id:'number',   label:'번호 강조' }
+  ];
+  const VALIGN_OPTS = [
+    { id:'top',    label:'상단' },
+    { id:'center', label:'중앙' },
+    { id:'bottom', label:'하단' }
+  ];
+  // 구버전 layout 값 → { layout(스타일), vAlign(세로위치) } 마이그레이션
+  function migrateLayout(type, layout, vAlign){
+    if (vAlign) return { layout: layout || (type==='cover'?'basic':'standard'), vAlign };
+    const map = {
+      bottom:   { layout:'basic',    vAlign:'bottom' },
+      top:      { layout:'basic',    vAlign:'top' },
+      center:   { layout:'basic',    vAlign:'center' },
+      standard: { layout:'standard', vAlign:'top' },
+      centered: { layout:'simple',   vAlign:'center' },
+      number:   { layout:'number',   vAlign:'top' },
+      quote:    { layout:'quote',    vAlign: type==='cover' ? 'bottom' : 'center' }
+    };
+    return map[layout] || { layout: type==='cover'?'basic':'standard', vAlign: type==='cover'?'bottom':'top' };
+  }
+
+  // ===== 상태 =====
+  const qs = new URLSearchParams(location.search);
+  const state = {
+    docId: qs.get('id') || null,
+    articleId: qs.get('articleId') || null,
+    title: '',
+    brand: 'LOCAL LAYERS',
+    accent: '#e23b3b',
+    pages: [],
+    caption: { body:'', tags:'' },
+    selected: 0
+  };
+  // 세션 내 업로드 이미지(dataURL) — 깔끔한 PNG 내보내기용(CORS 오염 방지)
+  const localImages = new Map();
+  let pidSeq = 0;
+  function newPid(){ return 'p_' + Date.now().toString(36) + '_' + (pidSeq++); }
+  let dragFrom = null;
+  function reorderPages(from, to){
+    if (from === to) return;
+    const selId = state.pages[state.selected] && state.pages[state.selected].id;
+    const [moved] = state.pages.splice(from, 1);
+    state.pages.splice(to, 0, moved);
+    const ni = state.pages.findIndex(p => p.id === selId);
+    state.selected = ni >= 0 ? ni : Math.min(to, state.pages.length-1);
+    renderAll();
+  }
+
+  function makePage(type){
+    const preset = type === 'cover' ? presetById('ink') : presetById('paper');
+    return {
+      id: newPid(),
+      type: type,
+      presetId: preset.id,
+      bgCss: preset.bg,
+      fgColor: preset.fg,
+      bgImageUrl: '',
+      bgZoom: 100,
+      bgX: 50,
+      bgY: 50,
+      scrimMode: 'dark',
+      scrim: 0.5,
+      heading: '',
+      body: '',
+      tags: '',
+      cta: '',
+      layout: type === 'cover' ? 'basic' : 'standard',
+      vAlign: type === 'cover' ? 'bottom' : 'top',
+      align: 'left',
+      fontScale: 1
+    };
+  }
+
+  // ===== 색 유틸 =====
+  function hexToRgb(hex){
+    let h = String(hex||'').replace('#','');
+    if (h.length === 3) h = h.split('').map(c=>c+c).join('');
+    const n = parseInt(h,16);
+    if (isNaN(n) || h.length !== 6) return {r:255,g:255,b:255};
+    return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+  }
+  function rgba(hex, a){ const c=hexToRgb(hex); return `rgba(${c.r},${c.g},${c.b},${a})`; }
+  function isLight(hex){ const c=hexToRgb(hex); return (0.299*c.r+0.587*c.g+0.114*c.b) > 150; }
+  // *강조* → 강조색 볼드
+  function renderRich(text, accent){
+    return escText(text).replace(/\*([^*\n]+)\*/g, '<b style="color:'+accent+'">$1</b>');
+  }
+
+  // ===== 카드 렌더링 =====
+  function escAttr(s){ return String(s||'').replace(/'/g,'%27').replace(/"/g,'%22'); }
+  function escText(s){ return String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+  function cardHTML(page, idx, total){
+    const isCover = page.type === 'cover';
+    const imgSrc = localImages.get(page.id) || page.bgImageUrl || '';
+    const bg = imgSrc
+      ? `<div class="ig-bg" style="background-image:url('${escAttr(imgSrc)}');background-size:${page.bgZoom}%;background-position:${page.bgX}% ${page.bgY}%;"></div>`
+      : `<div class="ig-bg" style="background:${page.bgCss};"></div>`;
+    const fg = page.fgColor;
+    const accent = state.accent || '#e23b3b';
+    const fs = page.fontScale || 1;
+    const align = page.align === 'center' ? 'center' : 'left';
+    const alignItems = align === 'center' ? 'center' : 'flex-start';
+    const justify = align === 'center' ? 'center' : 'flex-start';
+    const mig = migrateLayout(page.type, page.layout, page.vAlign);
+    const layout = mig.layout;
+    const vAlign = page.vAlign || mig.vAlign;
+    const brand = `<div class="ig-brand" style="color:${fg}">${escText(state.brand || 'LOCAL LAYERS')}</div>`;
+    // 보정막: 표지가 하단 위치일 때만 하단 그라데이션, 그 외는 균일
+    let scrim = '';
+    if (imgSrc && page.scrimMode !== 'none'){
+      const c = page.scrimMode === 'light' ? '255,255,255' : '0,0,0';
+      scrim = (isCover && vAlign === 'bottom')
+        ? `<div class="ig-scrim" style="background:linear-gradient(180deg, rgba(${c},0) 28%, rgba(${c},${page.scrim}) 100%);"></div>`
+        : `<div class="ig-scrim" style="background:rgba(${c},${page.scrim});"></div>`;
+    }
+
+    const tagsHTML = (page.tags || '').split(/[\n,]+/).map(t=>t.trim()).filter(Boolean)
+      .map(t => `<span class="ig-tag">#${escText(t.replace(/^#/,''))}</span>`).join('');
+    const ctaHTML = page.cta
+      ? `<div class="ig-cta" style="color:${accent};justify-content:${justify}">${renderRich(page.cta, accent)}<span class="ig-arrow">⟶</span></div>`
+      : '';
+    const wrap = inner => `<div class="ig-card">${bg}${scrim}<div class="ig-inner" style="text-align:${align};">${inner}</div></div>`;
+    // 세로 위치(상/중/하)에 따라 헤더 아래 본문 블록 배치
+    const sp = '<div style="flex:1"></div>';
+    function place(headerRow, contentBlock, footer){
+      let mid;
+      if (vAlign === 'top')      mid = `${contentBlock}${sp}`;
+      else if (vAlign === 'center') mid = `${sp}${contentBlock}${sp}`;
+      else                       mid = `${sp}${contentBlock}`;
+      return wrap(`${headerRow}${mid}${footer || ''}`);
+    }
+
+    // ===== 표지 =====
+    if (isCover){
+      const hSize = Math.round(86 * fs);
+      const sSize = Math.round(36 * fs);
+      const tagsBlock = tagsHTML ? `<div class="ig-tags" style="justify-content:${justify}">${tagsHTML}</div>` : '';
+      const headBlock = page.heading ? `<div class="ig-heading" style="color:${fg};font-size:${hSize}px;">${renderRich(page.heading, accent)}</div>` : '';
+      const subBlock = page.body ? `<div class="ig-body" style="color:${fg};font-size:${sSize}px;opacity:.92">${renderRich(page.body, accent)}</div>` : '';
+      const header = `<div class="ig-head-row">${brand}</div>`;
+      let content;
+      if (layout === 'quote'){
+        const q = `<div class="ig-quotemark" style="color:${accent}">“</div>`;
+        content = `<div style="display:flex;flex-direction:column;align-items:${alignItems};gap:20px;">${q}${headBlock}${subBlock}${tagsBlock}</div>`;
+      } else {
+        content = `<div style="display:flex;flex-direction:column;align-items:${alignItems};gap:28px;">${tagsBlock}${headBlock}${subBlock}</div>`;
+      }
+      return place(header, content);
+    }
+
+    // ===== 본문 =====
+    const hSize = Math.round(60 * fs);
+    const bSize = Math.round(40 * fs);
+    const headBlock = page.heading ? `<div class="ig-heading" style="color:${fg};font-size:${hSize}px;margin-bottom:38px;">${renderRich(page.heading, accent)}</div>` : '';
+    const bodyBlock = page.body ? `<div class="ig-body" style="color:${fg};font-size:${bSize}px;">${renderRich(page.body, accent)}</div>` : '';
+
+    if (layout === 'quote'){
+      const header = `<div class="ig-head-row" style="align-items:center;">${brand}</div>`;
+      const q = `<div class="ig-quotemark" style="color:${accent};text-align:${align}">“</div>`;
+      const quote = page.heading ? `<div class="ig-heading" style="color:${fg};font-size:${Math.round(64*fs)}px;line-height:1.3;">${renderRich(page.heading, accent)}</div>` : '';
+      const who = page.body ? `<div class="ig-body" style="color:${fg};font-size:${Math.round(36*fs)}px;opacity:.85;margin-top:36px;">${renderRich(page.body, accent)}</div>` : '';
+      const content = `<div style="display:flex;flex-direction:column;align-items:${alignItems};">${q}${quote}${who}</div>`;
+      return place(header, content, ctaHTML);
+    }
+    if (layout === 'number'){
+      const header = `<div class="ig-head-row" style="align-items:center;">${brand}</div>`;
+      const num = `<div class="ig-bignum" style="color:${accent}">${String(idx).padStart(2,'0')}</div>`;
+      const content = `<div style="display:flex;flex-direction:column;align-items:${alignItems};">${num}${headBlock}${bodyBlock}</div>`;
+      return place(header, content, ctaHTML);
+    }
+    if (layout === 'standard'){
+      // 헤더 아래 전폭 구분선(위치 고정), 본문 블록은 세로 위치 적용
+      const header = `<div class="ig-head-row" style="align-items:center;">${brand}</div><div class="ig-rule-full" style="background:${rgba(fg,0.9)};"></div>`;
+      const content = `<div style="display:flex;flex-direction:column;align-items:${alignItems};">${headBlock}${bodyBlock}</div>`;
+      return place(header, content, ctaHTML);
+    }
+    // simple (구분선 없음)
+    const headerS = `<div class="ig-head-row" style="align-items:center;">${brand}</div>`;
+    const contentS = `<div style="display:flex;flex-direction:column;align-items:${alignItems};gap:8px;">${headBlock}${bodyBlock}</div>`;
+    return place(headerS, contentS, ctaHTML);
+  }
+
+  // ===== 미리보기 =====
+  function updatePreview(){
+    const stage = document.getElementById('igStage');
+    const page = state.pages[state.selected];
+    if (!page){ stage.innerHTML=''; return; }
+    const wrapW = stage.parentElement.clientWidth || 360;
+    const scale = Math.min(0.42, Math.max(0.18, wrapW / 1080));
+    stage.style.width = Math.round(1080*scale) + 'px';
+    stage.style.height = Math.round(1350*scale) + 'px';
+    stage.innerHTML = `<div class="ig-card-scaler" style="transform:scale(${scale})">${cardHTML(page, state.selected, state.pages.length)}</div>`;
+    attachDrag(stage.querySelector('.ig-card'), scale);
+  }
+
+  // 배경 이미지 드래그로 위치 조정
+  function attachDrag(card, scale){
+    if (!card) return;
+    const page = state.pages[state.selected];
+    const imgSrc = localImages.get(page.id) || page.bgImageUrl;
+    if (!imgSrc) return;
+    card.style.cursor = 'move';
+    let dragging = false, sx=0, sy=0, ox=0, oy=0;
+    card.addEventListener('mousedown', e => {
+      dragging = true; sx = e.clientX; sy = e.clientY; ox = page.bgX; oy = page.bgY;
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const dx = (e.clientX - sx) / scale, dy = (e.clientY - sy) / scale;
+      page.bgX = Math.max(0, Math.min(100, ox - dx / 1080 * 100));
+      page.bgY = Math.max(0, Math.min(100, oy - dy / 1350 * 100));
+      const bgEl = card.querySelector('.ig-bg');
+      if (bgEl) bgEl.style.backgroundPosition = page.bgX + '% ' + page.bgY + '%';
+      const rx = document.getElementById('rngX'), ry = document.getElementById('rngY');
+      if (rx) rx.value = Math.round(page.bgX);
+      if (ry) ry.value = Math.round(page.bgY);
+    });
+    window.addEventListener('mouseup', () => { if(dragging){ dragging=false; renderThumbs(); } });
+  }
+
+  // ===== 썸네일 레일 =====
+  function renderThumbs(){
+    const rail = document.getElementById('rail');
+    const total = state.pages.length;
+    const scale = 96/1080;
+    rail.innerHTML = state.pages.map((p,i) => `
+      <div class="ig-thumb ${i===state.selected?'active':''}" data-i="${i}" draggable="true" style="">
+        <span class="ig-tnum">${i+1}</span>
+        ${total>1 ? `<button class="ig-tdel" data-del="${i}" title="삭제">✕</button>` : ''}
+        ${total>1 ? `<span class="ig-tgrip" title="드래그해서 순서 변경"><i class="fa-solid fa-grip-vertical"></i></span>` : ''}
+        <div class="ig-card-scaler" style="transform:scale(${scale})">${cardHTML(p,i,total)}</div>
+      </div>
+    `).join('') + (total < 10 ? `<button class="ig-addpage" id="addPage" title="페이지 추가"><i class="fa-solid fa-plus"></i></button>` : '');
+
+    rail.querySelectorAll('.ig-thumb').forEach(t => {
+      t.addEventListener('click', e => {
+        if (e.target.closest('[data-del]')) return;
+        selectPage(parseInt(t.dataset.i,10));
+      });
+      // 드래그로 순서 변경
+      t.addEventListener('dragstart', e => {
+        dragFrom = parseInt(t.dataset.i,10);
+        t.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', String(dragFrom)); } catch(_){}
+      });
+      t.addEventListener('dragend', () => {
+        t.classList.remove('dragging');
+        rail.querySelectorAll('.ig-thumb').forEach(x=>x.classList.remove('drag-over'));
+      });
+      t.addEventListener('dragover', e => {
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+        if (dragFrom !== null && parseInt(t.dataset.i,10) !== dragFrom) t.classList.add('drag-over');
+      });
+      t.addEventListener('dragleave', () => t.classList.remove('drag-over'));
+      t.addEventListener('drop', e => {
+        e.preventDefault();
+        const to = parseInt(t.dataset.i,10);
+        if (dragFrom === null || dragFrom === to) return;
+        reorderPages(dragFrom, to);
+        dragFrom = null;
+      });
+    });
+    rail.querySelectorAll('[data-del]').forEach(b => {
+      b.addEventListener('click', async e => {
+        e.stopPropagation();
+        const i = parseInt(b.dataset.del,10);
+        if (!(await sysConfirm((i+1)+'페이지를 삭제할까요?'))) return;
+        const pg = state.pages[i];
+        if (pg) localImages.delete(pg.id);
+        state.pages.splice(i,1);
+        if (state.selected >= state.pages.length) state.selected = state.pages.length-1;
+        renderAll();
+      });
+    });
+    const add = document.getElementById('addPage');
+    if (add) add.addEventListener('click', () => {
+      state.pages.push(makePage('content'));
+      state.selected = state.pages.length-1;
+      renderAll();
+    });
+  }
+
+  function selectPage(i){ state.selected = i; renderThumbs(); updatePreview(); renderControls(); }
+
+  // ===== 컨트롤 패널 =====
+  function swatchHTML(list, activeId){
+    return list.map(p => `<div class="ig-swatch ${p.id===activeId?'active':''}" data-preset="${p.id}" title="${p.id}" style="background:${p.bg}"></div>`).join('');
+  }
+
+  function renderControls(){
+    const page = state.pages[state.selected];
+    if (!page){ document.getElementById('controls').innerHTML=''; return; }
+    const hasImg = !!(localImages.get(page.id) || page.bgImageUrl);
+    const el = document.getElementById('controls');
+    el.innerHTML = `
+      <div class="ig-panel">
+        <h3>${state.selected===0 ? '표지' : (state.selected+1)+' 페이지'} · 텍스트</h3>
+        <div class="ig-field">
+          <label>레이아웃</label>
+          <select id="fLayout">
+            ${(page.type==='cover'?COVER_LAYOUTS:CONTENT_LAYOUTS).map(l=>`<option value="${l.id}" ${ migrateLayout(page.type,page.layout,page.vAlign).layout===l.id ? 'selected':'' }>${l.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="ig-field">
+          <label>세로 위치</label>
+          <div class="ig-seg" id="segVAlign">
+            ${VALIGN_OPTS.map(v=>`<button data-valign="${v.id}" class="${ (page.vAlign||migrateLayout(page.type,page.layout,page.vAlign).vAlign)===v.id ? 'active':'' }">${v.label}</button>`).join('')}
+          </div>
+        </div>
+        <div class="ig-field">
+          <label>${page.type==='cover'?'제목':'소제목 (선택)'}</label>
+          <textarea id="fHeading" rows="2" placeholder="${page.type==='cover'?'표지 제목':'소제목'}">${escText(page.heading)}</textarea>
+        </div>
+        <div class="ig-field">
+          <label>${page.type==='cover'?'부제 (선택)':'본문'}</label>
+          <textarea id="fBody" rows="4" placeholder="텍스트 입력">${escText(page.body)}</textarea>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">강조하려면 <code>*단어*</code> 처럼 별표로 감싸면 강조색으로 표시됩니다.</div>
+        </div>
+        ${page.type==='cover' ? `
+        <div class="ig-field">
+          <label>태그 (쉼표 또는 줄바꿈으로 구분, # 없이)</label>
+          <textarea id="fTags" rows="2" placeholder="인스타그램, Local Layers">${escText(page.tags)}</textarea>
+        </div>` : `
+        <div class="ig-field">
+          <label>하단 안내 문구 (선택)</label>
+          <input type="text" id="fCta" placeholder="예: 뒷 페이지에서 확인해 보세요!" value="${escAttr(page.cta)}">
+        </div>`}
+        <div class="ig-field">
+          <label>정렬</label>
+          <div class="ig-seg" id="segAlign">
+            <button data-align="left" class="${page.align==='left'?'active':''}">왼쪽</button>
+            <button data-align="center" class="${page.align==='center'?'active':''}">가운데</button>
+          </div>
+        </div>
+        <div class="ig-field">
+          <label>글자 크기</label>
+          <div class="ig-range">
+            <input type="range" id="rngFont" min="0.7" max="1.5" step="0.05" value="${page.fontScale}">
+            <span class="val">${Math.round(page.fontScale*100)}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ig-panel">
+        <h3>배경</h3>
+        <div class="ig-sub-label">모노톤</div>
+        <div class="ig-swatches">${swatchHTML(MONO_PRESETS, hasImg?null:page.presetId)}</div>
+        <div class="ig-sub-label">컬러 그라데이션</div>
+        <div class="ig-swatches">${swatchHTML(GRAD_PRESETS, hasImg?null:page.presetId)}</div>
+
+        <div class="ig-field" style="margin-top:12px;">
+          <label>글자색</label>
+          <div class="ig-row2">
+            <input type="color" id="fgColor" value="${/^#/.test(page.fgColor)?page.fgColor:'#ffffff'}" style="width:100%;height:34px;border:1px solid var(--admin-border);border-radius:6px;background:var(--bg);cursor:pointer;">
+            <div class="ig-seg">
+              <button id="fgWhite">흰색</button>
+              <button id="fgBlack">검정</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ig-panel">
+        <h3>배경 이미지</h3>
+        <div class="ig-field">
+          <input type="file" id="bgFile" accept="image/*" style="font-size:12px;color:var(--muted);">
+        </div>
+        ${hasImg ? `
+          <div class="ig-field">
+            <label>확대/축소</label>
+            <div class="ig-range"><input type="range" id="rngZoom" min="100" max="320" step="2" value="${page.bgZoom}"><span class="val">${page.bgZoom}%</span></div>
+          </div>
+          <div class="ig-field">
+            <label>가로 위치</label>
+            <div class="ig-range"><input type="range" id="rngX" min="0" max="100" value="${Math.round(page.bgX)}"><span class="val">${Math.round(page.bgX)}%</span></div>
+          </div>
+          <div class="ig-field">
+            <label>세로 위치</label>
+            <div class="ig-range"><input type="range" id="rngY" min="0" max="100" value="${Math.round(page.bgY)}"><span class="val">${Math.round(page.bgY)}%</span></div>
+          </div>
+          <div class="ig-field">
+            <label>가독성 보정막</label>
+            <div class="ig-seg" id="segScrim">
+              <button data-scrim="none" class="${page.scrimMode==='none'?'active':''}">없음</button>
+              <button data-scrim="dark" class="${page.scrimMode==='dark'?'active':''}">어둡게</button>
+              <button data-scrim="light" class="${page.scrimMode==='light'?'active':''}">밝게</button>
+            </div>
+          </div>
+          <div class="ig-field">
+            <div class="ig-range"><input type="range" id="rngScrim" min="0" max="0.75" step="0.05" value="${page.scrim}"><span class="val">${Math.round(page.scrim*100)}%</span></div>
+          </div>
+          <button class="admin-btn ghost admin-btn-sm" id="bgRemove" style="width:100%;justify-content:center;"><i class="fa-regular fa-trash-can"></i> 배경 이미지 제거</button>
+        ` : `<div style="font-size:11px;color:var(--muted);line-height:1.5;">이미지를 올리면 영역을 드래그/확대해 원하는 부분만 보이도록 맞출 수 있습니다.</div>`}
+      </div>
+    `;
+    wireControls(page);
+  }
+
+  function wireControls(page){
+    const reH = () => { renderThumbs(); updatePreview(); };
+    const byId = id => document.getElementById(id);
+
+    const fLayout = byId('fLayout');
+    if (fLayout) fLayout.addEventListener('change', e => {
+      if (!page.vAlign) page.vAlign = migrateLayout(page.type, page.layout, page.vAlign).vAlign;
+      page.layout = e.target.value; reH();
+    });
+    document.querySelectorAll('#segVAlign button').forEach(b => b.addEventListener('click', () => {
+      if (!page.layout) page.layout = migrateLayout(page.type, page.layout, page.vAlign).layout;
+      page.vAlign = b.dataset.valign; renderControls(); reH();
+    }));
+
+    byId('fHeading').addEventListener('input', e => { page.heading = e.target.value; reH(); });
+    byId('fBody').addEventListener('input', e => { page.body = e.target.value; reH(); });
+    const fTags = byId('fTags'); if (fTags) fTags.addEventListener('input', e => { page.tags = e.target.value; reH(); });
+    const fCta = byId('fCta'); if (fCta) fCta.addEventListener('input', e => { page.cta = e.target.value; reH(); });
+
+    document.querySelectorAll('#segAlign button').forEach(b => b.addEventListener('click', () => {
+      page.align = b.dataset.align; renderControls(); reH();
+    }));
+    byId('rngFont').addEventListener('input', e => {
+      page.fontScale = parseFloat(e.target.value);
+      e.target.parentElement.querySelector('.val').textContent = Math.round(page.fontScale*100)+'%'; reH();
+    });
+
+    document.querySelectorAll('.ig-swatch').forEach(s => s.addEventListener('click', () => {
+      const p = presetById(s.dataset.preset);
+      page.presetId = p.id; page.bgCss = p.bg; page.fgColor = p.fg;
+      // 프리셋 선택 시 배경 이미지는 유지하되, 이미지가 없을 때만 색 적용됨
+      renderControls(); reH();
+    }));
+
+    byId('fgColor').addEventListener('input', e => { page.fgColor = e.target.value; reH(); });
+    byId('fgWhite').addEventListener('click', () => { page.fgColor = '#ffffff'; renderControls(); reH(); });
+    byId('fgBlack').addEventListener('click', () => { page.fgColor = '#16181a'; renderControls(); reH(); });
+
+    const bgFile = byId('bgFile');
+    if (bgFile) bgFile.addEventListener('change', e => handleBgUpload(e.target.files[0], page));
+
+    const rz = byId('rngZoom');
+    if (rz) rz.addEventListener('input', e => { page.bgZoom = parseInt(e.target.value,10); e.target.parentElement.querySelector('.val').textContent = page.bgZoom+'%'; reH(); });
+    const rx = byId('rngX');
+    if (rx) rx.addEventListener('input', e => { page.bgX = parseInt(e.target.value,10); e.target.parentElement.querySelector('.val').textContent = page.bgX+'%'; reH(); });
+    const ry = byId('rngY');
+    if (ry) ry.addEventListener('input', e => { page.bgY = parseInt(e.target.value,10); e.target.parentElement.querySelector('.val').textContent = page.bgY+'%'; reH(); });
+    const rs = byId('rngScrim');
+    if (rs) rs.addEventListener('input', e => { page.scrim = parseFloat(e.target.value); e.target.parentElement.querySelector('.val').textContent = Math.round(page.scrim*100)+'%'; reH(); });
+    document.querySelectorAll('#segScrim button').forEach(b => b.addEventListener('click', () => {
+      page.scrimMode = b.dataset.scrim; renderControls(); reH();
+    }));
+    const rm = byId('bgRemove');
+    if (rm) rm.addEventListener('click', () => {
+      localImages.delete(page.id); page.bgImageUrl = '';
+      renderControls(); reH();
+    });
+  }
+
+  async function handleBgUpload(file, page){
+    if (!file) return;
+    if (file.size > 8*1024*1024){ sysAlert('이미지는 8MB 이하로 올려주세요.', {icon:'danger'}); return; }
+    // 1) 즉시 미리보기용 dataURL
+    const dataUrl = await new Promise((res,rej) => {
+      const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file);
+    });
+    localImages.set(page.id, dataUrl);
+    page.bgZoom = 100; page.bgX = 50; page.bgY = 50;
+    renderControls(); renderThumbs(); updatePreview();
+    // 2) Storage 업로드(영구 저장용) — 실패해도 세션 내 작업/내보내기는 가능
+    setBusy(true, '이미지 업로드 중…');
+    try {
+      const url = await fb.uploadImage(file, 'instagram');
+      page.bgImageUrl = url;
+    } catch (e) {
+      console.warn('[ig] 배경 업로드 실패:', e.message);
+      sysAlert('이미지 영구 저장 실패(이번 세션에서는 사용 가능): ' + e.message, {icon:'danger'});
+    } finally { setBusy(false); }
+  }
+
+  // ===== 캡션 =====
+  function buildCaption(){
+    const body = (state.caption.body || '').trim();
+    const raw = (state.caption.tags || '').trim();
+    let tags = '';
+    if (raw){
+      tags = raw.split(/[\s,]+/).filter(Boolean)
+        .map(t => t.startsWith('#') ? t : '#'+t).join(' ');
+    }
+    return body + (body && tags ? '\n\n' : '') + tags;
+  }
+  function renderCaption(){
+    const body = (state.caption.body || '');
+    const raw = (state.caption.tags || '').trim();
+    let tagsHtml = '';
+    if (raw){
+      tagsHtml = raw.split(/[\s,]+/).filter(Boolean)
+        .map(t => '<span class="ig-cap-tags">'+adminEscHTML(t.startsWith('#')?t:'#'+t)+'</span>').join(' ');
+    }
+    const prev = document.getElementById('capPreview');
+    const bodyHtml = adminEscHTML(body).replace(/\n/g,'<br>');
+    prev.innerHTML = (bodyHtml || '<span style="color:var(--muted)">본문 미리보기</span>')
+      + (tagsHtml ? '<br><br>'+tagsHtml : '');
+  }
+
+  // ===== 해시태그 묶음(공유 저장: site/igHashtags) =====
+  let tagGroups = []; // [{name, tags}]
+  function renderTagGroupSelect(){
+    const sel = document.getElementById('tagGroupSel');
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">저장된 해시태그 묶음…</option>' +
+      tagGroups.map((g,i)=>`<option value="${i}">${adminEscHTML(g.name)}</option>`).join('');
+    if (cur && tagGroups[parseInt(cur,10)]) sel.value = cur;
+  }
+  async function loadTagGroups(){
+    try {
+      const snap = await fb.db.collection('site').doc('igHashtags').get();
+      const d = snap.exists ? snap.data() : null;
+      tagGroups = (d && Array.isArray(d.groups)) ? d.groups.filter(g=>g&&g.name) : [];
+    } catch(e){ console.warn('[ig] 해시태그 묶음 로드 실패:', e.message); tagGroups = []; }
+    renderTagGroupSelect();
+  }
+  async function persistTagGroups(){
+    await fb.db.collection('site').doc('igHashtags').set({
+      groups: tagGroups.map(g => ({ name: g.name, tags: g.tags || '' })),
+      updatedAt: fb.FieldValue.serverTimestamp()
+    }, {merge:true});
+  }
+  function applyTagGroup(){
+    const sel = document.getElementById('tagGroupSel');
+    const g = tagGroups[parseInt(sel.value,10)];
+    if (!g){ sysAlert('불러올 묶음을 선택해 주세요.', {icon:'danger'}); return; }
+    const cur = (state.caption.tags || '').trim();
+    state.caption.tags = cur ? (cur + ' ' + g.tags).trim() : g.tags;
+    document.getElementById('capTags').value = state.caption.tags;
+    renderCaption();
+  }
+  async function saveTagGroup(){
+    const tags = (state.caption.tags || '').trim();
+    if (!tags){ sysAlert('저장할 해시태그를 먼저 입력해 주세요.', {icon:'danger'}); return; }
+    const name = (window.prompt('해시태그 묶음 이름을 입력하세요.', '') || '').trim();
+    if (!name) return;
+    const idx = tagGroups.findIndex(g => g.name === name);
+    if (idx >= 0){
+      if (!(await sysConfirm(`"${name}" 묶음이 이미 있습니다. 덮어쓸까요?`))) return;
+      tagGroups[idx].tags = tags;
+    } else {
+      tagGroups.push({ name, tags });
+    }
+    try { await persistTagGroups(); renderTagGroupSelect(); sysAlert('해시태그 묶음을 저장했습니다.', {icon:'success'}); }
+    catch(e){ sysAlert('저장 실패: ' + e.message, {icon:'danger'}); }
+  }
+  async function deleteTagGroup(){
+    const sel = document.getElementById('tagGroupSel');
+    const i = parseInt(sel.value,10);
+    const g = tagGroups[i];
+    if (!g){ sysAlert('삭제할 묶음을 선택해 주세요.', {icon:'danger'}); return; }
+    if (!(await sysConfirm(`"${g.name}" 묶음을 삭제할까요?`, {danger:true, okLabel:'삭제'}))) return;
+    tagGroups.splice(i,1);
+    try { await persistTagGroups(); renderTagGroupSelect(); sysAlert('삭제했습니다.', {icon:'success'}); }
+    catch(e){ sysAlert('삭제 실패: ' + e.message, {icon:'danger'}); }
+  }
+
+  // ===== 인스타그램 피드 미리보기 =====
+  let prevIdx = 0;
+  function renderIgPreview(){
+    const media = document.getElementById('igpMedia');
+    const total = state.pages.length;
+    prevIdx = Math.max(0, Math.min(prevIdx, total-1));
+    const scale = 380/1080;
+    const page = state.pages[prevIdx];
+    const dots = total > 1 ? state.pages.map((_,i)=>`<span class="${i===prevIdx?'on':''}"></span>`).join('') : '';
+    media.innerHTML =
+      `<div class="ig-card-scaler" style="transform:scale(${scale})">${cardHTML(page, prevIdx, total)}</div>` +
+      (dots ? `<div class="ig-pmedia-dots">${dots}</div>` : '') +
+      (total > 1 ? `<div class="ig-pmedia-count">${prevIdx+1}/${total}</div>` : '') +
+      (total > 1 ? `<button class="ig-pmedia-nav prev" data-nav="-1">‹</button><button class="ig-pmedia-nav next" data-nav="1">›</button>` : '');
+    media.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => {
+      prevIdx += parseInt(b.dataset.nav,10); renderIgPreview();
+    }));
+    const uname = (state.brand || 'perspective').toLowerCase().replace(/\s+/g,'_');
+    document.getElementById('igpUser').textContent = uname;
+    document.getElementById('igpAva').textContent = ((state.brand || 'P').trim().charAt(0) || 'P').toUpperCase();
+    const body = (state.caption.body || '');
+    const raw = (state.caption.tags || '').trim();
+    const tagsHtml = raw ? raw.split(/[\s,]+/).filter(Boolean)
+      .map(t => '<span class="tag">'+adminEscHTML(t.startsWith('#')?t:'#'+t)+'</span>').join(' ') : '';
+    document.getElementById('igpCap').innerHTML =
+      '<span class="u">'+adminEscHTML(uname)+'</span>' +
+      (adminEscHTML(body).replace(/\n/g,'<br>') || '<span style="color:var(--muted)">본문 미리보기</span>') +
+      (tagsHtml ? '<br>'+tagsHtml : '');
+  }
+  function openIgPreview(){ prevIdx = state.selected; renderIgPreview(); document.getElementById('igPreviewModal').classList.add('show'); }
+  function closeIgPreview(){ document.getElementById('igPreviewModal').classList.remove('show'); }
+
+  // ===== 내보내기 =====
+  function setBusy(on, txt){
+    const b = document.getElementById('busy');
+    b.classList.toggle('show', !!on);
+    if (txt) document.getElementById('busyTxt').textContent = txt;
+  }
+  function loadImg(src){
+    return new Promise((res) => {
+      if (!src) return res();
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => res(); im.onerror = () => res();
+      im.src = src;
+    });
+  }
+  async function renderPageCanvas(i){
+    const page = state.pages[i];
+    const host = document.getElementById('igExportHost');
+    host.innerHTML = cardHTML(page, i, state.pages.length);
+    const node = host.querySelector('.ig-card');
+    const imgSrc = localImages.get(page.id) || page.bgImageUrl;
+    await loadImg(imgSrc);
+    await new Promise(r => setTimeout(r, 30));
+    const canvas = await html2canvas(node, {
+      width:1080, height:1350, scale:1, useCORS:true, backgroundColor:null, logging:false
+    });
+    host.innerHTML = '';
+    return canvas;
+  }
+  function canvasToBlob(canvas){
+    return new Promise((res,rej) => canvas.toBlob(b => b?res(b):rej(new Error('PNG 변환 실패')), 'image/png'));
+  }
+  function safeName(){
+    return (state.title || 'instagram').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'_').slice(0,40) || 'instagram';
+  }
+
+  async function downloadOne(){
+    try {
+      setBusy(true, '이미지 만드는 중…');
+      const canvas = await renderPageCanvas(state.selected);
+      const blob = await canvasToBlob(canvas);
+      triggerDownload(blob, safeName()+'_'+String(state.selected+1).padStart(2,'0')+'.png');
+    } catch (e){ sysAlert('내보내기 실패: ' + e.message + '\n(배경 이미지를 다시 올린 뒤 시도해 보세요.)', {icon:'danger'}); }
+    finally { setBusy(false); }
+  }
+  async function downloadZip(){
+    try {
+      setBusy(true, 'ZIP 만드는 중…');
+      const zip = new JSZip();
+      for (let i=0; i<state.pages.length; i++){
+        setBusy(true, `이미지 ${i+1}/${state.pages.length} 생성 중…`);
+        const canvas = await renderPageCanvas(i);
+        const blob = await canvasToBlob(canvas);
+        zip.file(safeName()+'_'+String(i+1).padStart(2,'0')+'.png', blob);
+      }
+      setBusy(true, 'ZIP 압축 중…');
+      const out = await zip.generateAsync({type:'blob'});
+      triggerDownload(out, safeName()+'_carousel.zip');
+    } catch (e){ sysAlert('ZIP 내보내기 실패: ' + e.message + '\n(배경 이미지를 다시 올린 뒤 시도해 보세요.)', {icon:'danger'}); }
+    finally { setBusy(false); }
+  }
+  function triggerDownload(blob, name){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+
+  // ===== 저장/로드 =====
+  function serialize(){
+    return {
+      title: state.title || '',
+      articleId: state.articleId || null,
+      ratio: '4:5',
+      brand: state.brand || 'LOCAL LAYERS',
+      accent: state.accent || '#e23b3b',
+      caption: { body: state.caption.body||'', tags: state.caption.tags||'' },
+      pages: state.pages.map(p => ({
+        type: p.type, presetId: p.presetId, bgCss: p.bgCss, fgColor: p.fgColor,
+        bgImageUrl: p.bgImageUrl || '', bgZoom: p.bgZoom, bgX: p.bgX, bgY: p.bgY,
+        scrimMode: p.scrimMode, scrim: p.scrim,
+        heading: p.heading||'', body: p.body||'', tags: p.tags||'', cta: p.cta||'',
+        layout: p.layout || (p.type==='cover'?'basic':'standard'),
+        vAlign: p.vAlign || migrateLayout(p.type, p.layout, p.vAlign).vAlign,
+        align: p.align, fontScale: p.fontScale
+      })),
+      updatedAt: fb.FieldValue.serverTimestamp()
+    };
+  }
+  async function save(){
+    state.title = document.getElementById('projTitle').value.trim();
+    if (!state.title){ sysAlert('작업 이름을 입력해 주세요.', {icon:'danger'}); document.getElementById('projTitle').focus(); return; }
+    try {
+      setBusy(true, '저장 중…');
+      const data = serialize();
+      if (state.docId){
+        await fb.db.collection('instagramPosts').doc(state.docId).set(data, {merge:true});
+      } else {
+        data.createdAt = fb.FieldValue.serverTimestamp();
+        const ref = await fb.db.collection('instagramPosts').add(data);
+        state.docId = ref.id;
+        history.replaceState(null,'', '/admin/instagram-edit.html?id='+ref.id);
+      }
+      sysAlert('저장했습니다.', {icon:'success'});
+    } catch (e){ sysAlert('저장 실패: ' + e.message, {icon:'danger'}); }
+    finally { setBusy(false); }
+  }
+
+  function hydrate(d){
+    state.title = d.title || '';
+    state.articleId = d.articleId || state.articleId;
+    state.brand = d.brand || 'LOCAL LAYERS';
+    state.accent = d.accent || '#e23b3b';
+    state.caption = { body: (d.caption&&d.caption.body)||'', tags: (d.caption&&d.caption.tags)||'' };
+    state.pages = (Array.isArray(d.pages)?d.pages:[]).map(p => ({
+      id: newPid(),
+      type: p.type || 'content',
+      presetId: p.presetId || 'paper',
+      bgCss: p.bgCss || '#f6f4ef',
+      fgColor: p.fgColor || '#16181a',
+      bgImageUrl: p.bgImageUrl || '',
+      bgZoom: p.bgZoom || 100,
+      bgX: p.bgX != null ? p.bgX : 50,
+      bgY: p.bgY != null ? p.bgY : 50,
+      scrimMode: p.scrimMode || 'dark',
+      scrim: p.scrim != null ? p.scrim : 0.5,
+      heading: p.heading || '',
+      body: p.body || '',
+      tags: p.tags || '',
+      cta: p.cta || '',
+      layout: migrateLayout(p.type || 'content', p.layout, p.vAlign).layout,
+      vAlign: migrateLayout(p.type || 'content', p.layout, p.vAlign).vAlign,
+      align: p.align || 'left',
+      fontScale: p.fontScale || 1
+    }));
+    if (!state.pages.length) state.pages = [makePage('cover')];
+  }
+
+  async function loadDoc(id){
+    const snap = await fb.db.collection('instagramPosts').doc(id).get();
+    if (!snap.exists){ sysAlert('작업을 찾을 수 없습니다.', {icon:'danger'}); state.pages=[makePage('cover')]; return; }
+    hydrate(snap.data());
+  }
+  async function initFromArticle(articleId){
+    state.pages = [makePage('cover'), makePage('content')];
+    try {
+      const snap = await fb.db.collection('articles').doc(articleId).get();
+      if (snap.exists){
+        const a = snap.data();
+        state.title = (a.title || '인스타그램 콘텐츠');
+        state.pages[0].heading = a.title || '';
+        state.pages[0].body = a.sub || '';
+        if (a.cat) state.pages[0].tags = a.cat;
+        state.pages[1].heading = '';
+        state.pages[1].body = a.sub || '';
+        state.pages[1].cta = '뒷 페이지에서 확인해 보세요!';
+        state.caption.body = (a.title ? a.title + '\n\n' : '') + (a.sub || '');
+        state.caption.tags = 'Local Layers another movement';
+      }
+    } catch(e){ console.warn('[ig] 아티클 로드 실패:', e.message); }
+  }
+
+  // ===== 본문 자동 분할 =====
+  function splitIntoChunks(text, targetLen){
+    const out = [];
+    const paras = String(text || '').split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
+    paras.forEach(para => {
+      // 문장 단위로 분해(룩비하인드 미사용 — 브라우저 호환)
+      const sentences = para.match(/[^.!?。…\n]+[.!?。…]*\s*/g) || [para];
+      let buf = '';
+      sentences.forEach(s => {
+        const piece = s.trim();
+        if (!piece) return;
+        if (buf && (buf.length + 1 + piece.length) > targetLen){
+          out.push(buf.trim()); buf = piece;
+        } else {
+          buf = buf ? (buf + ' ' + piece) : piece;
+        }
+      });
+      if (buf.trim()) out.push(buf.trim());
+    });
+    return out;
+  }
+  function openSplitModal(){
+    const ta = document.getElementById('splitText');
+    if (!ta.value.trim()) ta.value = (state.caption.body || '').trim();
+    document.getElementById('splitModal').classList.add('show');
+    ta.focus();
+  }
+  function closeSplitModal(){ document.getElementById('splitModal').classList.remove('show'); }
+  function doSplit(){
+    const text = document.getElementById('splitText').value.trim();
+    if (!text){ sysAlert('분할할 본문을 입력해 주세요.', {icon:'danger'}); return; }
+    let target = parseInt(document.getElementById('splitLen').value,10);
+    if (isNaN(target) || target < 80) target = 220;
+    const replace = document.getElementById('splitReplace').checked;
+    let chunks = splitIntoChunks(text, target);
+    if (!chunks.length){ sysAlert('분할 결과가 없습니다.', {icon:'danger'}); return; }
+    if (chunks.length > 9){
+      // 9개 초과분은 마지막 페이지에 합침
+      const head = chunks.slice(0,8);
+      head.push(chunks.slice(8).join('\n\n'));
+      chunks = head;
+    }
+    // 표지(첫 페이지)는 유지. 기존 본문 페이지는 옵션에 따라 교체/추가.
+    const cover = state.pages[0] && state.pages[0].type === 'cover' ? state.pages[0] : null;
+    let base = [];
+    if (cover) base.push(cover);
+    if (!replace){
+      const existing = state.pages.filter(p => p !== cover && p.type === 'content');
+      base = base.concat(existing);
+    }
+    chunks.forEach((c, i) => {
+      const pg = makePage('content');
+      pg.body = c;
+      if (i === chunks.length - 1) pg.cta = '';
+      base.push(pg);
+    });
+    base = base.slice(0, 10); // 최대 10장
+    state.pages = base;
+    state.selected = Math.min(cover ? 1 : 0, state.pages.length - 1);
+    closeSplitModal();
+    renderAll();
+    sysAlert(`본문을 ${chunks.length}개 페이지로 나눴습니다.`, {icon:'success'});
+  }
+
+  // ===== 렌더 묶음 =====
+  function renderAll(){ renderThumbs(); updatePreview(); renderControls(); }
+
+  // ===== 이벤트 바인딩 =====
+  document.getElementById('projTitle').addEventListener('input', e => { state.title = e.target.value; });
+  document.getElementById('projBrand').addEventListener('input', e => { state.brand = e.target.value; renderThumbs(); updatePreview(); });
+  document.getElementById('projAccent').addEventListener('input', e => { state.accent = e.target.value; renderThumbs(); updatePreview(); });
+  document.getElementById('capBody').addEventListener('input', e => { state.caption.body = e.target.value; renderCaption(); });
+  document.getElementById('capTags').addEventListener('input', e => { state.caption.tags = e.target.value; renderCaption(); });
+  document.getElementById('btnCopyCap').addEventListener('click', async () => {
+    const txt = buildCaption();
+    try { await navigator.clipboard.writeText(txt); sysAlert('캡션을 복사했습니다.', {icon:'success'}); }
+    catch(_){
+      const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); sysAlert('캡션을 복사했습니다.', {icon:'success'}); } catch(e){ sysAlert('복사 실패: 직접 선택해 복사해 주세요.', {icon:'danger'}); }
+      ta.remove();
+    }
+  });
+  document.getElementById('btnSave').addEventListener('click', save);
+  document.getElementById('btnDownOne').addEventListener('click', downloadOne);
+  document.getElementById('btnDownZip').addEventListener('click', downloadZip);
+  document.getElementById('btnIgPreview').addEventListener('click', openIgPreview);
+  document.getElementById('igPrevClose').addEventListener('click', closeIgPreview);
+  document.getElementById('igPreviewModal').addEventListener('click', e => { if (e.target.id === 'igPreviewModal') closeIgPreview(); });
+
+  // 해시태그 묶음
+  document.getElementById('tagGroupLoad').addEventListener('click', applyTagGroup);
+  document.getElementById('tagGroupSave').addEventListener('click', saveTagGroup);
+  document.getElementById('tagGroupDel').addEventListener('click', deleteTagGroup);
+
+  // 본문 자동 분할
+  document.getElementById('btnAutoSplit').addEventListener('click', openSplitModal);
+  document.getElementById('splitCancel').addEventListener('click', closeSplitModal);
+  document.getElementById('splitGo').addEventListener('click', doSplit);
+  document.getElementById('splitModal').addEventListener('click', e => { if (e.target.id === 'splitModal') closeSplitModal(); });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeIgPreview(); closeSplitModal(); } });
+  window.addEventListener('resize', updatePreview);
+
+  // ===== 시작 =====
+  fb.authReady.then(async user => {
+    if (!user || !fb.isAdmin()) return; // admin.js 게이트가 리다이렉트
+    if (state.docId) await loadDoc(state.docId);
+    else if (state.articleId) await initFromArticle(state.articleId);
+    else state.pages = [makePage('cover')];
+
+    document.getElementById('projTitle').value = state.title || '';
+    document.getElementById('projBrand').value = state.brand || 'LOCAL LAYERS';
+    document.getElementById('projAccent').value = /^#/.test(state.accent) ? state.accent : '#e23b3b';
+    document.getElementById('capBody').value = state.caption.body || '';
+    document.getElementById('capTags').value = state.caption.tags || '';
+    state.selected = 0;
+    renderAll();
+    renderCaption();
+    loadTagGroups();
+  });
+})();
+</script>
+</body>
+</html>

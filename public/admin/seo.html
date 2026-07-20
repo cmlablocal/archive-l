@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SEO · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  .seo-intro { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
+  .seo-intro b { color: var(--fg); font-weight: 600; }
+
+  .seo-card {
+    border: 1px solid var(--admin-border); border-radius: 12px;
+    padding: 18px 18px 20px; margin-bottom: 18px; background: var(--admin-card, transparent);
+  }
+  .seo-card-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 14px; }
+  .seo-card-title { font-size: 15px; font-weight: 600; color: var(--fg); }
+  .seo-card-title .pg-path { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 8px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .field input, .field textarea {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--fg); font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 56px; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--fg); }
+  .field-help { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .char-count { float:right; font-size: 11px; color: var(--muted); }
+
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px){ .grid2 { grid-template-columns: 1fr; } }
+
+  /* OG 이미지 업로드 */
+  .og-slot { }
+  .og-box {
+    display:flex; align-items:center; gap:14px;
+    border: 1px dashed var(--admin-border); border-radius: 10px;
+    padding: 12px; background: transparent;
+  }
+  .og-thumb {
+    width: 160px; height: 84px; flex: none; border-radius: 6px; overflow:hidden;
+    background: var(--hover); border: 1px solid var(--admin-border);
+    display:flex; align-items:center; justify-content:center; color: var(--muted); font-size: 11px;
+  }
+  .og-thumb img { width:100%; height:100%; object-fit: cover; display:block; }
+  .og-ctrls { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .og-ctrls .og-status { font-size: 11px; color: var(--muted); word-break: break-all; }
+  .og-btn-row { display:flex; gap:8px; }
+
+  .seo-savebar {
+    position: sticky; bottom: 0; z-index: 5;
+    display:flex; align-items:center; gap:12px; justify-content:flex-end;
+    padding: 14px 0; margin-top: 6px;
+    background: linear-gradient(to top, var(--admin-bg, #fff) 60%, transparent);
+  }
+  body.dark .seo-savebar { background: linear-gradient(to top, var(--admin-bg, #111) 60%, transparent); }
+  .seo-saved-msg { font-size: 12px; color: var(--muted); margin-right:auto; }
+  .seo-saved-msg.ok { color: #16a34a; }
+  .seo-saved-msg.err { color: #dc2626; }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">SEO · 메타 관리</h1>
+        <p class="admin-page-sub">검색 노출(제목·설명)과 공유 미리보기(OG 이미지·제목)를 페이지별로 관리합니다.</p>
+      </div>
+    </div>
+
+    <p class="seo-intro" id="seoIntro">불러오는 중…</p>
+
+    <!-- ===== 사이트 공통 ===== -->
+    <div class="seo-card">
+      <div class="seo-card-head">
+        <span class="seo-card-title"><i class="fa-solid fa-globe" style="margin-right:6px;color:var(--muted)"></i>사이트 공통 (기본값)</span>
+      </div>
+      <p class="field-help" style="margin-bottom:14px;">페이지별 값이 비어 있을 때 이 기본값이 사용됩니다. 특히 <b>기본 OG 이미지</b>는 공유 미리보기 썸네일의 사이트 전역 기본입니다.</p>
+
+      <div class="field">
+        <label for="siteName">사이트 이름 (og:site_name)</label>
+        <input type="text" id="siteName" placeholder="Local Layers" autocomplete="off" />
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="defaultTitle">기본 제목 <span class="char-count" data-for="defaultTitle"></span></label>
+          <input type="text" id="defaultTitle" autocomplete="off" />
+          <div class="field-help">권장 60자 이내.</div>
+        </div>
+        <div class="field">
+          <label for="defaultDesc">기본 설명 (meta description) <span class="char-count" data-for="defaultDesc"></span></label>
+          <textarea id="defaultDesc"></textarea>
+          <div class="field-help">권장 80~150자.</div>
+        </div>
+      </div>
+      <div class="field og-slot">
+        <label>기본 OG 이미지 <span style="color:var(--muted)">— 권장 1200 × 630px (JPG/PNG/WebP)</span></label>
+        <div class="og-box" data-key="_default">
+          <div class="og-thumb"><span class="og-empty">미설정</span><img hidden /></div>
+          <div class="og-ctrls">
+            <div class="og-btn-row">
+              <button type="button" class="admin-btn ghost admin-btn-sm og-pick"><i class="fa-solid fa-upload"></i> 이미지 업로드</button>
+              <button type="button" class="admin-btn ghost admin-btn-sm og-clear" hidden><i class="fa-regular fa-trash-can"></i> 제거</button>
+            </div>
+            <div class="og-status"></div>
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 페이지별 ===== -->
+    <div id="pageCards"></div>
+
+    <div class="seo-savebar">
+      <span class="seo-saved-msg" id="savedMsg"></span>
+      <button type="button" class="admin-btn ghost" id="reloadBtn"><i class="fa-solid fa-rotate"></i> 되돌리기</button>
+      <button type="button" class="admin-btn" id="saveBtn"><i class="fa-regular fa-floppy-disk"></i> 전체 저장</button>
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  // 관리 대상 페이지 (key는 site/seo.pages의 키이자 공개 app.js 매핑 키)
+  const SITE_PAGES = [
+    { key: 'home',    label: '홈',               path: '/' },
+    { key: 'list',    label: '아티클 전체',       path: '/list' },
+    { key: 'series',  label: '시리즈',            path: '/series' },
+    { key: 'notes',   label: '디자인 노트',       path: '/notes' },
+    { key: 'about',   label: 'About',            path: '/about' },
+    { key: 'notices', label: '공지사항',          path: '/notices' },
+    { key: 'notice',  label: '저작권 안내',       path: '/notice' },
+    { key: 'opinion', label: '오피니언',          path: '/opinion' },
+    { key: 'mypage',  label: 'My Archive',       path: '/mypage' },
+    { key: 'terms',   label: '이용약관',          path: '/terms' },
+    { key: 'privacy', label: '개인정보처리방침',   path: '/privacy' },
+  ];
+
+  // 빈 값일 때 placeholder로 보여줄 권장 기본값(seo-meta.js와 동일 의도)
+  const SITE_DESC_DEFAULT = 'Local Layers는 시선이 머문 공간, 그리고 그 너머의 경험을 기록하는 로컬 인스퍼레이션 아카이브입니다.';
+  const PAGE_DEFAULTS = {
+    home:    { title: 'Local Layers | 시선이 머문 공간, 그리고 그 너머의 경험', ogTitle: 'Local Layers — 시선이 머문 공간, 그리고 그 너머의 경험', desc: SITE_DESC_DEFAULT },
+    list:    { title: '아티클 전체 | Local Layers', ogTitle: '아티클 전체 · Local Layers', desc: 'Local Layers의 모든 디자인 아티클을 카테고리별로 만나보세요.' },
+    series:  { title: '시리즈 | Local Layers', ogTitle: '시리즈 · Local Layers', desc: '하나의 주제를 깊이 있게 따라가는 Local Layers 시리즈.' },
+    notes:   { title: '디자인 노트 | Local Layers', ogTitle: '디자인 노트 · Local Layers', desc: '디자인에 대한 짧은 생각과 관점을 모은 디자인 노트.' },
+    about:   { title: 'About | Local Layers', ogTitle: 'About · Local Layers', desc: 'Local Layers와 Another Movement가 디자인을 바라보는 방식.' },
+    notices: { title: '공지사항 | Local Layers', ogTitle: '공지사항 · Local Layers', desc: 'Local Layers의 발행 일정과 신규 콘텐츠, 서비스 소식을 전합니다.' },
+    notice:  { title: '저작권 안내 | Local Layers', ogTitle: '저작권 안내 · Local Layers', desc: 'Local Layers 콘텐츠의 저작권 안내입니다.' },
+    opinion: { title: '오피니언 | Local Layers', ogTitle: '오피니언 · Local Layers', desc: '디자인에 대한 다양한 관점과 의견을 나누는 오피니언.' },
+    mypage:  { title: 'My Archive | Local Layers', ogTitle: 'My Archive · Local Layers', desc: '내가 저장한 글, 수집한 문장, 남긴 반응을 한 곳에서 — My Archive.' },
+    terms:   { title: '이용약관 | Local Layers', ogTitle: '이용약관 · Local Layers', desc: 'Local Layers 서비스 이용약관입니다.' },
+    privacy: { title: '개인정보처리방침 | Local Layers', ogTitle: '개인정보처리방침 · Local Layers', desc: 'Local Layers 개인정보처리방침입니다.' },
+  };
+
+  const SITE_DEFAULTS = {
+    siteName: 'Local Layers',
+    defaultTitle: 'Local Layers | 시선이 머문 공간, 그리고 그 너머의 경험',
+    defaultDesc: SITE_DESC_DEFAULT,
+  };
+
+  // OG 이미지 URL 상태: key('_default' 또는 page key) → url
+  const ogState = {};
+
+  function el(id) { return document.getElementById(id); }
+  function setCharCount(id) {
+    const inp = el(id); if (!inp) return;
+    const span = document.querySelector(`.char-count[data-for="${id}"]`);
+    if (span) span.textContent = (inp.value || '').length + '자';
+  }
+
+  // 페이지 카드 렌더
+  function renderPageCards() {
+    el('pageCards').innerHTML = SITE_PAGES.map(p => {
+      const d = PAGE_DEFAULTS[p.key] || {};
+      return `
+      <div class="seo-card" data-page="${p.key}">
+        <div class="seo-card-head">
+          <span class="seo-card-title">${adminEscHTML(p.label)}<span class="pg-path">${adminEscHTML(p.path)}</span></span>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="title_${p.key}">제목 (title) <span class="char-count" data-for="title_${p.key}"></span></label>
+            <input type="text" id="title_${p.key}" autocomplete="off" placeholder="${adminEscHTML(d.title || '')}" />
+          </div>
+          <div class="field">
+            <label for="ogTitle_${p.key}">OG 제목 (공유 시 제목)</label>
+            <input type="text" id="ogTitle_${p.key}" autocomplete="off" placeholder="${adminEscHTML(d.ogTitle || '')}" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="desc_${p.key}">설명 (description / og:description) <span class="char-count" data-for="desc_${p.key}"></span></label>
+          <textarea id="desc_${p.key}" placeholder="${adminEscHTML(d.desc || '')}"></textarea>
+        </div>
+        <div class="field og-slot">
+          <label>OG 이미지 <span style="color:var(--muted)">— 비우면 사이트 기본 OG 이미지 사용</span></label>
+          <div class="og-box" data-key="${p.key}">
+            <div class="og-thumb"><span class="og-empty">기본값 사용</span><img hidden /></div>
+            <div class="og-ctrls">
+              <div class="og-btn-row">
+                <button type="button" class="admin-btn ghost admin-btn-sm og-pick"><i class="fa-solid fa-upload"></i> 이미지 업로드</button>
+                <button type="button" class="admin-btn ghost admin-btn-sm og-clear" hidden><i class="fa-regular fa-trash-can"></i> 제거</button>
+              </div>
+              <div class="og-status"></div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" hidden />
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // char counters
+    SITE_PAGES.forEach(p => {
+      ['title_' + p.key, 'desc_' + p.key].forEach(id => {
+        const inp = el(id);
+        if (inp) inp.addEventListener('input', () => setCharCount(id));
+      });
+    });
+    bindOgBoxes();
+  }
+
+  // OG 박스(업로드/제거) 바인딩 — 공통 + 페이지 카드 모두
+  function bindOgBoxes() {
+    document.querySelectorAll('.og-box').forEach(box => {
+      if (box.dataset.bound) return;
+      box.dataset.bound = '1';
+      const key = box.dataset.key;
+      const fileInput = box.querySelector('input[type="file"]');
+      const pickBtn = box.querySelector('.og-pick');
+      const clearBtn = box.querySelector('.og-clear');
+      const status = box.querySelector('.og-status');
+
+      pickBtn.addEventListener('click', () => fileInput.click());
+      clearBtn.addEventListener('click', () => { ogState[key] = ''; paintOg(box, key); });
+
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files && fileInput.files[0];
+        fileInput.value = '';
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { status.textContent = '5MB 이하 이미지를 사용하세요.'; return; }
+        pickBtn.disabled = true; status.textContent = '업로드 중…';
+        try {
+          const url = await fb.uploadImage(file, 'og');
+          ogState[key] = url;
+          paintOg(box, key);
+          status.textContent = '업로드 완료';
+        } catch (err) {
+          status.textContent = '업로드 실패: ' + err.message;
+        } finally {
+          pickBtn.disabled = false;
+        }
+      });
+    });
+  }
+
+  function paintOg(box, key) {
+    const url = ogState[key] || '';
+    const img = box.querySelector('.og-thumb img');
+    const empty = box.querySelector('.og-empty');
+    const clearBtn = box.querySelector('.og-clear');
+    if (url) {
+      img.src = url; img.hidden = false; if (empty) empty.style.display = 'none';
+      clearBtn.hidden = false;
+    } else {
+      img.removeAttribute('src'); img.hidden = true; if (empty) empty.style.display = '';
+      clearBtn.hidden = true;
+      const status = box.querySelector('.og-status'); if (status) status.textContent = '';
+    }
+  }
+
+  // Firestore → 폼 채우기
+  async function loadSeo() {
+    const intro = el('seoIntro');
+    let data = {};
+    try {
+      const snap = await fb.db.collection('site').doc('seo').get();
+      data = snap.exists ? (snap.data() || {}) : {};
+    } catch (err) {
+      intro.textContent = '불러오기 실패: ' + err.message;
+      return;
+    }
+    // 사이트 공통
+    el('siteName').value = data.siteName || '';
+    el('defaultTitle').value = data.defaultTitle || '';
+    el('defaultDesc').value = data.defaultDesc || '';
+    el('siteName').placeholder = SITE_DEFAULTS.siteName;
+    el('defaultTitle').placeholder = SITE_DEFAULTS.defaultTitle;
+    el('defaultDesc').placeholder = SITE_DEFAULTS.defaultDesc;
+    ogState['_default'] = data.defaultOgImage || '';
+    setCharCount('defaultTitle'); setCharCount('defaultDesc');
+    el('defaultTitle').addEventListener('input', () => setCharCount('defaultTitle'));
+    el('defaultDesc').addEventListener('input', () => setCharCount('defaultDesc'));
+
+    // 페이지별
+    const pages = data.pages || {};
+    SITE_PAGES.forEach(p => {
+      const pd = pages[p.key] || {};
+      if (el('title_' + p.key)) el('title_' + p.key).value = pd.title || '';
+      if (el('ogTitle_' + p.key)) el('ogTitle_' + p.key).value = pd.ogTitle || '';
+      if (el('desc_' + p.key)) el('desc_' + p.key).value = pd.desc || '';
+      ogState[p.key] = pd.ogImage || '';
+      setCharCount('title_' + p.key); setCharCount('desc_' + p.key);
+    });
+
+    // OG 미리보기 페인트
+    document.querySelectorAll('.og-box').forEach(box => paintOg(box, box.dataset.key));
+
+    const when = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : null;
+    intro.innerHTML = '여기서 바꾼 값은 <b>저장 즉시</b> 공개 사이트(브라우저·구글 검색)에 반영됩니다. ' +
+      '카카오톡/페이스북 등 <b>공유 미리보기</b>는 아티클의 경우 서버에서 즉시 반영되며, 캐시로 인해 갱신이 늦을 수 있습니다.' +
+      (when ? ` <span style="color:var(--muted)">· 마지막 저장 ${when.toLocaleString('ko-KR')}</span>` : '');
+  }
+
+  // 저장
+  async function save() {
+    const msg = el('savedMsg');
+    msg.className = 'seo-saved-msg';
+    msg.textContent = '저장 중…';
+    const pages = {};
+    SITE_PAGES.forEach(p => {
+      pages[p.key] = {
+        title: (el('title_' + p.key).value || '').trim(),
+        ogTitle: (el('ogTitle_' + p.key).value || '').trim(),
+        desc: (el('desc_' + p.key).value || '').trim(),
+        ogImage: ogState[p.key] || ''
+      };
+    });
+    const payload = {
+      siteName: (el('siteName').value || '').trim(),
+      defaultTitle: (el('defaultTitle').value || '').trim(),
+      defaultDesc: (el('defaultDesc').value || '').trim(),
+      defaultOgImage: ogState['_default'] || '',
+      pages,
+      updatedAt: fb.FieldValue.serverTimestamp()
+    };
+    try {
+      await fb.db.collection('site').doc('seo').set(payload, { merge: true });
+      msg.className = 'seo-saved-msg ok';
+      msg.textContent = '저장되었습니다.';
+      setTimeout(() => { if (msg.textContent === '저장되었습니다.') msg.textContent = ''; }, 4000);
+    } catch (err) {
+      msg.className = 'seo-saved-msg err';
+      msg.textContent = '저장 실패: ' + err.message;
+    }
+  }
+
+  el('saveBtn').addEventListener('click', save);
+  el('reloadBtn').addEventListener('click', () => { renderPageCards(); loadSeo(); });
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      renderPageCards();
+      loadSeo();
+    } else {
+      el('seoIntro').textContent = '관리자 로그인이 필요합니다.';
+    }
+  });
+</script>
+</body>
+</html>

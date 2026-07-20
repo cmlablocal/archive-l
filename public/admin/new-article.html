@@ -1,0 +1,3588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<script>/*editor-popup-init*/(function(){try{if(location.search.indexOf("editorPopup")>-1)document.documentElement.classList.add("is-editor-popup");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>새 콘텐츠 작성 · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<!-- 본문 에디터: TinyMCE 7 (skin은 JS가 자동 주입) -->
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  /* Composer-specific layout */
+  body.composer { overflow: hidden; }
+  .composer-shell {
+    display: grid;
+    grid-template-rows: 56px 1fr 60px;
+    height: 100vh;
+  }
+  .composer-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--admin-border);
+    background: var(--bg);
+  }
+  .composer-top-left { display: flex; align-items: center; gap: 14px; }
+  .composer-top a.back { color: var(--muted); font-size: 13px; text-decoration: none; }
+  .composer-top a.back:hover { color: var(--fg); }
+  .composer-top .title-input {
+    background: transparent; border: none; outline: none;
+    color: var(--fg); font-size: 14px; font-family: inherit;
+    width: 260px;
+  }
+  .save-status { font-size: 11px; color: var(--muted); }
+
+  .composer-body {
+    display: grid;
+    grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr);
+    overflow: hidden;
+  }
+  .composer-form {
+    overflow-y: auto;
+    padding: 24px 28px 40px;
+    border-right: 1px solid var(--admin-border);
+  }
+  .composer-preview {
+    overflow: hidden;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+  }
+  .preview-toolbar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--admin-border);
+    background: var(--admin-row);
+    font-size: 11px; color: var(--muted);
+  }
+  .preview-toolbar .label { flex: 1; letter-spacing: 0.08em; text-transform: uppercase; }
+  .preview-toggle-btn {
+    background: transparent; border: 1px solid var(--admin-border);
+    border-radius: 6px; padding: 4px 10px; font-size: 11px;
+    color: var(--fg); cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .preview-toggle-btn:hover { background: var(--hover); }
+  .preview-toggle-btn.active { background: var(--admin-accent); color: var(--bg); border-color: var(--admin-accent); }
+  .preview-frame-wrap {
+    flex: 1; overflow: auto;
+    display: flex; justify-content: center; align-items: stretch;
+    background: var(--bg);
+    padding: 0;
+    transition: padding 0.18s ease;
+  }
+  .preview-frame-wrap.mobile {
+    padding: 16px 0;
+    background: var(--admin-row);
+  }
+  .composer-preview iframe {
+    width: 100%; height: 100%; border: none;
+    background: var(--bg);
+    transition: max-width 0.18s ease, box-shadow 0.18s ease, border-radius 0.18s ease;
+  }
+  .preview-frame-wrap.mobile iframe {
+    max-width: 390px;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  }
+  .composer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-top: 1px solid var(--admin-border);
+    background: var(--bg);
+    gap: 8px;
+  }
+  .composer-bottom .left,
+  .composer-bottom .right { display: flex; gap: 8px; align-items: center; }
+
+  /* Form fields */
+  .field-group {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .field-group:last-child { border-bottom: none; }
+  .field-group-title {
+    font-size: 11px; letter-spacing: 0.14em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .field { margin-bottom: 12px; }
+  .field-row { display: grid; gap: 10px; }
+  .field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .field-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field label {
+    display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px;
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="url"],
+  .field textarea,
+  .field select {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    color: var(--fg);
+    font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--fg); }
+  .field input[readonly] { background: var(--admin-soft, rgba(0,0,0,0.04)); color: var(--muted); cursor: not-allowed; border-style: dashed; }
+  .field input[readonly]:focus { border-color: var(--admin-border); }
+  .field-help { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .checkbox-row input { width: auto; }
+
+  /* Dynamic list (thanks) */
+  .dynlist-item {
+    display: grid; grid-template-columns: 1fr 2fr auto;
+    gap: 8px; margin-bottom: 8px;
+  }
+  .dynlist-item input { padding: 8px 10px; font-size: 12px; }
+  .dynlist-item button {
+    background: transparent; border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--muted); padding: 0 10px; cursor: pointer; font-size: 12px;
+  }
+
+  /* Outline list (프리릴리즈 목차) */
+  .outline-item {
+    display: grid; grid-template-columns: 64px 1.4fr 2fr auto;
+    gap: 8px; margin-bottom: 8px;
+    align-items: start;
+  }
+  .outline-item input,
+  .outline-item textarea {
+    padding: 8px 10px; font-size: 12px;
+    width: 100%; box-sizing: border-box;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    color: var(--fg);
+    font-family: inherit;
+  }
+  .outline-item textarea { resize: vertical; min-height: 34px; line-height: 1.5; }
+  .outline-item button {
+    background: transparent; border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--muted); padding: 0 10px; cursor: pointer; font-size: 12px;
+    align-self: stretch;
+  }
+  .dynlist-add {
+    background: transparent; border: 1px dashed var(--admin-border);
+    color: var(--muted); padding: 8px; width: 100%;
+    border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit;
+  }
+  .dynlist-add:hover { background: var(--hover); color: var(--fg); }
+
+  .static-notice {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    color: #1d4ed8;
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; line-height: 1.6; margin-bottom: 18px;
+  }
+  body.dark .static-notice { color: #93c5fd; }
+
+  @media (max-width: 1000px) {
+    .composer-body { grid-template-columns: 1fr; }
+    .composer-preview { border-top: 1px solid var(--admin-border); }
+  }
+
+  /* ===== 본문 에디터(TinyMCE) 래퍼 ===== */
+  /* 에디터 내부(iframe)는 content_css로 사이트 스타일을 그대로 입혀
+     실제 발행 화면과 동일하게 렌더링됩니다. 외곽 테두리만 살짝 정리. */
+  #bodyFieldWrap .tox-tinymce {
+    border-radius: 10px; border-color: var(--admin-border);
+  }
+  #bodyFieldWrap .tox .tox-editor-header { z-index: 1; }
+
+  /* ===== 본문 '새 창에서 넓게 쓰기' 팝업 모드 ===== */
+  /* 팝업으로 띄운 창: 본문 에디터만 전체화면으로 표시 */
+  html.is-editor-popup, html.is-editor-popup body { overflow: hidden; height: 100%; }
+  html.is-editor-popup .composer-top,
+  html.is-editor-popup .composer-preview,
+  html.is-editor-popup .composer-bottom { display: none !important; }
+  html.is-editor-popup .composer-body { display: block; padding: 0; }
+  html.is-editor-popup #bodyFieldWrap {
+    position: fixed; inset: 0; margin: 0; padding: 14px 18px;
+    background: var(--bg, #fff); z-index: 200; overflow: auto;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  html.is-editor-popup #btnEditorPopup { display: none; }
+  html.is-editor-popup #bodyFieldWrap .field-help { display: none !important; }
+
+  /* 본창: 새 창에서 편집 중일 때 인라인 에디터 위에 덮는 안내 오버레이 */
+  #editorPopupOverlay {
+    position: absolute; inset: 0; z-index: 50;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; text-align: center;
+    background: rgba(255,255,255,0.82); backdrop-filter: blur(2px);
+    border-radius: 10px;
+  }
+  body.dark #editorPopupOverlay { background: rgba(20,20,20,0.82); }
+  #editorPopupOverlay .epo-icon { font-size: 30px; color: var(--muted); }
+  #editorPopupOverlay .epo-msg { font-size: 14px; color: var(--fg); line-height: 1.6; }
+
+  /* ===== 유형 / 공개 범위 선택 카드 ===== */
+  .choice-grid { display: grid; gap: 10px; }
+  .choice-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .choice-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .choice-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .choice-opt {
+    position: relative; cursor: pointer;
+    border: 1px solid var(--admin-border); border-radius: 10px;
+    padding: 14px; display: flex; flex-direction: column; gap: 5px;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+  }
+  .choice-opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .choice-opt:hover { background: var(--hover); }
+  .choice-opt:has(input:checked) {
+    border-color: var(--fg);
+    background: var(--admin-row);
+    box-shadow: inset 0 0 0 1px var(--fg);
+  }
+  .choice-opt .opt-ico { font-size: 18px; color: var(--muted); }
+  .choice-opt:has(input:checked) .opt-ico { color: var(--fg); }
+  .choice-opt .opt-name { font-size: 13px; font-weight: 700; color: var(--fg); }
+  .choice-opt .opt-desc { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .choice-grid.locked .choice-opt { cursor: not-allowed; pointer-events: none; }
+  .choice-grid.locked .choice-opt:not(:has(input:checked)) { opacity: .4; }
+  @media (max-width: 1280px) {
+    .choice-grid.cols-3 { grid-template-columns: 1fr; }
+    .choice-grid.cols-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 700px) {
+    .choice-grid.cols-4 { grid-template-columns: 1fr; }
+  }
+  /* 팟캐스트 챕터 입력 리스트 */
+  .pod-chap-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .pod-chap-row input { width: 100%; }
+  .pod-chap-row button { border: none; background: var(--hover); color: var(--muted); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 15px; }
+  .pod-chap-row button:hover { color: var(--fg); }
+
+  /* 시리즈 자동 진행 안내 박스 */
+  .series-info-box {
+    background: var(--admin-row); border: 1px solid var(--admin-border);
+    border-radius: 8px; padding: 12px 14px; font-size: 12.5px;
+    color: var(--fg); line-height: 1.7;
+  }
+  .series-info-box strong { color: var(--admin-accent); font-weight: 700; }
+  .series-info-box.empty { color: var(--muted); }
+</style>
+</head>
+<body class="admin composer">
+
+<div class="composer-shell">
+
+  <!-- Top bar -->
+  <div class="composer-top">
+    <div class="composer-top-left">
+      <a href="/admin/articles.html" class="back"><i class="fa-solid fa-arrow-left"></i> 콘텐츠 목록</a>
+      <input type="text" class="title-input" id="topTitle" placeholder="제목 (자동 동기화)" />
+    </div>
+    <div class="save-status" id="saveStatus">자동저장: —</div>
+  </div>
+
+  <!-- Body: form + preview -->
+  <div class="composer-body">
+
+    <!-- ===== Form ===== -->
+    <div class="composer-form">
+
+      <div id="staticNotice" class="static-notice" hidden></div>
+
+      <!-- ① 콘텐츠 유형 -->
+      <div class="field-group">
+        <div class="field-group-title">① 콘텐츠 유형</div>
+        <div class="choice-grid cols-4" id="typeChoice">
+          <label class="choice-opt">
+            <input type="radio" name="ctype" value="series" />
+            <span class="opt-ico"><i class="fa-solid fa-layer-group"></i></span>
+            <span class="opt-name">시리즈</span>
+            <span class="opt-desc">연재 콘텐츠. 편수·순번이 자동 계산돼요.</span>
+          </label>
+          <label class="choice-opt">
+            <input type="radio" name="ctype" value="standalone" checked />
+            <span class="opt-ico"><i class="fa-regular fa-newspaper"></i></span>
+            <span class="opt-name">단편</span>
+            <span class="opt-desc">한 편으로 완결되는 글. 카테고리로 분류해요.</span>
+          </label>
+          <label class="choice-opt">
+            <input type="radio" name="ctype" value="video" />
+            <span class="opt-ico"><i class="fa-solid fa-film"></i></span>
+            <span class="opt-name">영상</span>
+            <span class="opt-desc">영상 우선 콘텐츠. 카테고리로 분류해요.</span>
+          </label>
+          <label class="choice-opt">
+            <input type="radio" name="ctype" value="podcast" />
+            <span class="opt-ico"><i class="fa-solid fa-headphones"></i></span>
+            <span class="opt-name">팟캐스트</span>
+            <span class="opt-desc">유튜브·웹 오디오로 듣는 콘텐츠. 카테고리로 분류해요.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ② 공개 범위 -->
+      <div class="field-group">
+        <div class="field-group-title">② 공개 범위</div>
+        <div class="choice-grid cols-2" id="accessChoice">
+          <label class="choice-opt">
+            <input type="radio" name="access" value="members" checked />
+            <span class="opt-ico"><i class="fa-solid fa-lock"></i></span>
+            <span class="opt-name">회원 전용</span>
+            <span class="opt-desc">로그인한 독자에게만 본문 전체를 공개해요.</span>
+          </label>
+          <label class="choice-opt">
+            <input type="radio" name="access" value="public" />
+            <span class="opt-ico"><i class="fa-solid fa-lock-open"></i></span>
+            <span class="opt-name">모두 공개</span>
+            <span class="opt-desc">누구나 끝까지 읽을 수 있어요. (게이트 없음)</span>
+          </label>
+        </div>
+        <div class="field-help" id="accessLockNote" hidden><i class="fa-solid fa-lock" style="font-size:10px;"></i> 관리자가 지정한 공개 범위예요. 변경할 수 없습니다.</div>
+        <!-- 저장에 쓰이는 공개 플래그 (라디오로 제어) -->
+        <input type="checkbox" id="fFree" hidden />
+      </div>
+
+      <!-- ③ 분류 -->
+      <div class="field-group">
+        <div class="field-group-title" id="classifyTitle">③ 카테고리</div>
+
+        <!-- 시리즈 분류 -->
+        <div id="seriesClassify" hidden>
+          <div class="field">
+            <label for="fSeries">시리즈 선택 *</label>
+            <select id="fSeries">
+              <option value="">시리즈를 선택하세요…</option>
+              <option value="__custom">+ 새 시리즈 만들기</option>
+              <!-- 나머지 시리즈는 Firestore series 컬렉션에서 동적 로드 -->
+            </select>
+            <div class="field-help">기존 시리즈를 고르면 다음 순번이 자동으로 계산돼요. 시리즈는 ‘시리즈 관리’에서 미리 만들 수 있어요.</div>
+          </div>
+          <div class="field" id="fSeriesCustomWrap" hidden>
+            <label for="fSeriesCustom">새 시리즈 코드 (영문 소문자 권장)</label>
+            <input type="text" id="fSeriesCustom" placeholder="design" />
+            <div class="field-help">예: 'design' → 글 ID는 design20260529a 형태가 됩니다.</div>
+          </div>
+          <div class="field" id="fSeriesNameWrap" hidden>
+            <label for="fSeriesName">시리즈 표시명</label>
+            <input type="text" id="fSeriesName" placeholder="시리즈 이름" />
+          </div>
+          <div class="series-info-box empty" id="seriesInfo">시리즈를 선택하면 진행 상황이 표시됩니다.</div>
+          <div class="field-row cols-2" style="margin-top:10px;">
+            <div class="field">
+              <label for="fSeriesNo"><i class="fa-solid fa-lock" style="font-size:10px;opacity:.55;"></i> 이번 글 순번 (자동)</label>
+              <input type="text" id="fSeriesNo" placeholder="01" readonly tabindex="-1" />
+            </div>
+            <div class="field">
+              <label for="fSeriesTotal"><i class="fa-solid fa-lock" style="font-size:10px;opacity:.55;"></i> 전체 편수 (자동)</label>
+              <input type="text" id="fSeriesTotal" placeholder="03" readonly tabindex="-1" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 카테고리 분류 (단편 · 영상) -->
+        <div id="catClassify">
+          <div class="field-row cols-2">
+            <div class="field">
+              <label for="f1Cat">1차 카테고리 *</label>
+              <select id="f1Cat"><option value="">선택하세요…</option></select>
+            </div>
+            <div class="field">
+              <label for="f2Cat">2차 카테고리 (선택)</label>
+              <select id="f2Cat"><option value="">— 없음 —</option></select>
+            </div>
+          </div>
+          <div class="field-help">2차가 없으면 1차만 선택해도 됩니다. 카테고리는 ‘카테고리 관리’에서 추가합니다.</div>
+          <!-- 저장에 쓰이는 최종 카테고리(말단) 및 카드 라벨 -->
+          <input type="hidden" id="fCategory" />
+          <input type="hidden" id="fCat" />
+        </div>
+      </div>
+
+      <!-- ④ 발행 정보 -->
+      <div class="field-group">
+        <div class="field-group-title">④ 발행 정보</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <label for="fDate">발행일 *</label>
+            <input type="date" id="fDate" />
+            <div class="field-help" id="fDateHint">표시 형식: YYYY.MM.DD · 글 카드에 표시되는 날짜</div>
+          </div>
+          <div class="field">
+            <label for="fAuthor">작성자</label>
+            <input type="text" id="fAuthor" value="Local Layers" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="checkbox-row">
+            <input type="checkbox" id="fScheduled" />
+            <span>예약 발행 (지정한 시각 이후 자동 공개)</span>
+          </label>
+        </div>
+        <div class="field" id="fScheduledWrap" hidden>
+          <label for="fScheduledAt">예약 발행 시각</label>
+          <input type="datetime-local" id="fScheduledAt" />
+          <div class="field-help">"게시하기"를 누르면 SCHEDULED 상태로 저장됩니다. 시각 이후 게시 상태로 전환되어야 공개됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 썸네일·태그 -->
+      <div class="field-group">
+        <div class="field-group-title">썸네일 · 태그</div>
+
+        <div class="field">
+          <label id="thumbLabel">썸네일 *</label>
+          <div class="thumb-upload" id="thumbUpload">
+            <input type="file" id="thumbInput" accept="image/jpeg,image/png,image/webp" hidden />
+            <div class="thumb-upload-empty" id="thumbEmpty">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <p>이미지 드래그 또는 클릭</p>
+              <div class="field-help">JPG, PNG, WebP (최대 5MB)</div>
+            </div>
+            <div class="thumb-preview" id="thumbPreview" hidden>
+              <img id="thumbImg" alt="썸네일" />
+              <button type="button" class="thumb-remove" id="thumbRemove" aria-label="삭제">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>모바일 히어로 이미지 (세로 4:5)</label>
+          <div class="thumb-upload" id="thumbMobileUpload">
+            <input type="file" id="thumbMobileInput" accept="image/jpeg,image/png,image/webp" hidden />
+            <div class="thumb-upload-empty" id="thumbMobileEmpty">
+              <i class="fa-solid fa-mobile-screen"></i>
+              <p>이미지 드래그 또는 클릭</p>
+              <div class="field-help">선택 · 히어로 배정 시 모바일에서 사용 (미등록 시 썸네일 사용) · JPG, PNG, WebP (최대 5MB)</div>
+            </div>
+            <div class="thumb-preview" id="thumbMobilePreview" hidden>
+              <img id="thumbMobileImg" alt="모바일 히어로 이미지" />
+              <button type="button" class="thumb-remove" id="thumbMobileRemove" aria-label="삭제">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="mcrop-trigger" id="thumbMobileCropBtn" disabled>
+            <i class="fa-solid fa-crop-simple"></i> 썸네일에서 모바일용(4:5) 크롭
+          </button>
+          <div class="thumb-preset-actions">
+            <button type="button" class="mcrop-trigger" id="thumbPresetLoadBtn">
+              <i class="fa-regular fa-images"></i> 저장된 썸네일 불러오기
+            </button>
+            <button type="button" class="mcrop-trigger" id="thumbPresetSaveBtn">
+              <i class="fa-regular fa-bookmark"></i> 현재 썸네일 저장
+            </button>
+          </div>
+          <div class="field-help" style="margin-top:6px;">팟캐스트처럼 썸네일이 반복되는 콘텐츠는 한 번 저장해두고 다음 글에서 불러오면 됩니다. (가로·모바일 함께 저장)</div>
+        </div>
+
+        <div class="field">
+          <label>태그 (Enter 또는 Space로 추가, 최대 10개)</label>
+          <div class="tag-input-wrap" id="tagInputWrap">
+            <input type="text" id="tagInput" placeholder="태그 입력 후 Enter" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 콘텐츠 -->
+      <div class="field-group" id="contentGroup">
+        <div class="field-group-title">콘텐츠</div>
+        <div class="field">
+          <label for="fTitle">제목 *</label>
+          <input type="text" id="fTitle" placeholder="예: AI가 도구가 된 시대" />
+        </div>
+        <div class="field">
+          <label for="fSub">부제목</label>
+          <input type="text" id="fSub" placeholder="짧은 한 줄 요약" />
+        </div>
+        <div class="field">
+          <label for="fLead">리드 문장 (상단 큰 글씨)</label>
+          <textarea id="fLead" rows="3" placeholder="기사를 여는 두세 문장. 큰 글씨로 표시됩니다."></textarea>
+        </div>
+        <div class="field" id="bodyFieldWrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <label style="margin:0;">본문 *</label>
+            <button type="button" class="admin-btn ghost admin-btn-sm" id="btnEditorPopup" onclick="openEditorWindow()" style="flex:0 0 auto;"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> 새 창에서 넓게 쓰기</button>
+          </div>
+          <textarea id="editor"></textarea>
+          <div class="field-help" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <span>툴바의 <strong>포맷</strong> 메뉴로 6종 레이아웃을 삽입하면 <strong>실제 디자인 그대로</strong> 편집됩니다. <strong>스타일</strong> 메뉴로 제목·인용 등 단락 서식, <strong>미디어</strong>로 유튜브·영상 임베드, <strong>목차</strong>로 자동 목차를 넣을 수 있어요.</span>
+            <span id="bodyStats" style="white-space:nowrap;font-variant-numeric:tabular-nums;">0자 · 0분</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프리릴리즈 정보 — 프리릴리즈 모드에서만 표시 -->
+      <div class="field-group" id="prereleaseGroup" hidden>
+        <div class="field-group-title">프리릴리즈 정보</div>
+
+        <!-- 시리즈일 때: 작성 중인 목차 -->
+        <div id="prereleaseOutlineWrap">
+          <div class="field">
+            <label>작성 중인 목차</label>
+            <div id="outlineList"></div>
+            <button type="button" class="dynlist-add" onclick="addOutlineItem('', '', '')"><i class="fa-solid fa-plus"></i> 목차 항목 추가</button>
+            <div class="field-help">발행 후에는 보여지지 않습니다. 발행 시점에 자유롭게 수정할 수 있어요.</div>
+          </div>
+          <div class="field">
+            <label for="fOutlineNote">목차 안내 문구</label>
+            <input type="text" id="fOutlineNote" placeholder="잠정 — 발행 시점에 달라질 수 있어요" />
+            <div class="field-help">"작성 중인 목차" 라벨 옆에 작게 표시됩니다.</div>
+          </div>
+        </div>
+
+        <!-- 단편일 때: 이 콘텐츠가 어떤 내용일지 -->
+        <div class="field" id="prereleaseIntentWrap" hidden>
+          <label for="fIntent">이 콘텐츠가 어떤 내용일지</label>
+          <textarea id="fIntent" rows="6" placeholder="이 콘텐츠가 다룰 주제, 관점, 결을 자유롭게 적어주세요."></textarea>
+          <div class="field-help">단편콘텐츠의 프리릴리즈에 표시됩니다.</div>
+        </div>
+
+        <div class="field">
+          <label for="fPrereleaseClosing">종결 메시지</label>
+          <textarea id="fPrereleaseClosing" rows="2" placeholder="이 글은 지금 쓰여지고 있어요.&#10;발행 전 여러분의 응원과 자료가 글을 더 깊게 만듭니다."></textarea>
+        </div>
+
+        <div class="field" id="publishDateLabelWrap">
+          <label for="fPublishDateLabel">발행 예정일 표시 텍스트</label>
+          <input type="text" id="fPublishDateLabel" placeholder="YYYY.MM.DD 발행 예정" />
+          <div class="field-help">메타 영역에 큰 글씨로 표시됩니다. 비우면 발행일 + " 발행 예정" 자동 사용.</div>
+        </div>
+      </div>
+
+      <!-- 동영상 — 영상 유형에서만 노출 -->
+      <div class="field-group" id="videoGroup" hidden>
+        <div class="field-group-title">영상</div>
+        <div class="field">
+          <label for="fVideoUrl">유튜브 URL *</label>
+          <input type="url" id="fVideoUrl" placeholder="https://youtu.be/FLoUGGq38lA 또는 https://www.youtube.com/watch?v=FLoUGGq38lA" />
+          <div class="field-help">썸네일을 누르면 <strong>전체화면 모달</strong>로 영상이 재생되고, "아티클 같이 보기"를 누르면 보던 지점부터 이어재생되며 본문이 함께 열립니다. (본문 없이 영상만 발행도 가능)</div>
+        </div>
+        <!-- 영상 유형이면 자동 ON (유형 선택으로 제어) -->
+        <input type="checkbox" id="fVideoMode" hidden />
+      </div>
+
+      <!-- 팟캐스트 — 팟캐스트 유형에서만 노출 -->
+      <div class="field-group" id="podcastGroup" hidden>
+        <div class="field-group-title">팟캐스트 음원</div>
+        <div class="field">
+          <label for="fPodcastUrl">유튜브 또는 웹 오디오 URL *</label>
+          <input type="url" id="fPodcastUrl" placeholder="https://youtu.be/... 또는 https://example.com/episode.mp3" />
+          <div class="field-help">유튜브 주소를 넣으면 <strong>소리만</strong> 재생됩니다. mp3 등 웹 오디오 주소를 넣으면 다운로드 버튼도 함께 제공됩니다. 본문(스크립트)은 선택입니다.</div>
+        </div>
+        <div class="field">
+          <label>챕터 (타임스탬프 목차) — 선택</label>
+          <div id="podChapterList"></div>
+          <button type="button" class="dynlist-add" onclick="addPodChapter('', '')"><i class="fa-solid fa-plus"></i> 챕터 추가</button>
+          <div class="field-help">시간은 <strong>분:초</strong>(예: 2:15) 또는 초 단위 숫자로 입력하세요. 플레이어 하단 챕터 목록과 본문 위 목차에 표시됩니다.</div>
+        </div>
+        <!-- 팟캐스트 유형이면 자동 ON (유형 선택으로 제어) -->
+        <input type="checkbox" id="fPodcastMode" hidden />
+      </div>
+
+      <!-- 참고 자료 -->
+      <div class="field-group" id="thanksGroup">
+        <div class="field-group-title">참고 자료 · 도움 주신 분</div>
+        <div id="thanksList"></div>
+        <button type="button" class="dynlist-add" onclick="addThanks('', '')"><i class="fa-solid fa-plus"></i> 항목 추가</button>
+      </div>
+
+      <!-- 첨부파일 (PDF) -->
+      <div class="field-group" id="attachmentsGroup">
+        <div class="field-group-title">첨부파일 (PDF)</div>
+        <div class="field">
+          <label>PDF 문서 첨부 (여러 개 가능)</label>
+          <div class="attach-upload" id="attachUpload">
+            <input type="file" id="attachInput" accept="application/pdf" multiple hidden />
+            <div class="attach-upload-empty" id="attachEmpty">
+              <i class="fa-solid fa-file-pdf"></i>
+              <p>PDF 드래그 또는 클릭</p>
+              <div class="field-help">PDF만 · 파일당 최대 20MB</div>
+            </div>
+          </div>
+          <div id="attachList" class="attach-list"></div>
+          <div class="field-help">아티클 하단에 다운로드 링크로 표시됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 공유·SEO (OG) -->
+      <div class="field-group" id="ogGroup">
+        <div class="field-group-title">공유 미리보기 · SEO (OG)</div>
+        <div class="field">
+          <label for="fOgTitle">공유 제목 (og:title)</label>
+          <input type="text" id="fOgTitle" placeholder="비우면 제목을 사용합니다" />
+          <div class="field-help">카카오톡·페이스북 등에서 링크 공유 시 표시되는 제목입니다.</div>
+        </div>
+        <div class="field">
+          <label for="fOgDesc">공유 설명 (og:description)</label>
+          <textarea id="fOgDesc" rows="2" placeholder="비우면 부제목/리드 문장을 사용합니다"></textarea>
+        </div>
+        <div class="field">
+          <label>공유 이미지 (og:image)</label>
+          <div class="thumb-upload" id="ogUpload">
+            <input type="file" id="ogInput" accept="image/jpeg,image/png,image/webp" hidden />
+            <div class="thumb-upload-empty" id="ogEmpty">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <p>이미지 드래그 또는 클릭</p>
+              <div class="field-help">권장 1200×630 · JPG, PNG, WebP (최대 5MB)</div>
+            </div>
+            <div class="thumb-preview" id="ogPreview" hidden>
+              <img id="ogImg" alt="공유 이미지" />
+              <button type="button" class="thumb-remove" id="ogRemove" aria-label="삭제">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <div class="field-help">비우면 썸네일 이미지를 공유 이미지로 사용합니다.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== Preview ===== -->
+    <div class="composer-preview">
+      <div class="preview-toolbar">
+        <span class="label">실시간 미리보기</span>
+        <button type="button" class="preview-toggle-btn active" data-view="pc"><i class="fa-solid fa-desktop"></i> PC</button>
+        <button type="button" class="preview-toggle-btn" data-view="mobile"><i class="fa-solid fa-mobile-screen"></i> 모바일</button>
+      </div>
+      <div class="preview-frame-wrap" id="previewFrameWrap">
+        <iframe id="previewFrame" title="실시간 미리보기"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="composer-bottom">
+    <div class="left">
+      <button class="admin-btn ghost admin-btn-sm" onclick="saveDraft()"><i class="fa-regular fa-floppy-disk"></i> 임시저장</button>
+      <button class="admin-btn ghost admin-btn-sm" onclick="openPreviewTab()"><i class="fa-regular fa-eye"></i> 미리보기 새 탭</button>
+      <button class="admin-btn ghost admin-btn-sm" onclick="openDraftList()"><i class="fa-regular fa-folder-open"></i> 임시저장 목록</button>
+    </div>
+    <div class="right">
+      <button class="admin-btn ghost" onclick="savePrerelease()" id="btnPrerelease"><i class="fa-regular fa-comments"></i> 프리릴리즈로 등록</button>
+      <button class="admin-btn" onclick="publishPost()"><i class="fa-solid fa-paper-plane"></i> 게시하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Draft List Modal ===== -->
+<div id="draftListModal" hidden></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<!-- 콘텐츠 작성 페이지는 에디터 권한자에게도 허용(게이트 우회 opt-in). 폼 내부에서 배정 시리즈/포맷만 노출하도록 제한함. -->
+<script>window.__ADMIN_EDITOR_OK = true;</script>
+<script src="/admin/assets/js/admin.js?v=20260531"></script>
+<script src="/assets/js/data.js"></script>
+
+<!-- TinyMCE 7 (자체 호스팅 / API 키 불필요) -->
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+// ====== 시리즈 옵션 ======
+// Firestore의 series 컬렉션이 단일 소스. 하드코딩된 폴백 없음.
+let SERIES_NAMES = {};
+let SERIES_TOTALS = {};   // { code: 전체 편수(int) } — Firestore에서 로드
+
+// ====== State ======
+let editor = null;          // TinyMCE 에디터 인스턴스
+let _editorInitStarted = false;
+let _pendingBody = null;    // 에디터 준비 전 들어온 본문 HTML 보관
+
+// ===== 본문 '새 창에서 넓게 쓰기' 연동 상태 =====
+// 이 페이지가 ?editorPopup=1 로 열렸으면 '본문 전용 팝업' 모드
+const IS_EDITOR_POPUP = new URLSearchParams(location.search).has('editorPopup');
+// ===== 에디터(staff, 비관리자) 제한 모드 =====
+// 관리자가 아니라 에디터 권한으로 들어온 경우 true. 배정된 시리즈/포맷만 사용 가능.
+let IS_EDITOR_MODE = false;
+let EDITOR_ASSIGN = null;            // editorAssignments/{uid} 문서
+let EDITOR_ALLOWED_CTYPES = null;    // 허용 콘텐츠 유형 Set (예: {'series','standalone','video'})
+let EDITOR_SERIES_CODES = null;      // 허용 시리즈 코드 배열
+// 발행 포맷(한글) → 콘텐츠 유형(ctype) 매핑
+const FORMAT_TO_CTYPE = { '시리즈': 'series', '아티클': 'standalone', '영상': 'video', '팟캐스트': 'podcast' };
+let _editorPopupWin = null; // 본창이 띄운 팝업 창 참조
+let _remoteBody = null;     // 팝업에서 실시간 수신한 본문 HTML
+let _remoteEditing = false; // 팝업에서 편집 중인지 여부
+let thumbnailFile = null;
+let thumbnailUrl = null;
+let thumbnailCropSrc = null; // 모바일 크롭 소스(데이터 URL 또는 원본 썸네일 URL)
+let thumbMobileFile = null;
+let thumbMobileUrl = null;
+let ogImageFile = null;
+let ogImageUrl = null;
+let tags = [];
+let currentArticleId = null;        // null = new article, set = edit/already-saved
+let isExistingDoc = false;          // tracks whether Firestore doc already exists
+let _legacyStaticData = null;       // if editing a legacy id, keep reference
+let attachments = [];               // [{ name, size, url, file?(미업로드) }] — PDF 첨부
+
+// ====== Field references ======
+const F = {
+  date: document.getElementById('fDate'),
+  series: document.getElementById('fSeries'),
+  seriesCustom: document.getElementById('fSeriesCustom'),
+  seriesCustomWrap: document.getElementById('fSeriesCustomWrap'),
+  seriesName: document.getElementById('fSeriesName'),
+  seriesNo: document.getElementById('fSeriesNo'),
+  seriesTotal: document.getElementById('fSeriesTotal'),
+  category: document.getElementById('fCategory'),
+  cat: document.getElementById('fCat'),
+  author: document.getElementById('fAuthor'),
+  free: document.getElementById('fFree'),
+  title: document.getElementById('fTitle'),
+  sub: document.getElementById('fSub'),
+  tags: document.getElementById('tagInput'),
+  lead: document.getElementById('fLead'),
+  ogTitle: document.getElementById('fOgTitle'),
+  ogDesc: document.getElementById('fOgDesc'),
+  next: document.getElementById('fNext'),
+  nextRandomBtn: document.getElementById('fNextRandom'),
+  nextHelp: document.getElementById('fNextHelp'),
+  videoUrl: document.getElementById('fVideoUrl'),
+  videoMode: document.getElementById('fVideoMode'),
+  podcastUrl: document.getElementById('fPodcastUrl'),
+  podcastMode: document.getElementById('fPodcastMode'),
+  scheduled: document.getElementById('fScheduled'),
+  scheduledAt: document.getElementById('fScheduledAt'),
+  scheduledWrap: document.getElementById('fScheduledWrap'),
+  topTitle: document.getElementById('topTitle'),
+  saveStatus: document.getElementById('saveStatus'),
+  dateHint: document.getElementById('fDateHint'),
+  // Prerelease fields
+  outlineNote: document.getElementById('fOutlineNote'),
+  intent: document.getElementById('fIntent'),
+  prereleaseClosing: document.getElementById('fPrereleaseClosing'),
+  publishDateLabel: document.getElementById('fPublishDateLabel')
+};
+
+// ====== Prerelease mode state ======
+let isPrereleaseMode = false;
+
+// ====== Date helpers ======
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function isoToDisplay(iso) {
+  if (!iso) return '';
+  return iso.replace(/-/g, '.');
+}
+F.date.value = todayISO();
+
+// ====== Toast (small floating) ======
+function showToast(msg, type) {
+  const existing = document.querySelector('.cm-toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'cm-toast';
+  el.textContent = msg;
+  Object.assign(el.style, {
+    position: 'fixed',
+    bottom: '80px', left: '50%', transform: 'translateX(-50%)',
+    background: type === 'error' ? '#dc2626' : (type === 'success' ? '#16a34a' : '#0A0A0A'),
+    color: '#fff', padding: '10px 18px', borderRadius: '999px',
+    fontSize: '13px', zIndex: 9999, boxShadow: '0 6px 24px rgba(0,0,0,0.18)'
+  });
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2400);
+}
+
+// ====== TinyMCE 7 init ======
+function initEditor() {
+  if (_editorInitStarted) return;
+  _editorInitStarted = true;
+  const dark = document.body.classList.contains('dark');
+  tinymce.init({
+    selector: '#editor',
+    license_key: 'gpl',                 // 자체 호스팅(GPL) — API 키 불필요
+    language: 'ko_KR',
+    language_url: 'https://cdn.jsdelivr.net/npm/tinymce-i18n@latest/langs7/ko_KR.js',
+    menubar: false,
+    branding: false,
+    promotion: false,
+    plugins: 'lists link image media table code autoresize quickbars wordcount toc charmap',
+    toolbar: 'undo redo | styles blocks fontfamily fontsizeinput lineheight | bold italic underline strikethrough forecolor backcolor | bullist numlist | alignleft aligncenter alignright | link image media table toc | pformat pelem | removeformat charmap code',
+    toolbar_mode: 'wrap',
+    font_size_input_default_unit: 'px',
+    font_size_formats: '12px 14px 15px 16px 18px 20px 24px 28px 32px 40px',
+    // 행간(줄 간격) 프리셋 — 선택한 문단에 line-height 적용
+    line_height_formats: '1 1.2 1.4 1.6 1.85 2 2.2 2.5',
+    // 단락 스타일 프리셋(사이트 톤에 맞춘 커스텀 블록)
+    style_formats: [
+      { title: '본문', block: 'p' },
+      { title: '제목 1 (대제목)', block: 'h2' },
+      { title: '제목 2 (중제목)', block: 'h3' },
+      { title: '제목 3 (소제목)', block: 'h4' },
+      { title: '리드 문단(도입)', block: 'p', classes: 'lead' },
+      { title: '인용문', block: 'blockquote' },
+      { title: '풀쿼트(강조 인용)', block: 'blockquote', classes: 'pull-quote' },
+      { title: '강조 박스(콜아웃)', block: 'p', wrapper: true, classes: 'callout' },
+      { title: '작게 · 캡션', block: 'p', classes: 'caption' },
+      { title: '형광 강조', inline: 'mark' }
+    ],
+    style_formats_merge: false,
+    // 영상/미디어 임베드(유튜브·비메오 등) 라이브 미리보기
+    media_live_embeds: true,
+    media_dimensions: false,
+    media_alt_source: false,
+    media_poster: false,
+    // TinyMCE 7 기본 iframe 샌드박스/변환 해제 → 유튜브 등 임베드 정상 렌더
+    sandbox_iframes: false,
+    convert_unsafe_embeds: false,
+    // 이미지 정렬·크기 프리셋(이미지 대화상자의 'class' 드롭다운)
+    image_class_list: [
+      { title: '본문 폭(기본)', value: '' },
+      { title: '전체 폭(가로 꽉)', value: 'article-image-full' },
+      { title: '왼쪽 정렬(글 감쌈)', value: 'img-float-left' },
+      { title: '오른쪽 정렬(글 감쌈)', value: 'img-float-right' },
+      { title: '가운데 · 작게(60%)', value: 'img-center-sm' }
+    ],
+    toc_class: 'article-toc',
+    toc_header: 'h2',
+    toc_depth: 3,
+    quickbars_insert_toolbar: false,
+    quickbars_selection_toolbar: 'bold italic | link',
+    min_height: 520,
+    autoresize_bottom_margin: 24,
+    skin: dark ? 'oxide-dark' : 'oxide',
+    // 에디터 iframe 안에 실제 사이트 스타일을 입혀 발행 화면과 동일하게 보이게 함
+    content_css: [
+      'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css',
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+      '/assets/css/style.css'
+    ],
+    body_class: 'article-body' + (dark ? ' dark' : ''),
+    content_style:
+      // iframe html/body 모두 사이트 배경색으로 칠해 흰 여백 제거 + 커서 색 + 내부 여백
+      'html,body{background:var(--bg) !important;color:var(--body) !important;caret-color:var(--fg) !important;}' +
+      'body.article-body{max-width:none !important;padding:28px 36px !important;}' +
+      // 비어 있는 이미지 자리를 점선 박스로 표시(편집 편의)
+      '.pf img:not([src]),.pf img[src=""]{display:block;min-height:120px;border:1px dashed rgba(127,127,127,.5);border-radius:6px;}',
+    placeholder: '',
+    // 임의 HTML(커스텀 클래스/태그) 보존
+    valid_elements: '*[*]',
+    extended_valid_elements: '*[*]',
+    verify_html: false,
+    convert_urls: false,
+    image_caption: true,
+    image_dimensions: false,
+    file_picker_types: 'image',
+    file_picker_callback: function(cb, value, meta) {
+      if (meta.filetype !== 'image') return;
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { showToast('이미지는 5MB 이하만 가능합니다.', 'error'); return; }
+        try {
+          showToast('이미지 업로드 중...', 'info');
+          const url = await fb.uploadImage(file, 'body');
+          cb(url, { alt: file.name });
+          showToast('이미지가 삽입되었습니다.', 'success');
+        } catch (err) {
+          console.error('[Editor] 이미지 업로드 실패:', err);
+          showToast('업로드 실패: ' + err.message, 'error');
+        }
+      };
+      input.click();
+    },
+    setup: function(ed) {
+      editor = ed;
+      // "포맷" 메뉴 — 6종 콘텐츠 레이아웃
+      ed.ui.registry.addMenuButton('pformat', {
+        text: '포맷',
+        tooltip: '콘텐츠 포맷 삽입',
+        fetch: function(commit) {
+          commit([
+            { type: 'menuitem', text: '인터뷰 · 대담', onAction: () => insertFormat('interview') },
+            { type: 'menuitem', text: '케이스 스터디', onAction: () => insertFormat('case') },
+            { type: 'menuitem', text: '비주얼 에세이', onAction: () => insertFormat('visual') },
+            { type: 'menuitem', text: '큐레이션 · 리스트', onAction: () => insertFormat('curation') },
+            { type: 'menuitem', text: '위클리 다이제스트', onAction: () => insertFormat('digest') },
+            { type: 'menuitem', text: '용어 사전 · 레퍼런스', onAction: () => insertFormat('reference') }
+          ]);
+        }
+      });
+      // "요소" 메뉴 — 간단 편집 요소
+      ed.ui.registry.addMenuButton('pelem', {
+        text: '요소',
+        tooltip: '편집 요소 삽입',
+        fetch: function(commit) {
+          commit([
+            { type: 'menuitem', text: '구분선', onAction: () => insertTemplate('<hr class="divider"/><p><br/></p>') },
+            { type: 'menuitem', text: '풀쿼트(인용)', onAction: () => insertTemplate('<blockquote class="pull-quote"><p>인용문</p><cite>출처</cite></blockquote><p><br/></p>') },
+            { type: 'menuitem', text: '콜아웃(강조 박스)', onAction: () => insertTemplate('<aside class="callout"><strong>핵심</strong><p>내용</p></aside><p><br/></p>') },
+            { type: 'menuitem', text: '2단 비교', onAction: () => insertTemplate('<div class="two-col"><div><p>좌</p></div><div><p>우</p></div></div><p><br/></p>') },
+            { type: 'menuitem', text: '오프라인 주소(지도)', onAction: () => insertTemplate('<div class="map-box" contenteditable="false"><span class="map-box-pin"><i class="fa-solid fa-location-dot"></i></span><span class="map-box-body"><span class="map-box-name" contenteditable="true">장소 이름</span><span class="map-box-addr" contenteditable="true">주소를 입력하세요</span></span><span class="map-box-cta">지도 열기 <i class="fa-solid fa-arrow-up-right-from-square"></i></span></div><p><br/></p>') }
+          ]);
+        }
+      });
+      ed.on('init', function() {
+        if (_pendingBody != null) { ed.setContent(_pendingBody); _pendingBody = null; }
+        if (IS_EDITOR_POPUP) { pushBodyToOpener(); }
+        else { schedulePreview(); updateBodyStats(); }
+      });
+      ['input', 'change', 'undo', 'redo', 'SetContent', 'keyup', 'ExecCommand'].forEach(function(evt) {
+        ed.on(evt, function() {
+          if (IS_EDITOR_POPUP) { pushBodyToOpener(); }
+          else { schedulePreview(); updateBodyStats(); }
+        });
+      });
+    }
+  });
+}
+
+// 현재 본문 HTML 반환 (에디터 준비 전이면 보관값)
+function getBodyHtml() {
+  // 새 창에서 편집 중이면 그 내용이 최신본
+  if (_remoteEditing && _remoteBody != null) return _remoteBody;
+  if (editor && editor.initialized) return editor.getContent();
+  return _pendingBody || '';
+}
+
+// 본문 HTML 설정 (에디터 준비 전이면 보관 후 init 시 반영)
+function setBodyHtml(html) {
+  html = html || '';
+  if (editor && editor.initialized) editor.setContent(html);
+  else _pendingBody = html;
+}
+
+// 커서 위치에 HTML 삽입
+function insertTemplate(html) {
+  if (editor && editor.initialized) {
+    editor.insertContent(html);
+    schedulePreview();
+  }
+}
+
+// 본문 글자 수 + 예상 읽기 시간 표시
+function updateBodyStats() {
+  const el = document.getElementById('bodyStats');
+  if (!el) return;
+  let text = '';
+  if (_remoteEditing && _remoteBody != null) {
+    const t = document.createElement('div'); t.innerHTML = _remoteBody; text = t.textContent || '';
+  } else if (editor && editor.initialized) {
+    try { text = editor.getContent({ format: 'text' }) || ''; } catch (_) {}
+  } else { return; }
+  const chars = text.replace(/\s/g, '').length;        // 공백 제외 글자 수
+  const minutes = Math.max(1, Math.round(chars / 600)); // 한글 약 600자/분
+  el.textContent = fmtNum(chars) + '자 · 약 ' + minutes + '분';
+}
+
+// ============================================================
+// 본문 '새 창에서 넓게 쓰기' — 팝업 ↔ 본창 실시간 연동
+// ============================================================
+
+// (팝업 측) 현재 본문을 본창으로 전송 → 본창 미리보기 갱신
+function pushBodyToOpener() {
+  try {
+    if (window.opener && !window.opener.closed && window.opener.__remoteBodyUpdate) {
+      window.opener.__remoteBodyUpdate(editor.getContent());
+    }
+  } catch (_) {}
+}
+
+// (본창 측) 팝업이 보낸 본문 수신 → 미리보기/글자수만 갱신(인라인 에디터는 닫을 때 반영)
+window.__remoteBodyUpdate = function(html) {
+  _remoteBody = html;
+  _remoteEditing = true;
+  schedulePreview();
+  updateBodyStats();
+};
+
+// (본창 측) 팝업이 닫힐 때 — 최종 본문을 인라인 에디터에 반영하고 오버레이 제거
+window.__remoteBodyClose = function(html) {
+  if (html != null) _remoteBody = html;
+  _remoteEditing = false;
+  if (_remoteBody != null) setBodyHtml(_remoteBody);
+  _remoteBody = null;
+  hideEditorPopupOverlay();
+  _editorPopupWin = null;
+  schedulePreview();
+  updateBodyStats();
+};
+
+// (본창 측) 새 창에서 본문 편집 시작
+function openEditorWindow() {
+  if (IS_EDITOR_POPUP) return;
+  // 이미 열려 있으면 그 창으로 포커스
+  if (_editorPopupWin && !_editorPopupWin.closed) { _editorPopupWin.focus(); return; }
+  const url = location.pathname + '?editorPopup=1';
+  _editorPopupWin = window.open(url, 'perspEditorPopup', 'width=1200,height=900,menubar=no,toolbar=no,location=no');
+  if (!_editorPopupWin) { showToast('팝업이 차단되었습니다. 브라우저에서 팝업을 허용해 주세요.', 'error'); return; }
+  showEditorPopupOverlay();
+  // 창이 X로 닫히는 경우 대비(beforeunload가 누락될 때를 위한 폴백)
+  const poll = setInterval(function() {
+    if (!_editorPopupWin || _editorPopupWin.closed) {
+      clearInterval(poll);
+      if (_remoteEditing) window.__remoteBodyClose(_remoteBody);
+    }
+  }, 700);
+}
+window.openEditorWindow = openEditorWindow;
+
+function showEditorPopupOverlay() {
+  const wrap = document.getElementById('bodyFieldWrap');
+  if (!wrap || document.getElementById('editorPopupOverlay')) return;
+  wrap.style.position = 'relative';
+  const ov = document.createElement('div');
+  ov.id = 'editorPopupOverlay';
+  ov.innerHTML =
+    '<div class="epo-icon"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></div>' +
+    '<div class="epo-msg">새 창에서 본문을 편집하고 있어요.<br>입력 내용은 오른쪽 미리보기에 실시간으로 반영됩니다.</div>' +
+    '<button type="button" class="admin-btn ghost admin-btn-sm" id="epoFocusBtn"><i class="fa-regular fa-window-restore"></i> 편집 창으로 이동</button>';
+  wrap.appendChild(ov);
+  const btn = document.getElementById('epoFocusBtn');
+  if (btn) btn.onclick = function() { if (_editorPopupWin && !_editorPopupWin.closed) _editorPopupWin.focus(); };
+}
+
+function hideEditorPopupOverlay() {
+  const ov = document.getElementById('editorPopupOverlay');
+  if (ov) ov.remove();
+}
+
+// 6개 콘텐츠 포맷 템플릿 (편집 가능한 HTML 골격)
+const FORMAT_TEMPLATES = {
+  interview: `<div class="pf pf-interview">
+  <p class="pf-label">INTERVIEW</p>
+  <div class="pf-person">
+    <img class="pf-avatar" src="" alt="인물 사진" />
+    <div class="pf-who"><b>인물 이름</b><span>소속 / 직함</span></div>
+  </div>
+  <div class="pf-qa">
+    <p class="pf-q">첫 번째 질문을 입력하세요.</p>
+    <p class="pf-a">답변을 입력하세요.</p>
+  </div>
+  <div class="pf-qa">
+    <p class="pf-q">두 번째 질문을 입력하세요.</p>
+    <p class="pf-a">답변을 입력하세요.</p>
+  </div>
+  <blockquote class="pf-pullquote">핵심이 되는 발언을 큰 글씨로 강조하세요.</blockquote>
+  <div class="pf-qa">
+    <p class="pf-q">마지막 질문을 입력하세요.</p>
+    <p class="pf-a">답변을 입력하세요.</p>
+  </div>
+</div>`,
+  case: `<div class="pf pf-case">
+  <p class="pf-label">CASE STUDY</p>
+  <div class="pf-chips"><span>클라이언트 · OOO</span><span>분야 · 브랜드</span><span>2026</span></div>
+  <div class="pf-metrics">
+    <div class="pf-metric"><b>+38%</b><span>지표 설명</span></div>
+    <div class="pf-metric"><b>2.4×</b><span>지표 설명</span></div>
+    <div class="pf-metric"><b>4개</b><span>지표 설명</span></div>
+  </div>
+  <div class="pf-section"><h3><span class="pf-step">01</span>배경</h3><p>내용을 입력하세요.</p></div>
+  <div class="pf-section"><h3><span class="pf-step">02</span>문제</h3><p>내용을 입력하세요.</p></div>
+  <div class="pf-section"><h3><span class="pf-step">03</span>접근</h3><p>내용을 입력하세요.</p></div>
+  <div class="pf-section"><h3><span class="pf-step">04</span>결과</h3><p>내용을 입력하세요.</p></div>
+</div>`,
+  visual: `<div class="pf pf-visual">
+  <p class="pf-label">VISUAL ESSAY</p>
+  <figure class="pf-vfull"><img src="" alt="이미지" /><figcaption>이미지를 설명하는 캡션.</figcaption></figure>
+  <div class="pf-vduo">
+    <figure><img src="" alt="이미지" /></figure>
+    <figure><img src="" alt="이미지" /></figure>
+  </div>
+  <p class="pf-vcap">두 이미지를 잇는 캡션.</p>
+  <figure class="pf-vfull"><img src="" alt="이미지" /><figcaption>마지막 이미지 캡션.</figcaption></figure>
+</div>`,
+  curation: `<div class="pf pf-curation">
+  <p class="pf-label">CURATION</p>
+  <div class="pf-cur"><div class="pf-rank">01</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
+  <div class="pf-cur"><div class="pf-rank">02</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
+  <div class="pf-cur"><div class="pf-rank">03</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
+  <div class="pf-cur"><div class="pf-rank">04</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
+  <div class="pf-cur"><div class="pf-rank">05</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
+</div>`,
+  digest: `<div class="pf pf-digest">
+  <p class="pf-label">WEEKLY</p>
+  <div class="pf-group">
+    <div class="pf-ghead">아티클</div>
+    <div class="pf-ditem"><div class="pf-k">05.26</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
+    <div class="pf-ditem"><div class="pf-k">05.28</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
+  </div>
+  <div class="pf-group">
+    <div class="pf-ghead">영상</div>
+    <div class="pf-ditem"><div class="pf-k">05.27</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
+  </div>
+  <div class="pf-group">
+    <div class="pf-ghead">오피니언</div>
+    <div class="pf-ditem"><div class="pf-k">진행중</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
+  </div>
+</div>`,
+  reference: `<div class="pf pf-ref">
+  <p class="pf-label">REFERENCE</p>
+  <div class="pf-term">
+    <div class="pf-word">용어<span class="pf-pron">English</span></div>
+    <p class="pf-def">정의를 입력하세요.</p>
+    <div class="pf-rel">
+      <div class="pf-rellbl">연관 용어 · 글</div>
+      <a href="#"><i class="fa-solid fa-link"></i> 연관 항목</a>
+      <a href="#"><i class="fa-solid fa-link"></i> 연관 항목</a>
+    </div>
+  </div>
+</div>`
+};
+
+// 포맷 삽입 — TinyMCE가 HTML을 보존하므로 그대로 삽입, 에디터에서 바로 편집
+function insertFormat(key) {
+  const tpl = FORMAT_TEMPLATES[key];
+  if (!tpl || !editor) return;
+  editor.insertContent(tpl + '<p><br/></p>');
+  schedulePreview();
+  showToast('포맷이 삽입되었습니다. 에디터에서 바로 편집하세요.', 'success');
+}
+
+// ====== Series UX — Firestore 실시간 구독 ======
+let _seriesUnsub = null;
+function loadSeriesOptions() {
+  return new Promise(resolve => {
+    let resolved = false;
+    if (_seriesUnsub) _seriesUnsub();
+    _seriesUnsub = fb.db.collection('series').orderBy('order').onSnapshot(snap => {
+      // 기존 데이터 초기화 후 다시 채움
+      SERIES_NAMES = {};
+      SERIES_TOTALS = {};
+      snap.forEach(doc => {
+        const d = doc.data() || {};
+        const code = d.code || doc.id;
+        if (!code) return;
+        if (d.name) SERIES_NAMES[code] = d.name;
+        if (d.total != null) SERIES_TOTALS[code] = Number(d.total);
+      });
+      rebuildSeriesSelect();
+      if (!resolved) { resolved = true; resolve(); }
+    }, err => {
+      console.warn('[loadSeriesOptions] series 구독 실패:', err.message);
+      rebuildSeriesSelect();
+      if (!resolved) { resolved = true; resolve(); }
+    });
+  });
+}
+// SERIES_NAMES 기준으로 select 옵션을 다시 그림(현재 선택값 유지).
+function rebuildSeriesSelect() {
+  const prev = F.series.value;
+  let codes = Object.keys(SERIES_NAMES);
+  // 에디터 모드: 배정된 시리즈 코드만 노출
+  if (IS_EDITOR_MODE && Array.isArray(EDITOR_SERIES_CODES)) {
+    codes = codes.filter(c => EDITOR_SERIES_CODES.indexOf(c) !== -1);
+  }
+  let html = '<option value="">시리즈를 선택하세요…</option>';
+  codes.forEach(code => {
+    html += `<option value="${escapeHTML(code)}">${escapeHTML(SERIES_NAMES[code])}</option>`;
+  });
+  // 에디터는 새 시리즈를 만들 수 없음(관리자만 시리즈 생성·배정)
+  if (!IS_EDITOR_MODE) html += '<option value="__custom">+ 새 시리즈 만들기</option>';
+  F.series.innerHTML = html;
+  // 이전 선택값이 여전히 유효하면 복원
+  if (prev && (prev === '__custom' || SERIES_NAMES[prev] !== undefined)) {
+    F.series.value = prev;
+  }
+}
+// ====== 카테고리 1차/2차 캐스케이드 ======
+// Firestore categories 컬렉션을 실시간 구독 (어드민에서 추가/수정 시 즉시 반영)
+let _allCats = [];            // [{name, parent, order}] — 전체 카테고리
+let _pendingCat1 = '';        // edit 모드: 옵션 로드 전 1차 보관
+let _pendingCat2 = '';        // edit 모드: 옵션 로드 전 2차 보관
+let _categoriesUnsub = null;
+function _catByOrder(a, b) {
+  const oa = a.order != null ? a.order : 0, ob = b.order != null ? b.order : 0;
+  if (oa !== ob) return oa - ob;
+  return (a.name || '').localeCompare(b.name || '', 'ko');
+}
+function loadCategoryOptions() {
+  return new Promise(resolve => {
+    let resolved = false;
+    if (_categoriesUnsub) _categoriesUnsub();
+    _categoriesUnsub = fb.db.collection('categories').onSnapshot(snap => {
+      _allCats = snap.docs.map(d => d.data()).filter(c => c && c.name).sort(_catByOrder);
+      rebuild1Cat();
+      if (!resolved) { resolved = true; resolve(); }
+    }, err => {
+      console.warn('[loadCategoryOptions] categories 구독 실패:', err.message);
+      _allCats = [];
+      rebuild1Cat();
+      if (!resolved) { resolved = true; resolve(); }
+    });
+  });
+}
+// 1차 카테고리 select 재구성 (현재 선택 유지)
+function rebuild1Cat() {
+  const f1 = document.getElementById('f1Cat');
+  if (!f1) return;
+  const prev = _pendingCat1 || f1.value;
+  const tops = _allCats.filter(c => !(c.parent || '').trim());
+  let html = '<option value="">선택하세요…</option>';
+  tops.forEach(t => { html += `<option value="${escapeHTML(t.name)}">${escapeHTML(t.name)}</option>`; });
+  f1.innerHTML = html;
+  if (prev && tops.some(t => t.name === prev)) f1.value = prev;
+  _pendingCat1 = '';
+  populate2Cat();
+  syncCategoryFromCascade();
+}
+// 선택된 1차의 자식(2차)으로 2차 select 채움
+function populate2Cat() {
+  const f1 = document.getElementById('f1Cat');
+  const f2 = document.getElementById('f2Cat');
+  if (!f1 || !f2) return;
+  const parent = f1.value;
+  const prev = _pendingCat2 || f2.value;
+  const children = _allCats.filter(c => (c.parent || '').trim() === parent);
+  let html = '<option value="">— 없음 —</option>';
+  children.forEach(ch => { html += `<option value="${escapeHTML(ch.name)}">${escapeHTML(ch.name)}</option>`; });
+  f2.innerHTML = html;
+  f2.disabled = children.length === 0;
+  if (prev && children.some(c => c.name === prev)) f2.value = prev;
+  _pendingCat2 = '';
+}
+// 캐스케이드 → 최종 카테고리(말단) 반영
+function syncCategoryFromCascade() {
+  const f1 = document.getElementById('f1Cat');
+  const f2 = document.getElementById('f2Cat');
+  if (!f1) return;
+  F.category.value = (f2 && f2.value) ? f2.value : (f1.value || '');
+}
+// 말단 카테고리명 → 1차/2차 캐스케이드 복원 (edit 모드)
+function setCascadeFromCategory(catName) {
+  if (!catName) { _pendingCat1 = ''; _pendingCat2 = ''; syncCategoryFromCascade(); return; }
+  const c = _allCats.find(x => x.name === catName);
+  if (c && (c.parent || '').trim()) {
+    _pendingCat1 = c.parent.trim();
+    _pendingCat2 = catName;
+  } else {
+    _pendingCat1 = catName;
+    _pendingCat2 = '';
+  }
+  const f1 = document.getElementById('f1Cat');
+  if (f1 && [...f1.options].some(o => o.value === _pendingCat1)) {
+    f1.value = _pendingCat1; _pendingCat1 = '';
+    populate2Cat();
+    const f2 = document.getElementById('f2Cat');
+    if (f2 && _pendingCat2 && [...f2.options].some(o => o.value === _pendingCat2)) { f2.value = _pendingCat2; }
+    _pendingCat2 = '';
+    syncCategoryFromCascade();
+  }
+}
+// 캐스케이드 select 이벤트
+(function wireCascade() {
+  const f1 = document.getElementById('f1Cat');
+  const f2 = document.getElementById('f2Cat');
+  if (f1) f1.addEventListener('change', () => { populate2Cat(); syncCategoryFromCascade(); schedulePreview(); });
+  if (f2) f2.addEventListener('change', () => { syncCategoryFromCascade(); schedulePreview(); });
+})();
+
+// ====== 다음 글 선택 (드롭다운 + 랜덤) ======
+let _articlesForNext = [];   // [{ id, title, sub, series, date }]
+let _pendingNextId = '';     // edit 모드에서 옵션 로드 전 보관
+
+// Firestore PUBLISHED 글을 실시간 구독. 정적 카탈로그와 병합해 다음 글 후보 갱신.
+let _articlesNextUnsub = null;
+function loadArticlesForNext() {
+  return new Promise(resolve => {
+    let resolved = false;
+    if (_articlesNextUnsub) _articlesNextUnsub();
+    _articlesNextUnsub = fb.db.collection('articles').where('status', '==', 'PUBLISHED')
+      .onSnapshot(snap => {
+        const list = [];
+        Object.entries(window.ARTICLES || {}).forEach(([id, a]) => {
+          list.push({ id, title: a.title || id, sub: a.sub || '', series: a.series || '', date: a.date || '' });
+        });
+        snap.docs.forEach(d => {
+          const data = d.data();
+          list.push({ id: d.id, title: data.title || d.id, sub: data.sub || '', series: data.series || '', date: data.date || '' });
+        });
+        const map = {};
+        list.forEach(a => { map[a.id] = a; });
+        _articlesForNext = Object.values(map).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        rebuildNextSelect();
+        if (!resolved) { resolved = true; resolve(); }
+      }, err => {
+        console.warn('[loadArticlesForNext] Firestore 구독 실패:', err.message);
+        _articlesForNext = Object.entries(window.ARTICLES || {}).map(([id, a]) =>
+          ({ id, title: a.title || id, sub: a.sub || '', series: a.series || '', date: a.date || '' }));
+        rebuildNextSelect();
+        if (!resolved) { resolved = true; resolve(); }
+      });
+  });
+}
+
+function rebuildNextSelect() {
+  if (!F.next) return;
+  const prev = _pendingNextId || F.next.value;
+  const seriesVal = F.series.value === '__custom'
+    ? (F.seriesCustom.value || '').trim()
+    : F.series.value;
+  const isStandalone = !seriesVal;
+
+  const filtered = _articlesForNext.filter(a => {
+    if (currentArticleId && a.id === currentArticleId) return false; // 자기 자신 제외
+    if (!isStandalone) return a.series === seriesVal;
+    return true;
+  });
+
+  let html = '<option value="">— 없음 —</option>';
+  filtered.forEach(a => {
+    const label = `${a.title}${a.date ? ' · ' + a.date : ''}`;
+    html += `<option value="${escapeHTML(a.id)}">${escapeHTML(label)}</option>`;
+  });
+  F.next.innerHTML = html;
+
+  // 선택값 복원
+  if (prev && filtered.some(a => a.id === prev)) {
+    F.next.value = prev;
+  } else if (prev) {
+    // 옵션에 없는 기존 id도 일단 유지
+    const opt = document.createElement('option');
+    opt.value = prev; opt.textContent = prev + ' (목록에 없음)';
+    F.next.appendChild(opt);
+    F.next.value = prev;
+  }
+  _pendingNextId = '';
+
+  // 랜덤 버튼 + 도움말 모드별 표시
+  if (F.nextRandomBtn) F.nextRandomBtn.style.display = isStandalone ? 'inline-flex' : 'none';
+  if (F.nextHelp) {
+    F.nextHelp.textContent = isStandalone
+      ? '단편콘텐츠 — 전체 글 중에서 직접 선택하거나 [랜덤] 버튼으로 자동 선택.'
+      : '시리즈 — 같은 시리즈의 다른 글만 표시됩니다.';
+  }
+}
+
+function pickRandomNext() {
+  if (!F.next) return;
+  const opts = [...F.next.querySelectorAll('option')].filter(o => o.value);
+  if (opts.length === 0) return;
+  F.next.value = opts[Math.floor(Math.random() * opts.length)].value;
+  schedulePreview();
+}
+
+if (F.nextRandomBtn) F.nextRandomBtn.addEventListener('click', pickRandomNext);
+if (F.next) F.next.addEventListener('change', schedulePreview);
+
+// ====== YouTube ID 추출 ======
+function extractYouTubeId(url) {
+  if (!url) return '';
+  const patterns = [
+    /youtu\.be\/([\w-]{6,})/,
+    /youtube\.com\/watch\?v=([\w-]{6,})/,
+    /youtube\.com\/embed\/([\w-]{6,})/,
+    /youtube\.com\/shorts\/([\w-]{6,})/
+  ];
+  for (const p of patterns) {
+    const m = String(url).match(p);
+    if (m) return m[1];
+  }
+  return '';
+}
+
+if (F.videoUrl) F.videoUrl.addEventListener('input', schedulePreview);
+
+// PC ↔ 모바일 미리보기 토글
+document.querySelectorAll('.preview-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
+    document.querySelectorAll('.preview-toggle-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.view === view);
+    });
+    const wrap = document.getElementById('previewFrameWrap');
+    if (wrap) wrap.classList.toggle('mobile', view === 'mobile');
+  });
+});
+
+// 예약 발행 토글
+if (F.scheduled) {
+  F.scheduled.addEventListener('change', () => {
+    F.scheduledWrap.hidden = !F.scheduled.checked;
+    if (F.scheduled.checked && !F.scheduledAt.value) {
+      // 기본값: 1시간 뒤
+      const dt = new Date(Date.now() + 60 * 60 * 1000);
+      const pad = n => String(n).padStart(2, '0');
+      F.scheduledAt.value = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+  });
+}
+
+F.series.addEventListener('change', () => {
+  const nameWrap = document.getElementById('fSeriesNameWrap');
+  if (F.series.value === '__custom') {
+    F.seriesCustomWrap.hidden = false;
+    if (nameWrap) nameWrap.hidden = false;   // 새 시리즈는 표시명 직접 입력
+    // 새 시리즈는 등록된 편수가 없으므로 전체 편수만 직접 입력 허용(순번은 1편 고정)
+    if (F.seriesTotal) F.seriesTotal.removeAttribute('readonly');
+  } else {
+    if (F.seriesTotal) F.seriesTotal.setAttribute('readonly', '');
+    F.seriesCustomWrap.hidden = true;
+    F.seriesCustom.value = '';
+    if (nameWrap) nameWrap.hidden = true;     // 기존 시리즈는 표시명 자동
+  }
+  syncSeriesName();
+  syncSeriesTotal();
+  syncCategory();
+  rebuildNextSelect();  // 시리즈 변경 시 다음 글 후보 필터링
+  // 시리즈 선택 시 다음 순번 자동 계산
+  _editingSeriesNoLocked = false;
+  const code = F.series.value;
+  if (code && code !== '__custom') computeSeriesProgress(code);
+  else clearSeriesInfo();
+});
+// 시리즈 커스텀 코드 입력 변경 시에도 다음 글 후보 재계산
+if (F.seriesCustom) F.seriesCustom.addEventListener('input', rebuildNextSelect);
+
+// ====== 시리즈 자동 진행 계산 ======
+let _editingSeriesNoLocked = false;   // 기존 시리즈 글 편집 시 저장된 순번 유지
+function clearSeriesInfo() {
+  const info = document.getElementById('seriesInfo');
+  if (info) { info.className = 'series-info-box empty'; info.textContent = '시리즈를 선택하면 진행 상황이 표시됩니다.'; }
+}
+// 같은 시리즈의 기존 글을 조회해 다음 순번을 계산하고 안내 박스에 표시
+async function computeSeriesProgress(code) {
+  if (!code) return;
+  const info = document.getElementById('seriesInfo');
+  let articles = [];
+  try {
+    const snap = await fb.db.collection('articles').where('series', '==', code).get();
+    articles = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(a => a.id !== currentArticleId)  // 편집 중인 자기 자신 제외
+      .filter(a => ['PUBLISHED', 'SCHEDULED', 'PRERELEASE'].includes(a.status));
+  } catch (e) {
+    console.warn('[computeSeriesProgress] 조회 실패:', e.message);
+  }
+  const total = SERIES_TOTALS[code] != null ? Number(SERIES_TOTALS[code]) : null;
+  const usedNos = articles.map(a => Number(a.seriesNo) || 0).filter(n => n > 0);
+  const maxNo = usedNos.length ? Math.max(...usedNos) : 0;
+  const nextNo = maxNo + 1;
+  const name = SERIES_NAMES[code] || F.seriesName.value || code;
+  // 순번 자동 채움 (기존 글 편집 중에는 저장된 값 유지)
+  if (!_editingSeriesNoLocked) F.seriesNo.value = String(nextNo).padStart(2, '0');
+  if (total != null && !F.seriesTotal.value) F.seriesTotal.value = String(total).padStart(2, '0');
+  if (info) {
+    info.className = 'series-info-box';
+    const totalTxt = total != null ? ` · 총 <strong>${total}편</strong>` : '';
+    const curNo = _editingSeriesNoLocked ? (Number(F.seriesNo.value) || nextNo) : nextNo;
+    info.innerHTML = `<strong>${escapeHTML(name)}</strong>${totalTxt}<br/>`
+      + `현재 ${articles.length}편 등록됨 → 이번 글은 <strong>${curNo}번째</strong>예요.`;
+  }
+  syncCategory();
+  schedulePreview();
+}
+
+// ====== 콘텐츠 유형 (시리즈 / 단편 / 영상) ======
+let contentType = 'standalone';
+function getContentType() {
+  const r = document.querySelector('input[name="ctype"]:checked');
+  return r ? r.value : 'standalone';
+}
+function setContentType(t) {
+  const r = document.querySelector(`input[name="ctype"][value="${t}"]`);
+  if (r) r.checked = true;
+  applyTypeVisibility();
+}
+// 에디터가 특정 진입(시리즈 편수 / 단독 아티클)으로 들어오면 유형을 지정 후보로 고정한다.
+// type 은 문자열 또는 배열. 배열이면 그 중에서 실제 배정받은(EDITOR_ALLOWED_CTYPES) 유형만 선택 가능하게 남긴다.
+function lockCtypeTo(type) {
+  const want = Array.isArray(type) ? type : [type];
+  // 후보 중 실제 허용된 유형만 남긴다. 교집합이 비면 첫 후보만 유지(완전 차단 방지).
+  let keep = want.filter(t => !EDITOR_ALLOWED_CTYPES || EDITOR_ALLOWED_CTYPES.has(t));
+  if (!keep.length) keep = want.slice(0, 1);
+  document.querySelectorAll('input[name="ctype"]').forEach(r => {
+    const lbl = r.closest('.choice-opt');
+    if (keep.indexOf(r.value) === -1) {
+      if (lbl) lbl.style.display = 'none';
+      r.disabled = true; r.checked = false;
+    } else {
+      if (lbl) lbl.style.display = '';
+      r.disabled = false;
+    }
+  });
+}
+// 유형에 따른 표시/숨김만 처리 (필드 값은 건드리지 않음 — 편집 로드 안전)
+function applyTypeVisibility() {
+  contentType = getContentType();
+  const isSeries = contentType === 'series';
+  const isVideo = contentType === 'video';
+  const isPodcast = contentType === 'podcast';
+  const seriesClassify = document.getElementById('seriesClassify');
+  const catClassify = document.getElementById('catClassify');
+  const classifyTitle = document.getElementById('classifyTitle');
+  const videoGroup = document.getElementById('videoGroup');
+  const podcastGroup = document.getElementById('podcastGroup');
+  if (seriesClassify) seriesClassify.hidden = !isSeries;
+  // 카테고리 분류는 모든 유형에서 노출 (시리즈물도 카테고리를 지정해 해당 카테고리에 노출되도록)
+  if (catClassify) catClassify.hidden = false;
+  if (classifyTitle) classifyTitle.textContent = isSeries ? '③ 시리즈 · 카테고리' : '③ 카테고리';
+  // 시리즈물에서는 1차 카테고리가 선택 사항임을 라벨로 안내
+  const _f1Label = document.querySelector('label[for="f1Cat"]');
+  if (_f1Label) _f1Label.textContent = isSeries ? '1차 카테고리 (선택)' : '1차 카테고리 *';
+  if (videoGroup) videoGroup.hidden = !isVideo || isPrereleaseMode;
+  if (F.videoMode) F.videoMode.checked = isVideo;
+  // 썸네일: 영상 콘텐츠는 선택(미첨부 시 유튜브 썸네일 자동 사용)
+  const _thumbLabel = document.getElementById('thumbLabel');
+  if (_thumbLabel) _thumbLabel.textContent = isVideo ? '썸네일 (선택 · 미첨부 시 유튜브 썸네일 사용)' : '썸네일 *';
+  if (podcastGroup) podcastGroup.hidden = !isPodcast || isPrereleaseMode;
+  if (F.podcastMode) F.podcastMode.checked = isPodcast;
+  applyEditorAccessLock();
+}
+// 에디터 모드: 시리즈는 무조건 회원 전용, 단독 아티클은 관리자가 지정한 공개 범위로 고정·잠금
+function applyEditorAccessLock() {
+  const grid = document.getElementById('accessChoice');
+  const note = document.getElementById('accessLockNote');
+  if (!grid) return;
+  let lockVal = null;
+  if (IS_EDITOR_MODE) {
+    if (contentType === 'series') {
+      lockVal = 'members'; // 시리즈 콘텐츠는 항상 회원 전용
+    } else if (contentType === 'standalone' && EDITOR_ASSIGN && EDITOR_ASSIGN.standaloneAccess) {
+      lockVal = EDITOR_ASSIGN.standaloneAccess;
+    }
+  }
+  const shouldLock = !!lockVal;
+  if (shouldLock) {
+    setAccess(lockVal === 'public');
+    grid.classList.add('locked');
+    document.querySelectorAll('input[name="access"]').forEach(r => { r.disabled = true; });
+    if (note) note.hidden = false;
+  } else {
+    grid.classList.remove('locked');
+    document.querySelectorAll('input[name="access"]').forEach(r => { r.disabled = false; });
+    if (note) note.hidden = true;
+  }
+}
+// 분류 필드 초기화
+function clearSeriesFields() {
+  F.series.value = '';
+  F.seriesCustom.value = '';
+  const cw = document.getElementById('fSeriesCustomWrap'); if (cw) cw.hidden = true;
+  const nw = document.getElementById('fSeriesNameWrap'); if (nw) nw.hidden = true;
+  F.seriesName.value = '';
+  F.seriesNo.value = '';
+  F.seriesTotal.value = '';
+  clearSeriesInfo();
+}
+function clearCategoryFields() {
+  const f1 = document.getElementById('f1Cat'); if (f1) f1.value = '';
+  const f2 = document.getElementById('f2Cat'); if (f2) f2.value = '';
+  F.category.value = '';
+  populate2Cat();
+}
+// 사용자가 유형을 바꿀 때: 반대편 분류 초기화 + 표시 갱신
+function onTypeChange() {
+  applyTypeVisibility();
+  // 시리즈가 아니면 시리즈 필드만 초기화. 카테고리는 시리즈에서도 유지(선택 지정 가능).
+  if (getContentType() !== 'series') clearSeriesFields();
+  rebuildNextSelect();
+  schedulePreview();
+}
+document.querySelectorAll('input[name="ctype"]').forEach(r => r.addEventListener('change', onTypeChange));
+
+// ====== 에디터 모드 제한 적용 ======
+// 배정된 포맷(콘텐츠 유형)과 시리즈만 사용 가능하도록 폼을 제한한다.
+function applyEditorRestrictions(assign) {
+  EDITOR_ASSIGN = assign || {};
+  const formats = Array.isArray(EDITOR_ASSIGN.formats) ? EDITOR_ASSIGN.formats : [];
+  EDITOR_SERIES_CODES = Array.isArray(EDITOR_ASSIGN.seriesCodes) ? EDITOR_ASSIGN.seriesCodes : [];
+  // 허용 콘텐츠 유형 계산.
+  // '시리즈' 유형은 실제 배정된 시리즈가 있을 때만 허용(단편만 배정된 에디터는 시리즈 선택 불가).
+  const allowed = new Set();
+  formats.forEach(f => {
+    if (f === '시리즈') return; // 시리즈는 아래에서 배정 코드 유무로만 판단
+    const c = FORMAT_TO_CTYPE[f]; if (c) allowed.add(c);
+  });
+  if (EDITOR_SERIES_CODES.length) allowed.add('series');
+  // 아무 것도 배정되지 않았으면 단편(아티클) 하나만 임시 허용(완전 차단 방지)
+  if (allowed.size === 0) allowed.add('standalone');
+  EDITOR_ALLOWED_CTYPES = allowed;
+
+  // 콘텐츠 유형 라디오: 허용되지 않은 것은 숨기고 비활성화
+  document.querySelectorAll('input[name="ctype"]').forEach(r => {
+    const lbl = r.closest('.choice-opt');
+    if (allowed.has(r.value)) {
+      if (lbl) lbl.style.display = '';
+      r.disabled = false;
+    } else {
+      if (lbl) lbl.style.display = 'none';
+      r.disabled = true;
+      r.checked = false;
+    }
+  });
+  // 현재 선택이 비허용이면 허용된 첫 유형으로 전환
+  const cur = document.querySelector('input[name="ctype"]:checked');
+  if (!cur || !allowed.has(cur.value)) {
+    const firstAllowed = Array.from(document.querySelectorAll('input[name="ctype"]'))
+      .find(r => allowed.has(r.value));
+    if (firstAllowed) { firstAllowed.checked = true; }
+  }
+  applyTypeVisibility();
+  rebuildSeriesSelect();
+
+  // 배정 안내 배너
+  const notice = document.getElementById('staticNotice');
+  if (notice) {
+    const fmtTxt = formats.length ? formats.join(' · ') : '미지정';
+    const sEp = (EDITOR_ASSIGN.seriesEpisodes && typeof EDITOR_ASSIGN.seriesEpisodes === 'object') ? EDITOR_ASSIGN.seriesEpisodes : {};
+    const serTxt = EDITOR_SERIES_CODES.length
+      ? EDITOR_SERIES_CODES.map(c => {
+          const nm = SERIES_NAMES[c] || c;
+          const eps = Array.isArray(sEp[c]) ? sEp[c] : [];
+          return eps.length ? (nm + ' (' + eps.map(n => n + '편').join('·') + ')') : nm;
+        }).join(', ')
+      : '없음';
+    const quota = EDITOR_ASSIGN.standaloneQuota != null ? EDITOR_ASSIGN.standaloneQuota : '-';
+    notice.hidden = false;
+    notice.innerHTML =
+      '<strong style="display:block;margin-bottom:4px;">✍️ 에디터 작성 모드</strong>' +
+      '배정 포맷: <strong>' + escapeHTML(fmtTxt) + '</strong> · ' +
+      '배정 시리즈: <strong>' + escapeHTML(serTxt) + '</strong> · ' +
+      '단독 아티클 한도: <strong>' + escapeHTML(String(quota)) + '</strong>건<br>' +
+      '배정된 시리즈·포맷만 사용할 수 있어요. 발행한 콘텐츠의 삭제는 관리자 승인이 필요합니다.';
+  }
+}
+
+// ====== 공개 범위 (회원 전용 / 모두 공개) ======
+function setAccess(free) {
+  const val = free ? 'public' : 'members';
+  const r = document.querySelector(`input[name="access"][value="${val}"]`);
+  if (r) r.checked = true;
+  if (F.free) F.free.checked = !!free;
+}
+document.querySelectorAll('input[name="access"]').forEach(r => r.addEventListener('change', () => {
+  const sel = document.querySelector('input[name="access"]:checked');
+  if (F.free) F.free.checked = sel && sel.value === 'public';
+  schedulePreview();
+}));
+function syncSeriesName() {
+  const s = F.series.value;
+  if (s && s !== '__custom' && SERIES_NAMES[s] && !F.seriesName.value) {
+    F.seriesName.value = SERIES_NAMES[s];
+  }
+}
+// 선택한 시리즈에 설정된 전체 편수를 자동 채움(비어 있을 때만).
+function syncSeriesTotal() {
+  const s = F.series.value;
+  if (s && s !== '__custom' && SERIES_TOTALS[s] != null && !F.seriesTotal.value) {
+    F.seriesTotal.value = String(SERIES_TOTALS[s]).padStart(2, '0');
+  }
+}
+function syncCategory() {
+  const name = F.seriesName.value || SERIES_NAMES[F.series.value] || '';
+  if (!name) { return; }
+  const no = (F.seriesNo.value || '').padStart(2, '0');
+  if (no) F.cat.value = `${name} · ${no}`;
+  else F.cat.value = name;
+}
+['change','input'].forEach(evt => {
+  F.series.addEventListener(evt, syncCategory);
+  F.seriesNo.addEventListener(evt, syncCategory);
+  F.seriesName.addEventListener(evt, syncCategory);
+});
+
+// Sync top title with article title
+F.topTitle.addEventListener('input', () => F.title.value = F.topTitle.value);
+F.title.addEventListener('input', () => F.topTitle.value = F.title.value);
+
+// ====== Thumbnail upload ======
+function setupThumbnailUpload() {
+  const wrap = document.getElementById('thumbUpload');
+  const input = document.getElementById('thumbInput');
+  const empty = document.getElementById('thumbEmpty');
+  const preview = document.getElementById('thumbPreview');
+  const img = document.getElementById('thumbImg');
+  const remove = document.getElementById('thumbRemove');
+
+  wrap.addEventListener('click', (e) => {
+    if (e.target === remove || remove.contains(e.target)) return;
+    input.click();
+  });
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleThumbnail(file);
+  });
+  wrap.addEventListener('dragover', (e) => { e.preventDefault(); wrap.classList.add('dragging'); });
+  wrap.addEventListener('dragleave', () => wrap.classList.remove('dragging'));
+  wrap.addEventListener('drop', (e) => {
+    e.preventDefault();
+    wrap.classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file) handleThumbnail(file);
+  });
+  remove.addEventListener('click', (e) => {
+    e.stopPropagation();
+    thumbnailFile = null;
+    thumbnailUrl = null;
+    thumbnailCropSrc = null;
+    img.src = '';
+    empty.hidden = false;
+    preview.hidden = true;
+    input.value = '';
+    updateMobileCropBtn();
+    schedulePreview();
+  });
+
+  function handleThumbnail(file) {
+    const validTypes = ['image/jpeg','image/png','image/webp'];
+    if (!validTypes.includes(file.type)) { showToast('JPG, PNG, WebP만 가능합니다.', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast('5MB 이하만 가능합니다.', 'error'); return; }
+    thumbnailFile = file;
+    thumbnailUrl = null; // 새 파일이라 URL 무효화 → 저장 시 업로드
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+      thumbnailCropSrc = e.target.result; // 크롭 소스(데이터 URL → CORS 안전)
+      empty.hidden = true;
+      preview.hidden = false;
+      updateMobileCropBtn();
+      schedulePreview();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// 썸네일 유무에 따라 '모바일용 크롭' 버튼 활성/비활성
+function updateMobileCropBtn() {
+  const btn = document.getElementById('thumbMobileCropBtn');
+  if (btn) btn.disabled = !thumbnailCropSrc;
+}
+
+// ====== OG 공유 이미지 업로드 ======
+function setupOgImageUpload() {
+  const wrap = document.getElementById('ogUpload');
+  const input = document.getElementById('ogInput');
+  const empty = document.getElementById('ogEmpty');
+  const preview = document.getElementById('ogPreview');
+  const img = document.getElementById('ogImg');
+  const remove = document.getElementById('ogRemove');
+  if (!wrap || !input) return;
+
+  wrap.addEventListener('click', (e) => {
+    if (e.target === remove || remove.contains(e.target)) return;
+    input.click();
+  });
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleOgImage(file);
+  });
+  wrap.addEventListener('dragover', (e) => { e.preventDefault(); wrap.classList.add('dragging'); });
+  wrap.addEventListener('dragleave', () => wrap.classList.remove('dragging'));
+  wrap.addEventListener('drop', (e) => {
+    e.preventDefault();
+    wrap.classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file) handleOgImage(file);
+  });
+  remove.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ogImageFile = null;
+    ogImageUrl = null;
+    img.src = '';
+    empty.hidden = false;
+    preview.hidden = true;
+    input.value = '';
+  });
+
+  function handleOgImage(file) {
+    const validTypes = ['image/jpeg','image/png','image/webp'];
+    if (!validTypes.includes(file.type)) { showToast('JPG, PNG, WebP만 가능합니다.', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast('5MB 이하만 가능합니다.', 'error'); return; }
+    ogImageFile = file;
+    ogImageUrl = null; // 새 파일이라 URL 무효화 → 저장 시 업로드
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+      empty.hidden = true;
+      preview.hidden = false;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// ====== 모바일 히어로 이미지 업로드 (세로 4:5) ======
+function setupThumbMobileUpload() {
+  const wrap = document.getElementById('thumbMobileUpload');
+  const input = document.getElementById('thumbMobileInput');
+  const empty = document.getElementById('thumbMobileEmpty');
+  const preview = document.getElementById('thumbMobilePreview');
+  const img = document.getElementById('thumbMobileImg');
+  const remove = document.getElementById('thumbMobileRemove');
+  if (!wrap || !input) return;
+
+  wrap.addEventListener('click', (e) => {
+    if (e.target === remove || remove.contains(e.target)) return;
+    input.click();
+  });
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleThumbMobile(file);
+  });
+  wrap.addEventListener('dragover', (e) => { e.preventDefault(); wrap.classList.add('dragging'); });
+  wrap.addEventListener('dragleave', () => wrap.classList.remove('dragging'));
+  wrap.addEventListener('drop', (e) => {
+    e.preventDefault();
+    wrap.classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file) handleThumbMobile(file);
+  });
+  remove.addEventListener('click', (e) => {
+    e.stopPropagation();
+    thumbMobileFile = null;
+    thumbMobileUrl = null;
+    img.src = '';
+    empty.hidden = false;
+    preview.hidden = true;
+    input.value = '';
+  });
+
+  function handleThumbMobile(file) {
+    const validTypes = ['image/jpeg','image/png','image/webp'];
+    if (!validTypes.includes(file.type)) { showToast('JPG, PNG, WebP만 가능합니다.', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast('5MB 이하만 가능합니다.', 'error'); return; }
+    thumbMobileFile = file;
+    thumbMobileUrl = null; // 새 파일이라 URL 무효화 → 저장 시 업로드
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+      empty.hidden = true;
+      preview.hidden = false;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// ====== 썸네일 → 모바일용(4:5) 크롭 ======
+const MCROP_AR = 4 / 5; // 가로/세로 비율 (width / height)
+let _mcrop = { dw: 0, dh: 0, x: 0, y: 0, w: 0, h: 0, img: null };
+let _mcropDrag = null; // { mode:'move'|'resize', startX, startY, ox, oy, ow, oh }
+
+function _injectThumbToolStyles() {
+  if (document.getElementById('thumbToolStyle')) return;
+  const style = document.createElement('style');
+  style.id = 'thumbToolStyle';
+  style.textContent = `
+    .mcrop-trigger {
+      margin-top: 10px; display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 14px; font-size: 13px; font-family: inherit; cursor: pointer;
+      color: var(--admin-fg, #1f2937); background: var(--admin-bg, #fff);
+      border: 1px solid var(--admin-line, #e5e7eb); border-radius: 8px;
+      transition: background .15s, border-color .15s, opacity .15s;
+    }
+    .mcrop-trigger:hover:not(:disabled) { background: var(--admin-hover, #f3f4f6); border-color: var(--admin-fg, #1f2937); }
+    .mcrop-trigger:disabled { opacity: .45; cursor: not-allowed; }
+    .thumb-preset-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .mcrop-modal {
+      position: fixed; inset: 0; z-index: 4000; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.6); padding: 24px;
+    }
+    .mcrop-modal.open { display: flex; }
+    .mcrop-inner {
+      background: var(--admin-bg, #fff); color: var(--admin-fg, #1f2937);
+      border-radius: 14px; padding: 22px; max-width: 540px; width: 100%;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.3);
+    }
+    .mcrop-head { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+    .mcrop-desc { font-size: 12.5px; color: var(--admin-muted, #6b7280); margin: 0 0 16px; line-height: 1.6; }
+    .mcrop-stage-wrap { display: flex; justify-content: center; }
+    .mcrop-stage { position: relative; touch-action: none; user-select: none; background: #111; border-radius: 6px; overflow: hidden; }
+    .mcrop-stage img { display: block; pointer-events: none; }
+    .mcrop-shade { position: absolute; inset: 0; background: rgba(0,0,0,0.5); pointer-events: none; }
+    .mcrop-box {
+      position: absolute; cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+      border: 2px solid #fff; box-sizing: border-box;
+    }
+    .mcrop-box::after {
+      content: ''; position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px);
+      background-size: 33.33% 33.33%; pointer-events: none;
+    }
+    .mcrop-handle {
+      position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px;
+      background: #fff; border: 2px solid #111; border-radius: 50%; cursor: nwse-resize;
+    }
+    .mcrop-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+    .mcrop-btn {
+      padding: 10px 18px; font-size: 13.5px; font-family: inherit; cursor: pointer;
+      border-radius: 8px; border: 1px solid var(--admin-line, #e5e7eb); background: var(--admin-bg, #fff);
+      color: var(--admin-fg, #1f2937);
+    }
+    .mcrop-btn:hover { background: var(--admin-hover, #f3f4f6); }
+    .mcrop-btn.primary { background: var(--admin-fg, #1f2937); color: var(--admin-bg, #fff); border-color: var(--admin-fg, #1f2937); }
+    .tp-modal {
+      position: fixed; inset: 0; z-index: 4000; display: none;
+      align-items: center; justify-content: center; background: rgba(0,0,0,0.6); padding: 24px;
+    }
+    .tp-modal.open { display: flex; }
+    .tp-inner {
+      background: var(--admin-bg, #fff); color: var(--admin-fg, #1f2937);
+      border-radius: 14px; padding: 22px; max-width: 560px; width: 100%;
+      max-height: 80vh; display: flex; flex-direction: column;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.3);
+    }
+    .tp-head { font-size: 16px; font-weight: 700; margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; }
+    .tp-head .tp-x { background: none; border: none; cursor: pointer; color: var(--admin-muted, #6b7280); font-size: 18px; padding: 4px; }
+    .tp-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .tp-empty { color: var(--admin-muted, #6b7280); font-size: 13.5px; text-align: center; padding: 30px 0; }
+    .tp-card {
+      display: grid; grid-template-columns: 84px 1fr auto; gap: 14px; align-items: center;
+      padding: 10px; border: 1px solid var(--admin-line, #e5e7eb); border-radius: 10px;
+    }
+    .tp-thumb { width: 84px; aspect-ratio: 16/9; background: #eee; border-radius: 6px; overflow: hidden; }
+    .tp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tp-name { font-size: 14px; font-weight: 600; word-break: break-all; }
+    .tp-badge { display: inline-block; margin-top: 5px; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.14); color: #0f9d6b; }
+    .tp-badge.muted { background: var(--admin-hover, #f3f4f6); color: var(--admin-muted, #6b7280); }
+    .tp-card-actions { display: flex; gap: 6px; }
+    .tp-apply, .tp-del {
+      padding: 7px 12px; font-size: 12.5px; font-family: inherit; cursor: pointer;
+      border-radius: 7px; border: 1px solid var(--admin-line, #e5e7eb); background: var(--admin-bg, #fff); color: var(--admin-fg, #1f2937);
+    }
+    .tp-apply { background: var(--admin-fg, #1f2937); color: var(--admin-bg, #fff); border-color: var(--admin-fg, #1f2937); }
+    .tp-del:hover { color: #dc2626; border-color: #dc2626; }
+  `;
+  document.head.appendChild(style);
+}
+
+function _ensureMobileCropModal() {
+  _injectThumbToolStyles();
+  if (document.getElementById('mcropModal')) return;
+
+  const modal = document.createElement('div');
+  modal.className = 'mcrop-modal';
+  modal.id = 'mcropModal';
+  modal.innerHTML = `
+    <div class="mcrop-inner" role="dialog" aria-modal="true">
+      <h3 class="mcrop-head">모바일용 이미지 크롭 (4:5)</h3>
+      <p class="mcrop-desc">박스를 드래그해 위치를 정하고, 오른쪽 아래 점으로 크기를 조절하세요. 적용하면 이 영역이 모바일 히어로 이미지로 만들어집니다.</p>
+      <div class="mcrop-stage-wrap">
+        <div class="mcrop-stage" id="mcropStage">
+          <img id="mcropImg" alt="크롭 원본" />
+          <div class="mcrop-box" id="mcropBox"><div class="mcrop-handle" id="mcropHandle"></div></div>
+        </div>
+      </div>
+      <div class="mcrop-actions">
+        <button type="button" class="mcrop-btn" id="mcropCancel">취소</button>
+        <button type="button" class="mcrop-btn primary" id="mcropApply">적용</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.addEventListener('click', (e) => { if (e.target === modal) _closeMobileCropModal(); });
+  document.getElementById('mcropCancel').addEventListener('click', _closeMobileCropModal);
+  document.getElementById('mcropApply').addEventListener('click', _applyMobileCrop);
+
+  const box = document.getElementById('mcropBox');
+  const handle = document.getElementById('mcropHandle');
+  box.addEventListener('pointerdown', (e) => {
+    if (e.target === handle) return;
+    _mcropDrag = { mode: 'move', sx: e.clientX, sy: e.clientY, ox: _mcrop.x, oy: _mcrop.y };
+    box.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener('pointerdown', (e) => {
+    _mcropDrag = { mode: 'resize', sx: e.clientX, sy: e.clientY, ow: _mcrop.w, oh: _mcrop.h };
+    handle.setPointerCapture(e.pointerId);
+    e.stopPropagation(); e.preventDefault();
+  });
+  function onMove(e) {
+    if (!_mcropDrag) return;
+    if (_mcropDrag.mode === 'move') {
+      let nx = _mcropDrag.ox + (e.clientX - _mcropDrag.sx);
+      let ny = _mcropDrag.oy + (e.clientY - _mcropDrag.sy);
+      nx = Math.max(0, Math.min(nx, _mcrop.dw - _mcrop.w));
+      ny = Math.max(0, Math.min(ny, _mcrop.dh - _mcrop.h));
+      _mcrop.x = nx; _mcrop.y = ny;
+    } else {
+      let nw = _mcropDrag.ow + (e.clientX - _mcropDrag.sx);
+      nw = Math.max(40, nw);
+      let nh = nw / MCROP_AR;
+      if (_mcrop.x + nw > _mcrop.dw) { nw = _mcrop.dw - _mcrop.x; nh = nw / MCROP_AR; }
+      if (_mcrop.y + nh > _mcrop.dh) { nh = _mcrop.dh - _mcrop.y; nw = nh * MCROP_AR; }
+      _mcrop.w = nw; _mcrop.h = nh;
+    }
+    _renderCropBox();
+  }
+  function onUp() { _mcropDrag = null; }
+  box.addEventListener('pointermove', onMove);
+  handle.addEventListener('pointermove', onMove);
+  box.addEventListener('pointerup', onUp);
+  handle.addEventListener('pointerup', onUp);
+}
+
+function _renderCropBox() {
+  const box = document.getElementById('mcropBox');
+  if (!box) return;
+  box.style.left = _mcrop.x + 'px';
+  box.style.top = _mcrop.y + 'px';
+  box.style.width = _mcrop.w + 'px';
+  box.style.height = _mcrop.h + 'px';
+}
+
+function openMobileCropModal() {
+  if (!thumbnailCropSrc) { showToast('먼저 썸네일을 등록하세요.', 'error'); return; }
+  _ensureMobileCropModal();
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    const maxW = Math.min(460, window.innerWidth - 90);
+    const maxH = window.innerHeight * 0.56;
+    let dw = maxW, dh = dw * img.naturalHeight / img.naturalWidth;
+    if (dh > maxH) { dh = maxH; dw = dh * img.naturalWidth / img.naturalHeight; }
+    _mcrop.dw = dw; _mcrop.dh = dh; _mcrop.img = img;
+    const imgEl = document.getElementById('mcropImg');
+    const stage = document.getElementById('mcropStage');
+    imgEl.src = img.src;
+    imgEl.style.width = dw + 'px'; imgEl.style.height = dh + 'px';
+    stage.style.width = dw + 'px'; stage.style.height = dh + 'px';
+    // 초기 박스: 들어갈 수 있는 가장 큰 4:5 영역, 중앙
+    let bh = dh, bw = bh * MCROP_AR;
+    if (bw > dw) { bw = dw; bh = bw / MCROP_AR; }
+    _mcrop.w = bw; _mcrop.h = bh;
+    _mcrop.x = (dw - bw) / 2; _mcrop.y = (dh - bh) / 2;
+    _renderCropBox();
+    document.getElementById('mcropModal').classList.add('open');
+  };
+  img.onerror = () => showToast('이미지를 불러올 수 없습니다.', 'error');
+  img.src = thumbnailCropSrc;
+}
+
+function _closeMobileCropModal() {
+  const m = document.getElementById('mcropModal');
+  if (m) m.classList.remove('open');
+  _mcropDrag = null;
+}
+
+function _applyMobileCrop() {
+  const img = _mcrop.img;
+  if (!img) return;
+  const scale = img.naturalWidth / _mcrop.dw;
+  const sx = Math.round(_mcrop.x * scale);
+  const sy = Math.round(_mcrop.y * scale);
+  const sw = Math.round(_mcrop.w * scale);
+  const sh = Math.round(_mcrop.h * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = sw; canvas.height = sh;
+  const ctx = canvas.getContext('2d');
+  try {
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    canvas.toBlob((blob) => {
+      if (!blob) { showToast('크롭에 실패했습니다.', 'error'); return; }
+      thumbMobileFile = new File([blob], 'thumb-mobile.jpg', { type: 'image/jpeg' });
+      thumbMobileUrl = null;
+      const url = URL.createObjectURL(blob);
+      document.getElementById('thumbMobileImg').src = url;
+      document.getElementById('thumbMobileEmpty').hidden = true;
+      document.getElementById('thumbMobilePreview').hidden = false;
+      _closeMobileCropModal();
+      showToast('모바일용 이미지를 만들었어요.', 'success');
+    }, 'image/jpeg', 0.9);
+  } catch (err) {
+    console.error('[mcrop] toBlob 실패', err);
+    showToast('이 썸네일은 보안정책(CORS)으로 크롭할 수 없어요. 썸네일을 다시 업로드한 뒤 시도해 주세요.', 'error');
+  }
+}
+
+// ====== 썸네일 세트 저장/불러오기 (프리셋) ======
+function _ensurePresetModal() {
+  _injectThumbToolStyles();
+  if (document.getElementById('tpModal')) return;
+  const modal = document.createElement('div');
+  modal.className = 'tp-modal';
+  modal.id = 'tpModal';
+  modal.innerHTML = `
+    <div class="tp-inner" role="dialog" aria-modal="true">
+      <div class="tp-head">
+        <span>저장된 썸네일 불러오기</span>
+        <button type="button" class="tp-x" id="tpClose" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="tp-list" id="tpList"></div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) _closePresetModal(); });
+  document.getElementById('tpClose').addEventListener('click', _closePresetModal);
+}
+
+function _closePresetModal() {
+  const m = document.getElementById('tpModal');
+  if (m) m.classList.remove('open');
+}
+
+async function openPresetLoadModal() {
+  if (!window.fb || !fb.db) { showToast('연결 준비 중입니다.', 'error'); return; }
+  _ensurePresetModal();
+  document.getElementById('tpModal').classList.add('open');
+  await _renderPresetList();
+}
+
+async function _renderPresetList() {
+  const list = document.getElementById('tpList');
+  if (!list) return;
+  list.innerHTML = '<div class="tp-empty">불러오는 중...</div>';
+  let snap;
+  try {
+    snap = await fb.db.collection('thumbnailPresets').orderBy('createdAt', 'desc').get();
+  } catch (err) {
+    list.innerHTML = '';
+    const e = document.createElement('div');
+    e.className = 'tp-empty';
+    e.textContent = '불러오기 실패: ' + (err && err.message || err);
+    list.appendChild(e);
+    return;
+  }
+  if (snap.empty) {
+    list.innerHTML = '<div class="tp-empty">저장된 썸네일이 없습니다. \'현재 썸네일 저장\'으로 추가해 보세요.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  snap.forEach((docSnap) => {
+    const d = docSnap.data() || {};
+    const card = document.createElement('div');
+    card.className = 'tp-card';
+
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'tp-thumb';
+    const im = document.createElement('img');
+    im.src = d.thumb || '';
+    im.alt = '';
+    thumbWrap.appendChild(im);
+
+    const info = document.createElement('div');
+    const nameEl = document.createElement('div');
+    nameEl.className = 'tp-name';
+    nameEl.textContent = d.name || '(이름 없음)';
+    const badge = document.createElement('span');
+    badge.className = d.thumbMobile ? 'tp-badge' : 'tp-badge muted';
+    badge.textContent = d.thumbMobile ? '모바일 포함' : '가로만';
+    info.appendChild(nameEl);
+    info.appendChild(badge);
+
+    const actions = document.createElement('div');
+    actions.className = 'tp-card-actions';
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'tp-apply';
+    applyBtn.textContent = '적용';
+    applyBtn.addEventListener('click', () => _applyPreset(d));
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'tp-del';
+    delBtn.setAttribute('aria-label', '삭제');
+    delBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+    delBtn.addEventListener('click', async () => {
+      if (!window.confirm('이 썸네일 세트를 삭제할까요?')) return;
+      try {
+        await fb.db.collection('thumbnailPresets').doc(docSnap.id).delete();
+        await _renderPresetList();
+      } catch (err) {
+        showToast('삭제 실패: ' + (err && err.message || err), 'error');
+      }
+    });
+    actions.appendChild(applyBtn);
+    actions.appendChild(delBtn);
+
+    card.appendChild(thumbWrap);
+    card.appendChild(info);
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+}
+
+function _applyPreset(d) {
+  if (d.thumb) {
+    thumbnailUrl = d.thumb;
+    thumbnailFile = null;
+    thumbnailCropSrc = d.thumb;
+    document.getElementById('thumbImg').src = d.thumb;
+    document.getElementById('thumbEmpty').hidden = true;
+    document.getElementById('thumbPreview').hidden = false;
+  }
+  // 세트에 맞춰 모바일 이미지도 교체(없으면 비움)
+  if (d.thumbMobile) {
+    thumbMobileUrl = d.thumbMobile;
+    thumbMobileFile = null;
+    document.getElementById('thumbMobileImg').src = d.thumbMobile;
+    document.getElementById('thumbMobileEmpty').hidden = true;
+    document.getElementById('thumbMobilePreview').hidden = false;
+  } else {
+    thumbMobileUrl = null;
+    thumbMobileFile = null;
+    document.getElementById('thumbMobileImg').src = '';
+    document.getElementById('thumbMobileEmpty').hidden = false;
+    document.getElementById('thumbMobilePreview').hidden = true;
+  }
+  updateMobileCropBtn();
+  schedulePreview();
+  _closePresetModal();
+  showToast('썸네일을 적용했어요.', 'success');
+}
+
+async function saveThumbPreset() {
+  if (!thumbnailFile && !thumbnailUrl) { showToast('먼저 썸네일을 등록하세요.', 'error'); return; }
+  const defName = (F.title && F.title.value || '').trim();
+  const name = window.prompt('썸네일 세트 이름을 입력하세요. (예: 팟캐스트 기본)', defName);
+  if (name === null) return;
+  const nm = name.trim();
+  if (!nm) { showToast('이름을 입력하세요.', 'error'); return; }
+  try {
+    showToast('썸네일 저장 중...', 'info');
+    if (thumbnailFile && !thumbnailUrl) {
+      thumbnailUrl = await fb.uploadImage(thumbnailFile, 'thumbnails');
+      thumbnailCropSrc = thumbnailUrl;
+    }
+    if (thumbMobileFile && !thumbMobileUrl) {
+      thumbMobileUrl = await fb.uploadImage(thumbMobileFile, 'thumbnails');
+    }
+    const user = fb.currentUser ? fb.currentUser() : null;
+    await fb.db.collection('thumbnailPresets').add({
+      name: nm,
+      thumb: thumbnailUrl || '',
+      thumbMobile: thumbMobileUrl || '',
+      createdAt: fb.FieldValue.serverTimestamp(),
+      by: (user && user.email) || ''
+    });
+    showToast('썸네일 세트를 저장했어요.', 'success');
+  } catch (err) {
+    console.error('[thumbPreset] 저장 실패', err);
+    showToast('저장 실패: ' + (err && err.message || err), 'error');
+  }
+}
+
+// ====== 첨부파일 (PDF) ======
+function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+function setupAttachments() {
+  const wrap = document.getElementById('attachUpload');
+  const input = document.getElementById('attachInput');
+  if (!wrap || !input) return;
+
+  wrap.addEventListener('click', () => input.click());
+  input.addEventListener('change', (e) => {
+    handleAttachFiles(e.target.files);
+    input.value = '';
+  });
+  wrap.addEventListener('dragover', (e) => { e.preventDefault(); wrap.classList.add('dragging'); });
+  wrap.addEventListener('dragleave', () => wrap.classList.remove('dragging'));
+  wrap.addEventListener('drop', (e) => {
+    e.preventDefault();
+    wrap.classList.remove('dragging');
+    handleAttachFiles(e.dataTransfer.files);
+  });
+}
+function handleAttachFiles(fileList) {
+  const files = Array.from(fileList || []);
+  files.forEach(file => {
+    const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    if (!isPdf) { showToast('PDF 파일만 첨부할 수 있습니다.', 'error'); return; }
+    if (file.size > 20 * 1024 * 1024) { showToast(`'${file.name}'은(는) 20MB를 초과합니다.`, 'error'); return; }
+    attachments.push({ name: file.name, size: file.size, url: null, file });
+  });
+  renderAttachments();
+}
+function renderAttachments() {
+  const list = document.getElementById('attachList');
+  if (!list) return;
+  list.innerHTML = '';
+  attachments.forEach((att, idx) => {
+    const item = document.createElement('div');
+    item.className = 'attach-item';
+    const status = att.url ? '' : '<span class="attach-status">업로드 대기</span>';
+    item.innerHTML = `
+      <i class="fa-solid fa-file-pdf"></i>
+      <span class="attach-name">${escapeHTML(att.name)}</span>
+      <span class="attach-size">${formatFileSize(att.size)}</span>
+      ${status}
+      <button type="button" class="attach-del" aria-label="삭제"><i class="fa-solid fa-xmark"></i></button>`;
+    item.querySelector('.attach-del').addEventListener('click', () => {
+      attachments.splice(idx, 1);
+      renderAttachments();
+    });
+    list.appendChild(item);
+  });
+}
+
+// ====== Tags ======
+function setupTagInput() {
+  const wrap = document.getElementById('tagInputWrap');
+  const input = document.getElementById('tagInput');
+  wrap.addEventListener('click', () => input.focus());
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      addTag(input.value);
+      input.value = '';
+    } else if (e.key === 'Backspace' && !input.value && tags.length > 0) {
+      tags.pop();
+      renderTags();
+    }
+  });
+}
+function addTag(value) {
+  const t = String(value || '').trim().replace(/^#+/, '');
+  if (!t) return;
+  if (tags.includes(t)) { showToast('이미 추가된 태그입니다.', 'error'); return; }
+  if (tags.length >= 10) { showToast('태그는 최대 10개까지 가능합니다.', 'error'); return; }
+  tags.push(t);
+  renderTags();
+  schedulePreview();
+}
+function renderTags() {
+  const wrap = document.getElementById('tagInputWrap');
+  const input = document.getElementById('tagInput');
+  wrap.querySelectorAll('.tag-chip').forEach(el => el.remove());
+  tags.forEach((t, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `#${escapeHTML(t)} <button type="button" aria-label="삭제"><i class="fa-solid fa-xmark"></i></button>`;
+    chip.querySelector('button').addEventListener('click', () => {
+      tags.splice(idx, 1);
+      renderTags();
+      schedulePreview();
+    });
+    wrap.insertBefore(chip, input);
+  });
+}
+
+// ====== Thanks list ======
+function addThanks(role, name) {
+  const wrap = document.createElement('div');
+  wrap.className = 'dynlist-item';
+  wrap.innerHTML = `
+    <input type="text" placeholder="역할 (예: 참고 자료)" value="${(role || '').replace(/"/g,'&quot;')}" />
+    <input type="text" placeholder="내용" value="${(name || '').replace(/"/g,'&quot;')}" />
+    <button type="button">×</button>
+  `;
+  wrap.querySelector('button').addEventListener('click', () => { wrap.remove(); schedulePreview(); });
+  wrap.querySelectorAll('input').forEach(i => i.addEventListener('input', schedulePreview));
+  document.getElementById('thanksList').appendChild(wrap);
+}
+function getThanks() {
+  return Array.from(document.querySelectorAll('#thanksList .dynlist-item')).map(item => {
+    const inputs = item.querySelectorAll('input');
+    return { role: inputs[0].value.trim(), name: inputs[1].value.trim() };
+  }).filter(t => t.role || t.name);
+}
+
+// ====== Prerelease outline list ======
+function addOutlineItem(num, title, description) {
+  const wrap = document.createElement('div');
+  wrap.className = 'outline-item';
+  wrap.innerHTML = `
+    <input type="text" class="ol-num" placeholder="01" value="${(num || '').replace(/"/g,'&quot;')}" />
+    <input type="text" class="ol-title" placeholder="목차 제목" value="${(title || '').replace(/"/g,'&quot;')}" />
+    <textarea class="ol-desc" rows="1" placeholder="한 줄 설명">${(description || '').replace(/</g,'&lt;')}</textarea>
+    <button type="button" aria-label="삭제">×</button>
+  `;
+  wrap.querySelector('button').addEventListener('click', () => { wrap.remove(); schedulePreview(); });
+  wrap.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', schedulePreview));
+  document.getElementById('outlineList').appendChild(wrap);
+}
+function getOutline() {
+  return Array.from(document.querySelectorAll('#outlineList .outline-item')).map(item => {
+    const num = item.querySelector('.ol-num').value.trim();
+    const title = item.querySelector('.ol-title').value.trim();
+    const description = item.querySelector('.ol-desc').value.trim();
+    return { num, title, description };
+  }).filter(o => o.num || o.title || o.description);
+}
+
+// ====== 팟캐스트 챕터 (타임스탬프 목차) ======
+// "2:15" / "1:02:03" / "135"(초) → 초(int)로 변환
+function parsePodTime(v) {
+  v = String(v || '').trim();
+  if (!v) return 0;
+  if (/^\d+$/.test(v)) return parseInt(v, 10);
+  const parts = v.split(':').map(p => parseInt(p, 10) || 0);
+  let sec = 0;
+  for (const p of parts) sec = sec * 60 + p;
+  return sec;
+}
+function fmtPodTime(sec) {
+  sec = Math.max(0, Math.floor(Number(sec) || 0));
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+function addPodChapter(time, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'pod-chap-row';
+  const timeStr = (typeof time === 'number') ? fmtPodTime(time) : (time || '');
+  wrap.innerHTML = `
+    <input type="text" class="pc-time" placeholder="2:15" value="${String(timeStr).replace(/"/g,'&quot;')}" />
+    <input type="text" class="pc-label" placeholder="챕터 제목" value="${String(label || '').replace(/"/g,'&quot;')}" />
+    <button type="button" aria-label="삭제">×</button>
+  `;
+  wrap.querySelector('button').addEventListener('click', () => { wrap.remove(); schedulePreview(); });
+  wrap.querySelectorAll('input').forEach(el => el.addEventListener('input', schedulePreview));
+  document.getElementById('podChapterList').appendChild(wrap);
+}
+function getPodChapters() {
+  return Array.from(document.querySelectorAll('#podChapterList .pod-chap-row')).map(row => {
+    const t = parsePodTime(row.querySelector('.pc-time').value);
+    const label = row.querySelector('.pc-label').value.trim();
+    return { t, label };
+  }).filter(c => c.label).sort((a, b) => a.t - b.t);
+}
+
+// ====== Prerelease mode toggle ======
+function togglePrereleaseMode(active) {
+  isPrereleaseMode = !!active;
+
+  const prereleaseGroup = document.getElementById('prereleaseGroup');
+  const bodyFieldWrap = document.getElementById('bodyFieldWrap');
+  const videoGroup = document.getElementById('videoGroup');
+  const thanksGroup = document.getElementById('thanksGroup');
+  const nextGroup = document.getElementById('nextGroup');
+  const btnPrerelease = document.getElementById('btnPrerelease');
+  const btnPublish = document.querySelector('.composer-bottom .right .admin-btn:not(.ghost)');
+
+  if (prereleaseGroup) prereleaseGroup.hidden = !active;
+  if (bodyFieldWrap) bodyFieldWrap.hidden = !!active;
+  if (thanksGroup) thanksGroup.hidden = !!active;
+  if (nextGroup) nextGroup.hidden = !!active;
+
+  // 프리릴리즈는 '발행일 = 발행 예정일'로 일원화: 날짜 입력을 '발행 예정일'로 재명명하고,
+  // 별도 '발행 예정일 표시 텍스트' 필드는 숨긴다(혼동 방지, 카드/카운트다운/아티클 모두 이 날짜 사용).
+  const dateLabelEl = document.querySelector('label[for="fDate"]');
+  const dateHintEl = document.getElementById('fDateHint');
+  const publishDateLabelWrap = document.getElementById('publishDateLabelWrap');
+  if (dateLabelEl) dateLabelEl.textContent = active ? '발행 예정일 *' : '발행일 *';
+  if (dateHintEl) dateHintEl.textContent = active
+    ? '이 날짜에 공개 예정 · 업커밍 카드 날짜와 카운트다운에 사용됩니다'
+    : '표시 형식: YYYY.MM.DD · 글 카드에 표시되는 날짜';
+  if (publishDateLabelWrap) publishDateLabelWrap.hidden = !!active;
+  // videoGroup 표시는 콘텐츠 유형 로직이 관리 (프리릴리즈 모드면 숨김)
+  if (typeof applyTypeVisibility === 'function') applyTypeVisibility();
+
+  // 게시 버튼은 프리릴리즈 모드에서 숨김 (저장 액션은 "프리릴리즈로 등록")
+  if (btnPublish) btnPublish.style.display = active ? 'none' : '';
+
+  // Highlight prerelease save button
+  if (btnPrerelease) {
+    if (active) {
+      btnPrerelease.classList.remove('ghost');
+      btnPrerelease.style.background = 'var(--admin-accent)';
+      btnPrerelease.style.color = 'var(--bg)';
+    } else {
+      btnPrerelease.classList.add('ghost');
+      btnPrerelease.style.background = '';
+      btnPrerelease.style.color = '';
+    }
+  }
+
+  if (active) {
+    syncPrereleaseSeriesVsStandalone();
+    syncPublishDateLabelDefault();
+    // Provide a sensible default closing message
+    if (F.prereleaseClosing && !F.prereleaseClosing.value) {
+      F.prereleaseClosing.value = '이 글은 지금 쓰여지고 있어요.\n발행 전 여러분의 응원과 자료가 글을 더 깊게 만듭니다.';
+    }
+    if (F.outlineNote && !F.outlineNote.value) {
+      F.outlineNote.value = '잠정 — 발행 시점에 달라질 수 있어요';
+    }
+    // Seed first outline row if list empty
+    if (document.querySelectorAll('#outlineList .outline-item').length === 0) {
+      addOutlineItem('01', '', '');
+    }
+  }
+  schedulePreview();
+}
+
+function syncPrereleaseSeriesVsStandalone() {
+  const seriesVal = F.series.value === '__custom'
+    ? (F.seriesCustom.value || '').trim()
+    : F.series.value;
+  const isSeries = !!seriesVal;
+  const outlineWrap = document.getElementById('prereleaseOutlineWrap');
+  const intentWrap = document.getElementById('prereleaseIntentWrap');
+  if (outlineWrap) outlineWrap.hidden = !isSeries;
+  if (intentWrap) intentWrap.hidden = isSeries;
+}
+
+function syncPublishDateLabelDefault() {
+  if (!F.publishDateLabel) return;
+  // 프리릴리즈는 날짜 일원화: 표시 텍스트 필드를 숨겼으므로 발행 예정일에서 항상 자동 생성.
+  // (그 외 모드에서만 사용자 커스텀 편집 보존)
+  if (!isPrereleaseMode && F.publishDateLabel.dataset.userEdited === 'true') return;
+  const display = isoToDisplay(F.date.value) || isoToDisplay(todayISO());
+  F.publishDateLabel.value = display ? `${display} 발행 예정` : '';
+}
+
+// Track manual edits to publishDateLabel so we don't overwrite them
+if (F.publishDateLabel) {
+  F.publishDateLabel.addEventListener('input', () => {
+    F.publishDateLabel.dataset.userEdited = 'true';
+  });
+}
+// When date changes, update default label
+F.date.addEventListener('change', () => {
+  if (isPrereleaseMode) syncPublishDateLabelDefault();
+});
+// When series changes, update prerelease sub-fields
+F.series.addEventListener('change', () => {
+  if (isPrereleaseMode) syncPrereleaseSeriesVsStandalone();
+});
+if (F.seriesCustom) F.seriesCustom.addEventListener('input', () => {
+  if (isPrereleaseMode) syncPrereleaseSeriesVsStandalone();
+});
+
+// ====== Form data collection ======
+function escapeHTML(str) {
+  return String(str || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function collectFormData() {
+  const seriesVal = F.series.value === '__custom' ? (F.seriesCustom.value || '').trim() : F.series.value;
+  const bodyHtml = getBodyHtml();
+  let bodyText;
+  if (!(_remoteEditing && _remoteBody != null) && editor && editor.initialized) {
+    bodyText = editor.getContent({ format: 'text' }).trim();
+  } else {
+    const _tmp = document.createElement('div');
+    _tmp.innerHTML = bodyHtml;
+    bodyText = (_tmp.textContent || '').trim();
+  }
+  const _seriesName = F.seriesName.value.trim() || SERIES_NAMES[seriesVal] || '';
+  const _seriesNo = F.seriesNo.value.trim() ? Number(F.seriesNo.value) : null;
+  const _category = F.category.value.trim();
+  // 카드/목록 라벨(cat) 자동 생성: 시리즈면 "시리즈명 · 순번", 단편이면 카테고리명
+  const _catLabel = seriesVal
+    ? (_seriesName + (_seriesNo ? ' · ' + String(_seriesNo).padStart(2, '0') : ''))
+    : _category;
+  return {
+    title: F.title.value.trim(),
+    sub: F.sub.value.trim(),
+    lead: F.lead.value.trim(),
+    ogTitle: F.ogTitle ? F.ogTitle.value.trim() : '',
+    ogDesc: F.ogDesc ? F.ogDesc.value.trim() : '',
+    bodyHtml,
+    bodyText: bodyText.slice(0, 500),
+    cat: _catLabel,
+    category: _category,
+    series: seriesVal,
+    seriesName: _seriesName,
+    seriesNo: _seriesNo,
+    seriesTotal: F.seriesTotal.value.trim() ? Number(F.seriesTotal.value) : null,
+    nextId: null,  // 추천 콘텐츠는 article.html에서 자동 산출 (수동 지정 제거)
+    date: isoToDisplay(F.date.value) || isoToDisplay(todayISO()),
+    free: F.free.checked,
+    tags: tags.slice(),
+    author: F.author.value.trim() || 'Local Layers',
+    thanks: getThanks(),
+    videoUrl: F.videoUrl ? F.videoUrl.value.trim() : '',
+    videoId: F.videoUrl ? extractYouTubeId(F.videoUrl.value.trim()) : '',
+    videoMode: F.videoMode ? F.videoMode.checked : false,
+    podcastUrl: F.podcastUrl ? F.podcastUrl.value.trim() : '',
+    podcastMode: F.podcastMode ? F.podcastMode.checked : false,
+    chapters: getPodChapters(),
+    scheduled: F.scheduled ? F.scheduled.checked : false,
+    scheduledAt: (F.scheduled && F.scheduled.checked && F.scheduledAt.value)
+      ? new Date(F.scheduledAt.value) : null,
+    // Prerelease-specific fields
+    outline: getOutline(),
+    outlineNote: F.outlineNote ? F.outlineNote.value.trim() : '',
+    intent: F.intent ? F.intent.value.trim() : '',
+    prereleaseClosing: F.prereleaseClosing ? F.prereleaseClosing.value.trim() : '',
+    publishDateLabel: F.publishDateLabel ? F.publishDateLabel.value.trim() : ''
+  };
+}
+
+// ====== Live preview ======
+let _previewTimer;
+function schedulePreview() {
+  clearTimeout(_previewTimer);
+  _previewTimer = setTimeout(updatePreview, 200);
+}
+
+function buildArticleHTML(s) {
+  const seriesName = s.seriesName || SERIES_NAMES[s.series] || '';
+  const seriesNoStr = s.seriesNo ? String(s.seriesNo).padStart(2,'0') : '';
+  const totalStr = s.seriesTotal ? String(s.seriesTotal).padStart(2,'0') : '';
+  const partLabel = (seriesNoStr && totalStr) ? `PART ${seriesNoStr} / ${totalStr}` : '';
+  const seriesBadge = (seriesName && partLabel) ? `
+        <div class="series-badge">
+          <span class="series-name">${escapeHTML(seriesName)}</span>
+          <span class="sep"></span>
+          <span class="progress">${escapeHTML(partLabel)}</span>
+        </div>` : '';
+
+  // 헤더 공통 (라이브 article.html과 동일 위계): 카테고리/시리즈 + 포맷 라벨 + 서브
+  const _catText = s.cat || s.category || '';
+  const _formatLabel = s.videoMode ? 'Local Layers Video' : 'Local Layers';
+  const _isSeries = !!(seriesName && partLabel);
+  let _eyebrowInner;
+  if (_isSeries) {
+    // 시리즈물: [SERIES · 시리즈명 · PART xx / yy]
+    _eyebrowInner = `SERIES · ${escapeHTML(seriesName)} · ${escapeHTML(partLabel)}`;
+  } else {
+    const _eyebrowParts = [];
+    if (_catText) _eyebrowParts.push(escapeHTML(_catText));
+    _eyebrowParts.push(_formatLabel);
+    _eyebrowInner = _eyebrowParts.join(' · ');
+  }
+  const eyebrowHTML = `<div class="article-eyebrow">${_eyebrowInner}</div>`;
+  const subHTML = s.sub ? `<p class="article-sub">${escapeHTML(s.sub).replace(/\n/g, '<br/>')}</p>` : '';
+
+  const leadHTML = s.lead ? `<p class="article-lead">${escapeHTML(s.lead).replace(/\n/g, '<br/>')}</p>` : '';
+  const videoHTML = s.videoId ? `
+    <div class="article-video-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:-18px 0 100px;">
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/${escapeHTML(s.videoId)}"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+        allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen></iframe>
+    </div>` : '';
+  const bodyHTML = s.bodyHtml || '';
+
+  const gateHTML = !s.free ? `
+    <section class="gate-cta">
+      <div class="container">
+        <div class="gate-inner">
+          <div class="gate-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <h3 class="gate-title">이 글의 나머지는<br/>독자에게 공개됩니다</h3>
+          <p class="gate-sub">Local Layers에 가입하고 모든 아티클을 끝까지 읽어보세요.<br/>3분이면 충분합니다.</p>
+          <div class="gate-actions">
+            <button class="gate-btn primary">로그인 / 가입</button>
+            <a class="gate-btn ghost" href="#">홈으로 돌아가기</a>
+          </div>
+        </div>
+      </div>
+    </section>` : '';
+
+  const thanksHTML = s.thanks.length > 0 ? `
+    <section class="article-thanks">
+      <div class="container">
+        <ul class="thanks-list">${s.thanks.map(t =>
+          `<li><span class="thanks-role">${escapeHTML(t.role)}</span><span class="thanks-name">${escapeHTML(t.name)}</span></li>`
+        ).join('')}</ul>
+      </div>
+    </section>` : '';
+
+  const previewId = currentArticleId || 'preview';
+  const tagsHTML = s.tags.length > 0 ? s.tags.map(t => `<a class="tag">${escapeHTML(t)}</a>`).join('') : '';
+
+  const reactionsHTML = `
+    <section class="article-reactions">
+      <div class="container">
+        <span class="meta-label">이 글이 어떠셨나요</span>
+        <div class="reactions-row">
+          <button class="reaction" data-key="${previewId}-new"><span>이 관점이 새로웠어요</span><span class="r-count">0</span></button>
+          <button class="reaction" data-key="${previewId}-deep"><span>더 깊이 알고 싶어요</span><span class="r-count">0</span></button>
+          <button class="reaction" data-key="${previewId}-pass"><span>친구에게 보내고 싶어요</span><span class="r-count">0</span></button>
+        </div>
+      </div>
+    </section>`;
+
+  const footerHTML = `
+    <div class="container">
+      <div class="article-footer">
+        <div class="article-tags">
+          <span class="meta-label">TAGS</span>
+          <span class="tag-sep">|</span>
+          ${tagsHTML}
+        </div>
+        <div class="article-actions">
+          <button class="action-btn bookmark-btn" data-article-id="${previewId}" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="action-btn" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/></svg></button>
+          <button class="action-btn" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        </div>
+      </div>
+    </div>`;
+
+  // 추천 콘텐츠(다음 이야기)는 발행된 글의 article.html에서 자동 산출됩니다. (미리보기에서는 생략)
+  const nextHTML = '';
+
+  // 첨부파일(PDF) — 전역 attachments 상태 사용
+  const attachItems = (typeof attachments !== 'undefined' ? attachments : []).filter(a => a && a.name);
+  const attachHTML = attachItems.length ? `
+    <div class="container">
+      <section class="article-attachments">
+        <span class="meta-label">첨부파일</span>
+        <div class="attach-download-list">
+          ${attachItems.map(a => `
+            <a class="attach-download" ${a.url ? `href="${escapeHTML(a.url)}" target="_blank" rel="noopener"` : ''} download>
+              <i class="fa-solid fa-file-pdf"></i>
+              <span class="attach-dl-name">${escapeHTML(a.name)}</span>
+              ${a.size ? `<span class="attach-dl-size">${formatFileSize(a.size)}</span>` : ''}
+            </a>`).join('')}
+        </div>
+      </section>
+    </div>` : '';
+
+  // 팟캐스트 콘텐츠 — 가운데 플레이어 스테이지 + 챕터 + 스크립트
+  if (s.podcastMode) {
+    const ytPodId = extractYouTubeId(s.podcastUrl || '');
+    const audioSrc = (!ytPodId && s.podcastUrl) ? s.podcastUrl : '';
+    const chapters = Array.isArray(s.chapters) ? s.chapters.filter(c => c && c.label) : [];
+    const chapBtns = chapters.map(c =>
+      `<button class="pod-chap" data-t="${Number(c.t)||0}"><span class="t">${escapeHTML(fmtPodTime(c.t))}</span><span class="l">${escapeHTML(c.label)}</span></button>`
+    ).join('');
+    const chaptersSection = chapters.length ? `
+      <section class="pod-section"><h2 class="pod-h2">챕터</h2><div class="pod-chapters">${chapBtns}</div></section>` : '';
+    const scriptBody = (bodyHTML || leadHTML) ? `
+      <section class="pod-section"><div class="pod-body article-body">${leadHTML ? leadHTML.replace('article-lead','lead') : ''}${bodyHTML}</div></section>` : '';
+    const dlSection = audioSrc ? `
+      <section class="pod-section"><h2 class="pod-h2">다운로드</h2>
+        <div class="pod-download"><div class="pod-dl-info"><span class="pod-dl-ic"><i class="fa-solid fa-file-audio"></i></span><div class="pod-dl-txt"><span class="pod-dl-name">${escapeHTML(s.title||'에피소드')}</span><span class="pod-dl-meta">오디오 음원</span></div></div><a class="pod-dl-btn" href="#"><i class="fa-solid fa-arrow-down-to-line"></i> 음원 다운로드</a></div>
+      </section>` : '';
+    const podThanks = s.thanks.length ? `
+      <section class="article-thanks pod-section"><ul class="thanks-list">${s.thanks.map(t=>`<li><span class="thanks-role">${escapeHTML(t.role)}</span><span class="thanks-name">${escapeHTML(t.name)}</span></li>`).join('')}</ul></section>` : '';
+    const podSub = (s.sub || s.lead) ? `<p class="pod-sub">${escapeHTML(s.sub || s.lead).replace(/\n/g,'<br/>')}</p>` : '';
+    return `<article id="article-${previewId}" class="article-content"${s.free ? ' data-free="true"' : ''}>
+      <section class="pod-hero"><div class="pod-wrap">
+        <div class="pod-eyebrow">${escapeHTML(s.cat || s.category || '')}${(s.cat||s.category)?' · ':''}Local Layers Audio</div>
+        <h1 class="pod-title">${escapeHTML(s.title || '')}</h1>
+        ${podSub}
+        <div class="article-meta"><span><strong>${escapeHTML(s.date)}</strong></span><span class="article-author">${escapeHTML(s.author)}</span></div>
+        <div class="pod-player"><div class="pod-stage">
+          <div class="pod-logo-bg" aria-hidden="true"><img src="/assets/img/black_logo.png" class="logo-black" alt="" /><img src="/assets/img/white_logo.png" class="logo-white" alt="" /></div>
+          <span class="pod-ring"></span><span class="pod-ring"></span><span class="pod-ring"></span>
+          <div class="pod-speak" aria-hidden="true"><span></span><span></span><span></span></div>
+          <button class="pod-playbtn" aria-label="재생/중지"><i class="fa-solid fa-play"></i><i class="fa-solid fa-stop"></i></button>
+        </div></div>
+        ${!s.podcastUrl ? '<p class="field-help" style="text-align:center;margin-top:14px;color:var(--muted);">음원 URL을 입력하면 재생됩니다.</p>' : ''}
+      </div></section>
+      <div class="pod-wrap">${chaptersSection}${scriptBody}${dlSection}${podThanks}</div>
+      ${reactionsHTML}${footerHTML}
+    </article>`;
+  }
+
+  // 영상 콘텐츠도 일반 아티클과 동일한 템플릿(좌측 정렬)으로 렌더 — 영상은 본문 상단 ${videoHTML}로 삽입됨
+  return `<article id="article-${previewId}" class="article-content"${s.free ? ' data-free="true"' : ''}>
+    <section class="article-header">
+      <div class="container">
+        <a href="/" class="back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          BACK
+        </a>
+        ${eyebrowHTML}
+        <h1 class="article-title">${escapeHTML(s.title)}</h1>
+        ${subHTML}
+        <div class="article-meta">
+          <span><strong>${escapeHTML(s.date)}</strong></span>
+          <span class="article-author">${escapeHTML(s.author)}</span>
+        </div>
+      </div>
+    </section>
+    <section class="article-body">
+      ${videoHTML}
+      ${leadHTML}
+      ${bodyHTML}
+    </section>${gateHTML}${attachHTML}${thanksHTML}${reactionsHTML}${footerHTML}${nextHTML}
+  </article>`;
+}
+
+function buildPrereleaseHTML(s) {
+  const previewId = currentArticleId || 'preview';
+  const isSeries = !!s.series;
+  const noStr = s.seriesNo ? String(s.seriesNo).padStart(2,'0') : '';
+  const totalStr = s.seriesTotal ? String(s.seriesTotal).padStart(2,'0') : '';
+  const badgeName = isSeries ? `SERIES ${noStr || ''}`.trim() : '단편 · 작성 중';
+  const badgeProgress = isSeries
+    ? (totalStr ? `작성 중 · ${Number(totalStr)}편 예정` : '작성 중')
+    : '작성 중';
+  const dateLabel = s.publishDateLabel
+    ? s.publishDateLabel
+    : (s.date ? `${s.date} 발행 예정` : '발행 예정');
+  const subText = s.sub || s.lead || '';
+  const leadHTML = subText ? `<p class="article-lead">${escapeHTML(subText).replace(/\n/g, '<br/>')}</p>` : '';
+
+  const outline = Array.isArray(s.outline) ? s.outline : [];
+  const outlineNote = s.outlineNote || '잠정 — 발행 시점에 달라질 수 있어요';
+  const outlineHTML = (isSeries && outline.length > 0) ? `
+    <div class="prerelease-outline">
+      <div class="outline-head">
+        <span class="outline-label">작성 중인 목차</span>
+        <span class="outline-note">${escapeHTML(outlineNote)}</span>
+      </div>
+      <ol class="outline-list">
+        ${outline.map(item => `
+          <li>
+            <span class="outline-num">${escapeHTML(item.num || '')}</span>
+            <div>
+              <div class="outline-item-title">${escapeHTML(item.title || '')}</div>
+              <div class="outline-item-desc">${escapeHTML(item.description || '')}</div>
+            </div>
+          </li>`).join('')}
+      </ol>
+    </div>` : '';
+
+  const intent = s.intent || '';
+  const intentHTML = (!isSeries && intent)
+    ? `<aside class="article-intent-box"><span class="intent-box-label">이 콘텐츠는</span><p class="intent-box-text">${escapeHTML(intent).replace(/\n/g, '<br/>')}</p></aside>`
+    : '';
+
+  const closingText = s.prereleaseClosing || '이 글은 지금 쓰여지고 있어요.\n발행 전 여러분의 응원과 자료가 글을 더 깊게 만듭니다.';
+  const closingHTML = `<p class="prerelease-closing">${escapeHTML(closingText).replace(/\n/g, '<br/>')}</p>`;
+
+  return `<article id="article-${previewId}" class="article-content prerelease" data-prerelease="true">
+    <section class="article-header">
+      <div class="container">
+        <a href="/" class="back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          BACK
+        </a>
+        <div class="series-badge">
+          <span class="series-name">${escapeHTML(badgeName)}</span>
+          <span class="sep"></span>
+          <span class="progress">${escapeHTML(badgeProgress)}</span>
+        </div>
+        <h1 class="article-title">${escapeHTML(s.title || '')}</h1>
+        <div class="article-meta">
+          <span><strong>${escapeHTML(dateLabel)}</strong></span>
+          <span class="article-author">${escapeHTML(s.author || 'Local Layers')}</span>
+        </div>
+      </div>
+    </section>
+    <section class="article-body prerelease-body">
+      ${leadHTML}
+      ${outlineHTML}
+      ${intentHTML}
+      ${closingHTML}
+    </section>
+    <section class="article-reactions">
+      <div class="container">
+        <span class="meta-label">함께 만들어보세요</span>
+        <div class="reactions-row pr-reactions">
+          <button class="reaction pr-cheer-reaction">
+            <span>이 콘텐츠 기대돼요</span>
+            <span class="r-count">0</span>
+          </button>
+          <button class="reaction pr-submit-reaction">
+            <span>자료 제공하기</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </article>`;
+}
+
+function updatePreview() {
+  const s = collectFormData();
+  if (!s.title && !s.bodyHtml && !isPrereleaseMode) return;
+  const articleHTML = isPrereleaseMode ? buildPrereleaseHTML(s) : buildArticleHTML(s);
+  const fullDoc = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"><link rel="stylesheet" href="/assets/css/style.css"><style>body{margin:0;padding:0;}.article-view{padding-top:20px;}</style></head><body data-view="article" class="logged-in${document.body.classList.contains('dark') ? ' dark' : ''}"><main class="article-view">${articleHTML}</main></body></html>`;
+  document.getElementById('previewFrame').srcdoc = fullDoc;
+}
+
+// Wire all form inputs to preview
+['input','change'].forEach(evt => {
+  document.querySelectorAll('.composer-form input, .composer-form textarea, .composer-form select').forEach(el => {
+    el.addEventListener(evt, schedulePreview);
+  });
+});
+
+// ====== Save: shared logic ======
+function setSaveStatus(text) {
+  F.saveStatus.textContent = text;
+}
+
+async function saveArticle(targetStatus, silent) {
+  const data = collectFormData();
+
+  // Validation
+  if (!data.title) { if (!silent) showToast('제목을 입력해주세요.', 'error'); return null; }
+  if (targetStatus === 'PUBLISHED') {
+    if (data.videoMode) {
+      // 영상 콘텐츠: 영상 URL 필수, 본문은 선택
+      if (!data.videoId) { showToast('영상 콘텐츠는 유튜브 URL을 입력해주세요.', 'error'); return null; }
+    } else if (data.podcastMode) {
+      // 팟캐스트 콘텐츠: 음원 URL(유튜브·웹) 필수, 본문은 선택
+      if (!data.podcastUrl) { showToast('팟캐스트 콘텐츠는 유튜브 또는 웹 오디오 URL을 입력해주세요.', 'error'); return null; }
+    } else {
+      if (!data.bodyHtml || data.bodyHtml === '<p><br></p>') { showToast('본문을 입력해주세요.', 'error'); return null; }
+    }
+    // 썸네일: 영상 콘텐츠는 선택(미첨부 시 유튜브 썸네일 자동 사용), 그 외는 필수
+    if (!data.videoMode && !thumbnailUrl && !thumbnailFile) { showToast('썸네일을 첨부해주세요.', 'error'); return null; }
+    // 분류 검증: 시리즈는 시리즈 선택, 단편·영상은 카테고리(1차) 선택 필수
+    const ctype = getContentType();
+    if (ctype === 'series' && !data.series) { showToast('시리즈를 선택해주세요.', 'error'); return null; }
+    if (ctype !== 'series' && !data.category) { showToast('카테고리(1차)를 선택해주세요.', 'error'); return null; }
+  }
+  // PRERELEASE: 제목만 필수. 썸네일·목차·의도는 권장이지만 강제하지 않음.
+
+  // Generate ID for new article only
+  if (!currentArticleId) {
+    try {
+      currentArticleId = await fb.generateArticleId(data.date, data.series || '');
+    } catch (err) {
+      console.error('[saveArticle] ID 생성 실패', err);
+      showToast('ID 생성 실패: ' + err.message, 'error');
+      return null;
+    }
+  }
+
+  // Upload new thumbnail file
+  if (thumbnailFile && !thumbnailUrl) {
+    try {
+      if (!silent) showToast('썸네일 업로드 중...', 'info');
+      thumbnailUrl = await fb.uploadImage(thumbnailFile, 'thumbnails');
+    } catch (err) {
+      console.error('[saveArticle] 썸네일 업로드 실패', err);
+      showToast('썸네일 업로드 실패: ' + err.message, 'error');
+      return null;
+    }
+  }
+
+  // Upload new mobile-hero image file
+  if (thumbMobileFile && !thumbMobileUrl) {
+    try {
+      if (!silent) showToast('모바일 히어로 이미지 업로드 중...', 'info');
+      thumbMobileUrl = await fb.uploadImage(thumbMobileFile, 'thumbnails');
+    } catch (err) {
+      console.error('[saveArticle] 모바일 히어로 이미지 업로드 실패', err);
+      showToast('모바일 히어로 이미지 업로드 실패: ' + err.message, 'error');
+      return null;
+    }
+  }
+
+  // Upload new OG image file
+  if (ogImageFile && !ogImageUrl) {
+    try {
+      if (!silent) showToast('공유 이미지 업로드 중...', 'info');
+      ogImageUrl = await fb.uploadImage(ogImageFile, 'og');
+    } catch (err) {
+      console.error('[saveArticle] 공유 이미지 업로드 실패', err);
+      showToast('공유 이미지 업로드 실패: ' + err.message, 'error');
+      return null;
+    }
+  }
+
+  // Upload pending PDF attachments
+  const pendingAttach = attachments.filter(a => a.file && !a.url);
+  if (pendingAttach.length) {
+    try {
+      if (!silent) showToast('첨부파일 업로드 중...', 'info');
+      for (const att of pendingAttach) {
+        att.url = await fb.uploadImage(att.file, 'attachments');
+        att.file = null;
+      }
+      renderAttachments();
+    } catch (err) {
+      console.error('[saveArticle] 첨부파일 업로드 실패', err);
+      showToast('첨부파일 업로드 실패: ' + err.message, 'error');
+      return null;
+    }
+  }
+  const attachmentsPayload = attachments
+    .filter(a => a.url)
+    .map(a => ({ name: a.name, size: a.size || 0, url: a.url }));
+
+  const user = fb.currentUser();
+
+  // 예약 발행 — targetStatus가 PUBLISHED인데 scheduled가 켜져 있고 미래 시각이면 SCHEDULED로 저장
+  let finalStatus = targetStatus;
+  let publishedAtTs = null;
+  if (targetStatus === 'PUBLISHED' && data.scheduled && data.scheduledAt) {
+    const now = Date.now();
+    if (data.scheduledAt.getTime() > now) {
+      finalStatus = 'SCHEDULED';
+      publishedAtTs = fb.Timestamp.fromDate(data.scheduledAt);
+    } else {
+      // 과거 시각이면 즉시 게시
+      publishedAtTs = fb.FieldValue.serverTimestamp();
+    }
+  } else if (targetStatus === 'PUBLISHED') {
+    publishedAtTs = fb.FieldValue.serverTimestamp();
+  }
+
+  // 공개 예정 시각(scheduledAt) 산출 — 업커밍 카드 날짜·카운트다운에 사용.
+  // 예약 발행은 지정한 일시를, 프리릴리즈는 '발행 예정일(date)'을 해당일 끝(23:59:59)으로 사용해 일원화.
+  let scheduledAtTs = data.scheduledAt ? fb.Timestamp.fromDate(data.scheduledAt) : null;
+  if (!scheduledAtTs && finalStatus === 'PRERELEASE' && data.date) {
+    const ms = Date.parse(String(data.date).replace(/\./g, '-'));
+    if (!isNaN(ms)) {
+      const d = new Date(ms);
+      d.setHours(23, 59, 59, 0);
+      scheduledAtTs = fb.Timestamp.fromDate(d);
+    }
+  }
+
+  const payload = {
+    title: data.title,
+    sub: data.sub,
+    lead: data.lead,
+    bodyHtml: data.bodyHtml,
+    bodyText: data.bodyText,
+    cat: data.cat,
+    category: data.category,
+    series: data.series,
+    seriesName: data.seriesName,
+    seriesNo: data.seriesNo,
+    seriesTotal: data.seriesTotal,
+    nextId: data.nextId,
+    attachments: attachmentsPayload,
+    date: data.date,
+    free: data.free,
+    thumb: thumbnailUrl || ((data.videoMode && data.videoId) ? ('https://img.youtube.com/vi/' + data.videoId + '/maxresdefault.jpg') : ''),
+    thumbMobile: thumbMobileUrl || '',
+    ogTitle: data.ogTitle || '',
+    ogDesc: data.ogDesc || '',
+    ogImage: ogImageUrl || '',
+    tags: data.tags,
+    author: data.author || (user && user.displayName) || 'Local Layers',
+    authorId: user ? user.uid : '',
+    authorEmail: user ? user.email : '',
+    thanks: data.thanks,
+    videoUrl: data.videoUrl || '',
+    videoId: data.videoId || '',
+    videoMode: data.videoMode || false,
+    // 팟캐스트 콘텐츠 (유튜브·웹 오디오 URL로만 연결)
+    podcastMode: data.podcastMode || false,
+    podcastUrl: data.podcastUrl || '',
+    audioId: extractYouTubeId(data.podcastUrl || ''),
+    audioSrc: (!extractYouTubeId(data.podcastUrl || '') && data.podcastUrl) ? data.podcastUrl : '',
+    chapters: data.chapters || [],
+    // Prerelease fields (always persisted so toggling DRAFT↔PRERELEASE keeps work)
+    outline: data.outline || [],
+    outlineNote: data.outlineNote || '',
+    intent: data.intent || '',
+    prereleaseClosing: data.prereleaseClosing || '',
+    publishDateLabel: data.publishDateLabel || '',
+    // 공개 예정 시각 (업커밍 카운트다운에 사용) — 예약/프리릴리즈 모두 일원화 저장
+    scheduledAt: scheduledAtTs,
+    status: finalStatus,
+    updatedAt: fb.FieldValue.serverTimestamp()
+  };
+
+  if (publishedAtTs) {
+    payload.publishedAt = publishedAtTs;
+  }
+
+  const ref = fb.db.collection('articles').doc(currentArticleId);
+  try {
+    const snap = await ref.get();
+    if (!snap.exists) {
+      payload.createdAt = fb.FieldValue.serverTimestamp();
+      payload.viewCount = 0;
+      payload.bookmarkCount = 0;
+      await ref.set(payload);
+      isExistingDoc = true;
+    } else {
+      await ref.update(payload);
+      isExistingDoc = true;
+    }
+    // 업커밍 티저 미러 동기화: SCHEDULED면 안전한 미리보기 문서 작성, 아니면 제거.
+    // (SCHEDULED 본문은 공개 열람이 막혀 있으므로 메인 UPCOMING 노출은 이 미러로만 한다.)
+    try {
+      const teaserRef = fb.db.collection('upcomingTeasers').doc(currentArticleId);
+      if (finalStatus === 'SCHEDULED') {
+        await teaserRef.set({
+          title: payload.title || '',
+          sub: payload.sub || '',
+          cat: payload.cat || '',
+          category: payload.category || '',
+          thumb: payload.thumb || '',
+          thumbMobile: payload.thumbMobile || '',
+          scheduledAt: payload.scheduledAt || null,
+          publishDateLabel: payload.publishDateLabel || '',
+          date: payload.date || '',
+          createdAt: fb.FieldValue.serverTimestamp()
+        });
+      } else {
+        // 발행/임시/예정 등으로 바뀌면 미러 제거(없으면 무시)
+        await teaserRef.delete().catch(() => {});
+      }
+    } catch (teaserErr) {
+      console.warn('[saveArticle] 업커밍 티저 동기화 실패(무시 가능):', teaserErr.message);
+    }
+    return currentArticleId;
+  } catch (err) {
+    console.error('[saveArticle] Firestore 저장 실패', err);
+    showToast('저장 실패: ' + err.message, 'error');
+    return null;
+  }
+}
+
+async function saveDraft() {
+  const id = await saveArticle('DRAFT', false);
+  if (!id) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString('ko-KR', { hour12: false });
+  setSaveStatus('저장됨: ' + time);
+  showToast('임시저장 되었습니다.', 'success');
+}
+
+async function publishPost() {
+  const isScheduled = !!(F.scheduled && F.scheduled.checked && F.scheduledAt && F.scheduledAt.value
+    && new Date(F.scheduledAt.value).getTime() > Date.now());
+  const confirmMsg = isScheduled
+    ? '이 글을 예약 발행하시겠습니까?\n지정한 시각에 자동으로 공개됩니다. (그 전까지는 비공개)'
+    : '이 글을 게시하시겠습니까?';
+  if (!(await sysConfirm(confirmMsg))) return;
+  const id = await saveArticle('PUBLISHED', false);
+  if (!id) return;
+  if (isScheduled) {
+    // SCHEDULED 글은 아직 공개되지 않으므로 공개 URL로 보내지 않고 콘텐츠 관리로 이동
+    showToast('예약 발행으로 저장되었습니다. 지정 시각에 자동 공개됩니다.', 'success');
+    setTimeout(() => {
+      window.location.href = '/admin/articles.html';
+    }, 1400);
+  } else {
+    showToast('게시되었습니다.', 'success');
+    setTimeout(() => {
+      window.location.href = `/articles/${id}`;
+    }, 1200);
+  }
+}
+
+async function savePrerelease() {
+  if (!(await sysConfirm('이 콘텐츠를 프리릴리즈로 등록하시겠습니까?\n공개 사이트에서 "작성 중"으로 표시되어 응원·자료를 받을 수 있습니다.'))) return;
+  const id = await saveArticle('PRERELEASE', false);
+  if (!id) return;
+  showToast('프리릴리즈로 등록되었습니다.', 'success');
+  setTimeout(() => {
+    window.location.href = '/admin/upcoming.html';
+  }, 1200);
+}
+window.savePrerelease = savePrerelease;
+
+function openPreviewTab() {
+  const s = collectFormData();
+  const articleHTML = isPrereleaseMode ? buildPrereleaseHTML(s) : buildArticleHTML(s);
+  const fullDoc = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>미리보기 — ${escapeHTML(s.title || '제목 없음')}</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"><link rel="stylesheet" href="/assets/css/style.css"></head><body data-view="article" class="logged-in${document.body.classList.contains('dark') ? ' dark' : ''}"><main class="article-view">${articleHTML}</main></body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { showToast('팝업이 차단되었습니다.', 'error'); return; }
+  w.document.write(fullDoc);
+  w.document.close();
+}
+
+// ====== Draft list modal ======
+async function openDraftList() {
+  const modalRoot = document.getElementById('draftListModal');
+  modalRoot.hidden = false;
+  modalRoot.innerHTML = `
+    <div class="draft-modal-backdrop" id="draftBackdrop">
+      <div class="draft-modal-card" onclick="event.stopPropagation()">
+        <h3>임시저장 목록</h3>
+        <div id="draftListBody"><p style="color:var(--muted);text-align:center;padding:20px 0;">불러오는 중...</p></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+          <button class="admin-btn ghost admin-btn-sm" id="draftCloseBtn">닫기</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('draftBackdrop').addEventListener('click', () => modalRoot.hidden = true);
+  document.getElementById('draftCloseBtn').addEventListener('click', () => modalRoot.hidden = true);
+
+  try {
+    const user = fb.currentUser();
+    let q = fb.db.collection('articles').where('status','==','DRAFT');
+    if (user && user.uid) q = q.where('authorId','==', user.uid);
+    const snap = await q.orderBy('updatedAt','desc').limit(20).get();
+    const body = document.getElementById('draftListBody');
+    if (snap.empty) {
+      body.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px 0;">임시저장된 글이 없습니다.</p>';
+      return;
+    }
+    body.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const dt = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate().toLocaleString('ko-KR') : '—';
+      return `<div class="draft-row" data-id="${doc.id}">
+        <div>
+          <div class="draft-row-title">${escapeHTML(d.title || '(제목 없음)')}</div>
+          <div class="draft-row-date">${dt}</div>
+        </div>
+        <span style="font-size:11px;color:var(--muted);">${escapeHTML(doc.id)}</span>
+      </div>`;
+    }).join('');
+    body.querySelectorAll('.draft-row').forEach(row => {
+      row.addEventListener('click', () => {
+        window.location.href = `/admin/new-article.html?id=${row.dataset.id}`;
+      });
+    });
+  } catch (err) {
+    document.getElementById('draftListBody').innerHTML =
+      `<p style="color:#dc2626;text-align:center;padding:20px 0;">로딩 실패: ${escapeHTML(err.message)}</p>`;
+  }
+}
+
+// ====== Load existing article (Firestore OR legacy static) ======
+async function loadExistingArticle(id) {
+  try {
+    const ref = fb.db.collection('articles').doc(id);
+    const snap = await ref.get();
+    if (snap.exists) {
+      const d = snap.data();
+      // 에디터는 본인 명의의 글만 수정 가능
+      if (IS_EDITOR_MODE) {
+        const me = fb.currentUser();
+        if (!me || d.authorId !== me.uid) {
+          showToast('본인이 작성한 콘텐츠만 수정할 수 있어요.', 'error');
+          setTimeout(() => { location.href = '/editor.html'; }, 1200);
+          return;
+        }
+      }
+      isExistingDoc = true;
+      currentArticleId = id;
+      populateForm(d);
+      setSaveStatus('불러옴: ' + id);
+      return;
+    }
+  } catch (err) {
+    console.warn('[loadExistingArticle] Firestore 조회 실패:', err.message);
+  }
+  // Not in Firestore — try legacy static catalog
+  const legacy = (window.ARTICLES || {})[id];
+  if (legacy) {
+    _legacyStaticData = legacy;
+    // currentArticleId stays NULL so saving creates a new doc (with new id)
+    document.getElementById('staticNotice').hidden = false;
+    document.getElementById('staticNotice').innerHTML =
+      `이 글(<code>${escapeHTML(id)}</code>)은 기존 콘텐츠입니다. ` +
+      `편집기에서 수정해 저장하면 새 ID로 새 콘텐츠가 만들어집니다.`;
+    populateForm({
+      title: legacy.title || '',
+      sub: legacy.sub || '',
+      cat: legacy.cat || '',
+      series: legacy.series || '',
+      seriesName: SERIES_NAMES[legacy.series] || '',
+      date: legacy.date || '',
+      free: !!legacy.free,
+      tags: legacy.tags || [],
+      thumb: legacy.thumb || '',
+      author: 'Local Layers',
+      lead: '',
+      bodyHtml: '',
+      thanks: []
+    });
+    return;
+  }
+  showToast(`ID '${id}' 글을 찾을 수 없습니다.`, 'error');
+}
+
+function populateForm(d) {
+  F.title.value = d.title || '';
+  F.topTitle.value = d.title || '';
+  F.sub.value = d.sub || '';
+  F.lead.value = d.lead || '';
+  if (F.cat) F.cat.value = d.cat || '';
+  // 콘텐츠 유형 판별: 영상 > 팟캐스트 > 시리즈 > 단편
+  const loadedType = d.videoMode ? 'video' : (d.podcastMode ? 'podcast' : (d.series ? 'series' : 'standalone'));
+  setContentType(loadedType);
+  // 카테고리(단편·영상): 말단 카테고리 → 1차/2차 캐스케이드 복원
+  setCascadeFromCategory(d.category || '');
+  F.author.value = d.author || 'Local Layers';
+  // 공개 범위 라디오 동기화
+  setAccess(!!d.free);
+  F.free.checked = !!d.free;
+  // 다음 글(추천)은 자동 산출이므로 수동 필드 복원 없음
+  _pendingNextId = '';
+  if (F.next) F.next.value = '';
+  // 첨부파일(PDF) 복원
+  attachments = Array.isArray(d.attachments)
+    ? d.attachments.map(a => ({ name: a.name || '', size: a.size || 0, url: a.url || '', file: null }))
+    : [];
+  renderAttachments();
+  if (F.videoUrl) F.videoUrl.value = d.videoUrl || '';
+  if (F.videoMode) F.videoMode.checked = !!d.videoMode;
+  // 팟캐스트 복원
+  if (F.podcastUrl) F.podcastUrl.value = d.podcastUrl || '';
+  if (F.podcastMode) F.podcastMode.checked = !!d.podcastMode;
+  const podList = document.getElementById('podChapterList');
+  if (podList) {
+    podList.innerHTML = '';
+    if (Array.isArray(d.chapters)) {
+      d.chapters.forEach(function (c) {
+        addPodChapter(fmtPodTime(c.t || 0), c.label || '');
+      });
+    }
+  }
+  // 예약 발행 복원
+  if (F.scheduled) {
+    const isScheduled = d.status === 'SCHEDULED';
+    F.scheduled.checked = isScheduled;
+    F.scheduledWrap.hidden = !isScheduled;
+    if (isScheduled && d.publishedAt && typeof d.publishedAt.toDate === 'function') {
+      const dt = d.publishedAt.toDate();
+      const pad = n => String(n).padStart(2, '0');
+      F.scheduledAt.value = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+  }
+  F.seriesName.value = d.seriesName || '';
+  F.seriesNo.value = d.seriesNo != null ? String(d.seriesNo).padStart(2,'0') : '';
+  F.seriesTotal.value = d.seriesTotal != null ? String(d.seriesTotal).padStart(2,'0') : '';
+
+  // 시리즈 select
+  const nameWrap = document.getElementById('fSeriesNameWrap');
+  if (d.series && SERIES_NAMES[d.series]) {
+    F.series.value = d.series;
+    if (nameWrap) nameWrap.hidden = true;
+  } else if (d.series) {
+    F.series.value = '__custom';
+    F.seriesCustomWrap.hidden = false;
+    F.seriesCustom.value = d.series;
+    if (nameWrap) nameWrap.hidden = false;
+  } else {
+    F.series.value = '';
+    if (nameWrap) nameWrap.hidden = true;
+  }
+  // 기존 시리즈 글: 저장된 순번 유지 + 진행 안내 갱신
+  if (d.series) {
+    _editingSeriesNoLocked = (d.seriesNo != null);
+    computeSeriesProgress(d.series);
+  }
+
+  // Date — convert display 'YYYY.MM.DD' → ISO
+  if (d.date) {
+    const iso = String(d.date).replace(/\./g, '-');
+    F.date.value = iso;
+  }
+
+  // Body HTML — 리치 에디터 + HTML 소스 양쪽에 반영
+  setBodyHtml(d.bodyHtml || '');
+
+  // Thumbnail
+  if (d.thumb) {
+    thumbnailUrl = d.thumb;
+    thumbnailFile = null;
+    thumbnailCropSrc = d.thumb;
+    document.getElementById('thumbImg').src = d.thumb;
+    document.getElementById('thumbEmpty').hidden = true;
+    document.getElementById('thumbPreview').hidden = false;
+  }
+  updateMobileCropBtn();
+
+  // 모바일 히어로 이미지
+  if (d.thumbMobile) {
+    thumbMobileUrl = d.thumbMobile;
+    thumbMobileFile = null;
+    document.getElementById('thumbMobileImg').src = d.thumbMobile;
+    document.getElementById('thumbMobileEmpty').hidden = true;
+    document.getElementById('thumbMobilePreview').hidden = false;
+  } else {
+    thumbMobileUrl = null;
+    thumbMobileFile = null;
+    const el = document.getElementById('thumbMobileImg');
+    if (el) el.src = '';
+    const emptyEl = document.getElementById('thumbMobileEmpty');
+    const prevEl = document.getElementById('thumbMobilePreview');
+    if (emptyEl) emptyEl.hidden = false;
+    if (prevEl) prevEl.hidden = true;
+  }
+
+  // OG (공유) 메타
+  if (F.ogTitle) F.ogTitle.value = d.ogTitle || '';
+  if (F.ogDesc) F.ogDesc.value = d.ogDesc || '';
+  if (d.ogImage) {
+    ogImageUrl = d.ogImage;
+    ogImageFile = null;
+    document.getElementById('ogImg').src = d.ogImage;
+    document.getElementById('ogEmpty').hidden = true;
+    document.getElementById('ogPreview').hidden = false;
+  } else {
+    ogImageUrl = null;
+    ogImageFile = null;
+    const ogImgEl = document.getElementById('ogImg');
+    if (ogImgEl) ogImgEl.src = '';
+    const ogEmptyEl = document.getElementById('ogEmpty');
+    const ogPrevEl = document.getElementById('ogPreview');
+    if (ogEmptyEl) ogEmptyEl.hidden = false;
+    if (ogPrevEl) ogPrevEl.hidden = true;
+  }
+
+  // Tags
+  tags = (d.tags || []).slice();
+  renderTags();
+
+  // Thanks list
+  document.getElementById('thanksList').innerHTML = '';
+  (d.thanks || []).forEach(t => addThanks(t.role, t.name));
+
+  // Prerelease fields restore
+  if (F.outlineNote) F.outlineNote.value = d.outlineNote || '';
+  if (F.intent) F.intent.value = d.intent || '';
+  if (F.prereleaseClosing) F.prereleaseClosing.value = d.prereleaseClosing || '';
+  if (F.publishDateLabel) {
+    F.publishDateLabel.value = d.publishDateLabel || '';
+    if (d.publishDateLabel) F.publishDateLabel.dataset.userEdited = 'true';
+  }
+  const outlineList = document.getElementById('outlineList');
+  if (outlineList) {
+    outlineList.innerHTML = '';
+    (Array.isArray(d.outline) ? d.outline : []).forEach(item => {
+      addOutlineItem(item.num || '', item.title || '', item.description || '');
+    });
+  }
+
+  // PRERELEASE 문서이면 자동으로 프리릴리즈 레이아웃으로 전환
+  if (d.status === 'PRERELEASE') {
+    togglePrereleaseMode(true);
+  }
+
+  schedulePreview();
+}
+
+// ====== Auto-save every 30s ======
+// 본문 전용 팝업(?editorPopup=1)에서는 자동저장을 돌리지 않음(본창이 저장 주체)
+if (!IS_EDITOR_POPUP) setInterval(async () => {
+  const data = collectFormData();
+  if (!data.title) return; // skip if no title
+  if (!fb.currentUser()) return;
+  // 프리릴리즈 모드에서는 자동저장이 DRAFT로 덮어쓰지 않도록 PRERELEASE로 저장
+  const targetStatus = isPrereleaseMode ? 'PRERELEASE' : 'DRAFT';
+  const id = await saveArticle(targetStatus, true);
+  if (id) {
+    const now = new Date();
+    setSaveStatus('자동저장: ' + now.toLocaleTimeString('ko-KR', { hour12: false }));
+  }
+}, 30000);
+
+// ====== Init ======
+fb.authReady.then(async user => {
+  if (!user) return;
+  // 관리자 또는 에디터(staff)만 진입. (게이트는 admin.js가 이미 처리)
+  let isAdminUser = fb.isAdmin();
+  if (!isAdminUser) {
+    // _roleCache 레이스 회피: loadRole 반환값을 직접 확인
+    let r = null;
+    try {
+      if (fb.loadRole) r = await fb.loadRole(user.uid);
+      else if (fb.roleReady) r = await fb.roleReady();
+    } catch (e) {}
+    if (r !== 'editor' && r !== 'admin') return;
+    IS_EDITOR_MODE = true;
+    // 에디터는 어드민 콘텐츠 목록에 접근 불가 → 상단 뒤로가기를 '에디터의 책상'로 교체
+    if (r === 'editor') {
+      var backLink = document.querySelector('a.back');
+      if (backLink) {
+        backLink.setAttribute('href', '/editor.html');
+        backLink.innerHTML = '<i class="fa-solid fa-arrow-left"></i> 에디터의 책상';
+      }
+    }
+  }
+
+  // ── 본문 전용 팝업 모드: 본문 에디터만 띄우고 본창과 실시간 연동 ──
+  if (IS_EDITOR_POPUP) {
+    document.documentElement.classList.add('is-editor-popup');
+    document.title = '본문 편집 — 넓게 쓰기';
+    // 본창의 현재 본문을 초기값으로 주입
+    try {
+      if (window.opener && !window.opener.closed && window.opener.getBodyHtml) {
+        _pendingBody = window.opener.getBodyHtml();
+      }
+    } catch (_) {}
+    initEditor();
+    // 닫힐 때(또는 새로고침 시) 최종 본문을 본창에 반영
+    window.addEventListener('beforeunload', function() {
+      try {
+        if (window.opener && !window.opener.closed && window.opener.__remoteBodyClose && editor && editor.initialized) {
+          window.opener.__remoteBodyClose(editor.getContent());
+        }
+      } catch (_) {}
+    });
+    return; // 나머지 폼 로직(로드/자동저장/옵션)은 실행하지 않음
+  }
+
+  initEditor();
+  setupThumbnailUpload();
+  setupThumbMobileUpload();
+  setupOgImageUpload();
+  _injectThumbToolStyles();
+  const _cropBtn = document.getElementById('thumbMobileCropBtn');
+  if (_cropBtn) _cropBtn.addEventListener('click', openMobileCropModal);
+  const _presetLoadBtn = document.getElementById('thumbPresetLoadBtn');
+  if (_presetLoadBtn) _presetLoadBtn.addEventListener('click', openPresetLoadModal);
+  const _presetSaveBtn = document.getElementById('thumbPresetSaveBtn');
+  if (_presetSaveBtn) _presetSaveBtn.addEventListener('click', saveThumbPreset);
+  updateMobileCropBtn();
+  setupTagInput();
+  setupAttachments();
+
+  // 기본값: 단편 · 회원 전용 (편집 모드면 populateForm이 덮어씀)
+  applyTypeVisibility();
+  setAccess(false);
+
+  // 시리즈·카테고리·다음 글 옵션을 Firestore에서 먼저 불러온 뒤 글을 채워야 select 값이 매칭됨
+  await Promise.all([loadSeriesOptions(), loadCategoryOptions(), loadArticlesForNext()]);
+
+  // 에디터 모드: 배정 정보를 불러와 포맷/시리즈를 제한
+  if (IS_EDITOR_MODE) {
+    try {
+      const assign = fb.getEditorAssignment ? await fb.getEditorAssignment(user.uid) : null;
+      if (assign && assign.active === false) {
+        showToast('현재 작성 권한이 비활성화되어 있어요. 관리자에게 문의해주세요.', 'error');
+        setTimeout(() => { location.href = '/editor.html'; }, 1500);
+        return;
+      }
+      applyEditorRestrictions(assign || {});
+    } catch (e) {
+      console.warn('[editor-mode] 배정 정보 로드 실패:', e.message);
+      applyEditorRestrictions({});
+    }
+  }
+
+  // Default thanks rows for new article
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get('id');
+  if (editId) {
+    loadExistingArticle(editId);
+  } else {
+    // 에디터의 책상에서 넘어온 프리셋: 시리즈+편수(?series=CODE&ep=N) 또는 단독(?type=standalone)
+    const pSeries = params.get('series');
+    const pType = params.get('type');
+    const pEp = parseInt(params.get('ep'), 10);
+    if (pSeries && (!EDITOR_ALLOWED_CTYPES || EDITOR_ALLOWED_CTYPES.has('series'))) {
+      setContentType('series');
+      // 시리즈 편수로 진입 → 유형을 '시리즈'로 고정(단편·영상·팟캐스트 선택 불가)
+      if (IS_EDITOR_MODE) lockCtypeTo('series');
+      if (F.series) {
+        F.series.value = pSeries;
+        F.series.dispatchEvent(new Event('change'));
+        // change 핸들러가 비동기로 순번을 자동계산하므로, 지정 편수가 있으면 잠금 후 덮어쓴다
+        if (!isNaN(pEp) && pEp > 0) {
+          _editingSeriesNoLocked = true;
+          F.seriesNo.value = String(pEp).padStart(2, '0');
+        }
+      }
+    } else if (pType === 'standalone' || pType === 'article') {
+      setContentType('standalone');
+      // 단독 아티클로 진입 → 단편을 기본값으로, 영상도 선택 가능(배정된 경우). 시리즈·팟캐스트는 잠금.
+      if (IS_EDITOR_MODE) lockCtypeTo(['standalone', 'video']);
+    } else if (pType === 'video') {
+      setContentType('video');
+      // 영상으로 진입 → 영상을 기본값으로, 단편도 선택 가능(배정된 경우). 시리즈·팟캐스트는 잠금.
+      if (IS_EDITOR_MODE) lockCtypeTo(['video', 'standalone']);
+    }
+    addThanks('참고 자료', '');
+    addThanks('도움 주신 분', '');
+    setTimeout(updatePreview, 200);
+  }
+
+  // ?mode=prerelease — 프리릴리즈 모드 안내 배너 + 폼 간소화
+  if (params.get('mode') === 'prerelease') {
+    const notice = document.getElementById('staticNotice');
+    if (notice) {
+      notice.hidden = false;
+      notice.innerHTML = `
+        <strong style="display:block;margin-bottom:4px;">📣 프리릴리즈 모드</strong>
+        작성 중인 콘텐츠를 미리 등록합니다. 제목·썸네일·목차(또는 의도)만 작성하면 됩니다.
+        "프리릴리즈로 등록"을 누르면 Up Coming에 노출되어 응원·자료를 받습니다.
+      `;
+    }
+    togglePrereleaseMode(true);
+  }
+});
+</script>
+</body>
+</html>

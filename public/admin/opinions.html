@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opinions · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .field input, .field textarea {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--fg); font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--fg); }
+  .field-help { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .field-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+  .field-check input { width: 16px; height: 16px; accent-color: var(--fg); cursor: pointer; }
+  .form-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .form-err { color: #dc2626; font-size: 12px; margin-top: 8px; min-height: 14px; }
+
+  .order-cell { display: inline-flex; align-items: center; gap: 4px; }
+  .order-num { min-width: 22px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .order-btns { display: inline-flex; flex-direction: column; gap: 1px; }
+  .order-btn {
+    background: transparent; border: 1px solid var(--admin-border);
+    width: 22px; height: 14px; padding: 0; border-radius: 3px;
+    color: var(--fg); cursor: pointer; display: inline-flex;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .order-btn:hover:not(:disabled) { background: var(--hover); }
+  .order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .order-btn svg { width: 9px; height: 9px; }
+
+  /* 드래그 핸들 + 행 드래그 */
+  .drag-handle {
+    cursor: grab; color: var(--muted); font-size: 13px;
+    padding: 4px 6px; border-radius: 4px; display: inline-flex;
+    align-items: center; justify-content: center; user-select: none;
+    touch-action: none;
+  }
+  .drag-handle:hover { color: var(--fg); background: var(--hover); }
+  .drag-handle:active { cursor: grabbing; }
+  tr.op-row { transition: background .12s; }
+  tr.op-row.dragging { opacity: 0.4; }
+  tr.op-row.drop-before td { box-shadow: inset 0 2px 0 0 var(--fg); }
+  tr.op-row.drop-after td { box-shadow: inset 0 -2px 0 0 var(--fg); }
+
+  /* row-menu styles live in admin.css */
+  .admin-table-wrap { overflow: visible; }
+  .admin-table td { position: relative; }
+
+  .op-row.inactive .op-title { color: var(--muted); }
+  .op-title { font-size: 13px; font-weight: 500; color: var(--fg); }
+  .op-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .op-count { font-variant-numeric: tabular-nums; }
+
+  /* Comments modal */
+  .op-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .op-modal.open { display: flex; }
+  .op-modal-inner {
+    background: var(--bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    width: 100%; max-width: 640px;
+    max-height: 85vh; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .op-modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 22px; border-bottom: 1px solid var(--admin-border);
+  }
+  .op-modal-head h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .op-modal-head .op-modal-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .op-modal-close {
+    background: transparent; border: none; cursor: pointer;
+    color: var(--fg); font-size: 16px; padding: 4px;
+  }
+  .op-modal-body {
+    flex: 1; overflow-y: auto; padding: 14px 22px;
+  }
+  .op-cmt-row {
+    padding: 12px 0; border-bottom: 1px solid var(--admin-border);
+  }
+  .op-cmt-row:last-child { border-bottom: none; }
+  .op-cmt-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 4px; font-size: 11px; color: var(--muted);
+  }
+  .op-cmt-author { font-weight: 600; color: var(--fg); font-size: 12px; }
+  .op-cmt-text {
+    font-size: 13px; line-height: 1.65; color: var(--fg);
+    white-space: pre-wrap; word-break: keep-all;
+  }
+  .op-cmt-del {
+    background: transparent; border: 1px solid var(--admin-border);
+    color: #dc2626; padding: 3px 8px; border-radius: 4px;
+    font-size: 11px; cursor: pointer; font-family: inherit;
+    margin-left: 8px;
+  }
+  .op-cmt-del:hover { background: rgba(220, 38, 38, 0.08); }
+  .op-cmt-empty {
+    padding: 36px 0; text-align: center;
+    font-size: 13px; color: var(--muted);
+  }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">오피니언 관리</h1>
+        <p class="admin-page-sub">독자와 의견을 나눌 주제를 등록하고 받은 의견을 관리합니다.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <label class="admin-switch" style="padding:8px 16px;border:1px solid var(--admin-border);border-radius:10px;background:var(--bg);">
+          <span style="font-size:12px;color:var(--muted);margin-right:2px;">오피니언 기능</span>
+          <input type="checkbox" id="opinionEnabledToggle" />
+          <span class="admin-switch-track"></span>
+          <span class="admin-switch-label" id="opinionEnabledLabel">OFF</span>
+        </label>
+        <button type="button" class="admin-btn" onclick="openCreateModal()">
+          <i class="fa-solid fa-plus"></i> 새 오피니언
+        </button>
+      </div>
+    </div>
+
+    <!-- 오피니언 OFF 안내메시지 -->
+    <div id="opinionMsgCard" style="margin:0 0 20px;padding:18px 20px;border:1px solid var(--admin-border);border-radius:12px;background:var(--card,var(--bg));">
+      <label for="opinionDisabledMsg" style="display:block;font-size:13px;font-weight:600;color:var(--fg);margin-bottom:6px;">오피니언 OFF 안내메시지</label>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.6;">기능을 끄면 오피니언 페이지 방문자에게 이 메시지가 표시됩니다. 비워두면 기본 문구가 사용됩니다.</p>
+      <textarea id="opinionDisabledMsg" rows="3" placeholder="예) 오피니언 기능을 잠시 점검 중입니다. 곧 다시 찾아뵙겠습니다." style="width:100%;box-sizing:border-box;padding:11px 13px;font-size:13.5px;border:1px solid var(--admin-border);border-radius:8px;background:var(--bg);color:var(--fg);font-family:inherit;line-height:1.6;resize:vertical;"></textarea>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;justify-content:flex-end;">
+        <span id="opinionMsgStatus" style="font-size:12px;color:var(--muted);"></span>
+        <button type="button" class="admin-btn ghost" id="opinionMsgSave">메시지 저장</button>
+      </div>
+    </div>
+
+    <!-- 리스트 풀폭 -->
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:44px;"></th>
+            <th>제목</th>
+            <th style="width:160px;">기간</th>
+            <th style="width:80px; text-align:right;">의견 수</th>
+            <th style="width:90px;">상태</th>
+            <th style="width:80px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="opinionTable"><tr><td colspan="6" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);">
+      ※ 활성 주제 중 목록에서 가장 위에 있는 토픽이 홈 카드에 노출됩니다. 순서는 행을 드래그해 조정합니다. 홈 카드 클릭 시 의견 페이지(`/opinion.html`)로 이동합니다.
+    </p>
+  </main>
+</div>
+
+<!-- ===== Create/Edit Modal ===== -->
+<div class="admin-modal" id="formModal">
+  <div class="admin-modal-inner">
+    <button type="button" class="admin-modal-close" id="formModalClose" aria-label="닫기">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 class="admin-modal-title" id="formTitle">새 오피니언</h2>
+    <p class="admin-modal-sub">독자와 의견을 나눌 주제를 등록합니다. 기간 설정 시 종료일 이후 댓글이 잠깁니다.</p>
+    <form id="opinionForm">
+      <div class="field">
+        <label for="fTitle">제목 *</label>
+        <input type="text" id="fTitle" placeholder="예: 디자이너에게 AI는 도구일까, 동료일까?" autocomplete="off" />
+        <div class="field-help">홈 카드와 의견 페이지 상단에 표시됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="fDesc">설명</label>
+        <textarea id="fDesc" placeholder="이 주제에 대해 어떤 의견을 나누고 싶은지 짧게 적어주세요."></textarea>
+        <div class="field-help">홈 카드 본문(2~3줄)과 의견 페이지 부제로 사용됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="fStartAt">시작일</label>
+        <input type="datetime-local" id="fStartAt" />
+        <div class="field-help">비워두면 즉시 활성</div>
+      </div>
+      <div class="field">
+        <label for="fEndAt">종료일</label>
+        <input type="datetime-local" id="fEndAt" />
+        <div class="field-help">지정한 시각 이후 댓글이 잠깁니다 (수정/삭제도 불가)</div>
+      </div>
+      <div class="field">
+        <label class="field-check">
+          <input type="checkbox" id="fActive" checked />
+          <span>활성화 (홈 카드 후보 / 의견 페이지 노출)</span>
+        </label>
+      </div>
+      <div class="form-err" id="formErr"></div>
+      <div class="form-actions">
+        <button type="submit" class="admin-btn" id="saveBtn"><i class="fa-solid fa-plus"></i> 오피니언 생성</button>
+        <button type="button" class="admin-btn ghost" id="cancelBtn">취소</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Comments modal ===== -->
+<div class="op-modal" id="cmtModal" aria-hidden="true">
+  <div class="op-modal-inner">
+    <div class="op-modal-head">
+      <div>
+        <h3 id="cmtModalTitle">받은 의견</h3>
+        <div class="op-modal-sub" id="cmtModalSub"></div>
+      </div>
+      <button class="op-modal-close" onclick="closeCmtModal()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="op-modal-body" id="cmtModalBody">
+      <div class="op-cmt-empty">불러오는 중...</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  const F = {
+    title: document.getElementById('fTitle'),
+    desc: document.getElementById('fDesc'),
+    active: document.getElementById('fActive'),
+    startAt: document.getElementById('fStartAt'),
+    endAt: document.getElementById('fEndAt'),
+    err: document.getElementById('formErr'),
+    form: document.getElementById('opinionForm'),
+    saveBtn: document.getElementById('saveBtn'),
+    cancelBtn: document.getElementById('cancelBtn'),
+    formTitle: document.getElementById('formTitle')
+  };
+
+  // datetime-local <-> JS Date 헬퍼
+  function _toLocalDtString(date) {
+    if (!date) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+  function _parseLocalDt(val) {
+    if (!val) return null;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  let editingId = null;
+  let opinionList = [];
+  let _cmtUnsub = null;
+  let _cmtCurrentId = null;
+
+  function resetForm() {
+    editingId = null;
+    F.form.reset();
+    F.active.checked = true;
+    F.err.textContent = '';
+    F.formTitle.textContent = '새 오피니언';
+    F.saveBtn.innerHTML = '<i class="fa-solid fa-plus"></i> 오피니언 생성';
+  }
+
+  // ===== Create/Edit Modal open/close =====
+  const formModal = document.getElementById('formModal');
+  window.openCreateModal = function() {
+    resetForm();
+    formModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.querySelector('#formModal input,#formModal textarea')?.focus(), 50);
+  };
+  window.closeCreateModal = function() {
+    formModal.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  document.getElementById('formModalClose').addEventListener('click', closeCreateModal);
+  formModal.addEventListener('click', e => { if (e.target === formModal) closeCreateModal(); });
+
+  function startEdit(id) {
+    const item = opinionList.find(o => o.id === id);
+    if (!item) return;
+    const d = item.data;
+    editingId = id;
+    F.title.value = d.title || '';
+    F.desc.value = d.description || '';
+    F.active.checked = d.active !== false;
+    const startDate = (d.startAt && d.startAt.toDate) ? d.startAt.toDate() : null;
+    const endDate = (d.endAt && d.endAt.toDate) ? d.endAt.toDate() : null;
+    F.startAt.value = _toLocalDtString(startDate);
+    F.endAt.value = _toLocalDtString(endDate);
+    F.err.textContent = '';
+    F.formTitle.textContent = '오피니언 수정';
+    F.saveBtn.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> 변경 저장';
+    formModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => F.title.focus(), 50);
+  }
+
+  F.cancelBtn.addEventListener('click', closeCreateModal);
+
+  F.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    F.err.textContent = '';
+    const title = (F.title.value || '').trim();
+    const description = (F.desc.value || '').trim();
+    const active = !!F.active.checked;
+
+    if (!title) { F.err.textContent = '제목을 입력하세요.'; return; }
+
+    const startDate = _parseLocalDt(F.startAt.value);
+    const endDate = _parseLocalDt(F.endAt.value);
+    if (startDate && endDate && endDate.getTime() <= startDate.getTime()) {
+      F.err.textContent = '종료일은 시작일 이후여야 합니다.';
+      return;
+    }
+
+    const payload = {
+      title,
+      description,
+      active,
+      startAt: startDate ? fb.Timestamp.fromDate(startDate) : null,
+      endAt: endDate ? fb.Timestamp.fromDate(endDate) : null,
+      updatedAt: fb.FieldValue.serverTimestamp()
+    };
+
+    F.saveBtn.disabled = true;
+    try {
+      if (editingId) {
+        await fb.db.collection('opinions').doc(editingId).update(payload);
+      } else {
+        payload.order = nextOrder();   // 새 토픽은 맨 뒤로 — 순서는 드래그로 조정
+        payload.commentCount = 0;
+        payload.createdAt = fb.FieldValue.serverTimestamp();
+        await fb.db.collection('opinions').add(payload);
+      }
+      closeCreateModal();
+      resetForm();
+    } catch (err) {
+      F.err.textContent = '저장 실패: ' + err.message;
+    } finally {
+      F.saveBtn.disabled = false;
+    }
+  });
+
+  async function toggleActive(id) {
+    const item = opinionList.find(o => o.id === id);
+    if (!item) return;
+    const cur = item.data.active !== false;
+    try {
+      await fb.db.collection('opinions').doc(id).update({
+        active: !cur,
+        updatedAt: fb.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      sysAlert('상태 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  async function deleteOpinion(id) {
+    const item = opinionList.find(o => o.id === id);
+    if (!item) return;
+    const title = item.data.title || '(제목 없음)';
+    if (!(await sysConfirm(`'${title}' 오피니언을 삭제하시겠습니까?\n받은 의견(댓글) 문서는 자동 삭제되지 않으니,\n필요하면 먼저 댓글을 정리하세요.`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('opinions').doc(id).delete();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  function sortedList() {
+    return [...opinionList].sort((a, b) => {
+      const oa = a.data.order != null ? a.data.order : 0;
+      const ob = b.data.order != null ? b.data.order : 0;
+      if (oa !== ob) return oa - ob;
+      const ta = (a.data.createdAt && a.data.createdAt.toDate) ? a.data.createdAt.toDate().getTime() : 0;
+      const tb = (b.data.createdAt && b.data.createdAt.toDate) ? b.data.createdAt.toDate().getTime() : 0;
+      return tb - ta;
+    });
+  }
+
+  // 새 토픽 정렬값 = 현재 최대 order + 1
+  function nextOrder() {
+    let max = -1;
+    opinionList.forEach(o => { const v = o.data.order != null ? o.data.order : 0; if (v > max) max = v; });
+    return max + 1;
+  }
+
+  // ===== 드래그 앤 드롭 순서 변경 =====
+  let _dragId = null;
+  function bindDragAndDrop(tbody) {
+    tbody.querySelectorAll('tr.op-row').forEach(row => {
+      row.addEventListener('dragstart', e => {
+        _dragId = row.dataset.id;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', _dragId); } catch (_) {}
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        clearDropMarks(tbody);
+        _dragId = null;
+      });
+      row.addEventListener('dragover', e => {
+        if (_dragId === null || row.dataset.id === _dragId) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        clearDropMarks(tbody);
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        row.classList.add(after ? 'drop-after' : 'drop-before');
+      });
+      row.addEventListener('drop', e => {
+        if (_dragId === null || row.dataset.id === _dragId) { clearDropMarks(tbody); return; }
+        e.preventDefault();
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        reorderOpinions(_dragId, row.dataset.id, after);
+        clearDropMarks(tbody);
+      });
+    });
+  }
+  function clearDropMarks(tbody) {
+    tbody.querySelectorAll('.drop-before,.drop-after')
+      .forEach(r => r.classList.remove('drop-before', 'drop-after'));
+  }
+
+  async function reorderOpinions(dragId, targetId, after) {
+    let list = sortedList();
+    const dragItem = list.find(o => o.id === dragId);
+    if (!dragItem) return;
+    list = list.filter(o => o.id !== dragId);
+    let targetIdx = list.findIndex(o => o.id === targetId);
+    if (targetIdx < 0) return;
+    list.splice(after ? targetIdx + 1 : targetIdx, 0, dragItem);
+    try {
+      const batch = fb.db.batch();
+      list.forEach((o, i) => {
+        if (o.data.order !== i) {
+          batch.update(fb.db.collection('opinions').doc(o.id), {
+            order: i, updatedAt: fb.FieldValue.serverTimestamp()
+          });
+        }
+      });
+      await batch.commit();
+    } catch (err) {
+      sysAlert('순서 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('opinionTable');
+    if (opinionList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="admin-empty">
+        아직 등록된 오피니언이 없습니다. 우측 상단 "새 오피니언" 버튼으로 추가하세요.
+      </td></tr>`;
+      return;
+    }
+    const sorted = sortedList();
+    const now = Date.now();
+    const fmtShort = ts => {
+      if (!ts) return '';
+      const d = (typeof ts.toDate === 'function') ? ts.toDate() : new Date(ts);
+      if (isNaN(d.getTime())) return '';
+      const pad = n => String(n).padStart(2, '0');
+      return `${String(d.getFullYear()).slice(2)}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    tbody.innerHTML = sorted.map((item, idx) => {
+      const d = item.data;
+      const id = item.id;
+      const isFirst = idx === 0;
+      const isLast = idx === sorted.length - 1;
+      const active = d.active !== false;
+      const startMs = (d.startAt && d.startAt.toDate) ? d.startAt.toDate().getTime() : 0;
+      const endMs = (d.endAt && d.endAt.toDate) ? d.endAt.toDate().getTime() : Infinity;
+      let statusTag;
+      if (!active) {
+        statusTag = '<span class="admin-tag hidden">비활성</span>';
+      } else if (now < startMs) {
+        statusTag = '<span class="admin-tag" style="color:#94a3b8;border-color:rgba(148,163,184,0.4);">예정</span>';
+      } else if (now >= endMs) {
+        statusTag = '<span class="admin-tag" style="color:#64748b;">종료</span>';
+      } else {
+        statusTag = '<span class="admin-tag" style="color:#2563eb;border-color:rgba(37,99,235,0.35);">진행 중</span>';
+      }
+      const rowCls = active ? 'op-row' : 'op-row inactive';
+      const toggleLabel = active
+        ? '<i class="fa-regular fa-eye-slash"></i> 비활성화'
+        : '<i class="fa-regular fa-eye"></i> 활성화';
+      const title = d.title || '(제목 없음)';
+      const desc = d.description || '';
+      const periodCell = (d.startAt || d.endAt)
+        ? `<div style="font-size:11px;color:var(--muted);line-height:1.45;">
+            ${d.startAt ? `<div>시작 ${adminEscHTML(fmtShort(d.startAt))}</div>` : `<div style="opacity:0.5;">시작 즉시</div>`}
+            ${d.endAt ? `<div>종료 ${adminEscHTML(fmtShort(d.endAt))}</div>` : `<div style="opacity:0.5;">종료 없음</div>`}
+           </div>`
+        : '<span style="font-size:11px;color:var(--muted);opacity:0.5;">설정 없음</span>';
+      return `
+        <tr class="${rowCls}" draggable="true" data-id="${adminEscHTML(id)}">
+          <td style="text-align:center;">
+            <span class="drag-handle" title="끌어서 순서 변경" aria-label="순서 변경 핸들"><i class="fa-solid fa-grip-vertical"></i></span>
+          </td>
+          <td>
+            <div class="op-title">${adminEscHTML(title)}</div>
+            ${desc ? `<div class="op-desc">${adminEscHTML(desc)}</div>` : ''}
+          </td>
+          <td>${periodCell}</td>
+          <td style="text-align:right;"><span class="op-count">${fmtNum(d.commentCount || 0)}</span></td>
+          <td>${statusTag}</td>
+          <td>
+            <div class="admin-actions" style="justify-content:flex-end;gap:6px;">
+              <details class="row-menu">
+                <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+                <div class="row-menu-pop">
+                  <button data-action="edit" data-id="${adminEscHTML(id)}"><i class="fa-regular fa-pen-to-square"></i> 수정</button>
+                  <button data-action="toggle" data-id="${adminEscHTML(id)}">${toggleLabel}</button>
+                  <button data-action="view" data-id="${adminEscHTML(id)}"><i class="fa-regular fa-comments"></i> 의견 보기</button>
+                  <button data-action="delete" data-id="${adminEscHTML(id)}" class="danger"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+                </div>
+              </details>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        btn.closest('.row-menu')?.removeAttribute('open');
+        if (action === 'edit') startEdit(id);
+        else if (action === 'delete') deleteOpinion(id);
+        else if (action === 'toggle') toggleActive(id);
+        else if (action === 'view') openCmtModal(id);
+      });
+    });
+
+    bindDragAndDrop(tbody);
+  }
+
+  // ===== Comments modal =====
+  function fmtDateTime(d) {
+    if (!d) return '';
+    const t = (typeof d.toDate === 'function') ? d.toDate() : new Date(d);
+    if (isNaN(t.getTime())) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${t.getFullYear()}.${pad(t.getMonth()+1)}.${pad(t.getDate())} ${pad(t.getHours())}:${pad(t.getMinutes())}`;
+  }
+
+  function openCmtModal(opinionId) {
+    const item = opinionList.find(o => o.id === opinionId);
+    if (!item) return;
+    _cmtCurrentId = opinionId;
+    document.getElementById('cmtModalTitle').textContent = item.data.title || '받은 의견';
+    document.getElementById('cmtModalSub').textContent = item.data.description || '';
+    const body = document.getElementById('cmtModalBody');
+    body.innerHTML = '<div class="op-cmt-empty">불러오는 중...</div>';
+    document.getElementById('cmtModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    if (_cmtUnsub) { try { _cmtUnsub(); } catch(e){} }
+    try {
+      _cmtUnsub = fb.db.collection('opinions').doc(opinionId).collection('comments')
+        .orderBy('createdAt', 'desc').onSnapshot(snap => {
+          if (snap.empty) {
+            body.innerHTML = '<div class="op-cmt-empty">아직 받은 의견이 없습니다.</div>';
+            return;
+          }
+          body.innerHTML = snap.docs.map(d => {
+            const c = d.data();
+            return `
+              <div class="op-cmt-row">
+                <div class="op-cmt-head">
+                  <span class="op-cmt-author">${adminEscHTML(c.userName || '독자')}</span>
+                  <span>
+                    ${fmtDateTime(c.createdAt)}
+                    <button class="op-cmt-del" data-cmt="${adminEscHTML(d.id)}"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+                  </span>
+                </div>
+                <div class="op-cmt-text">${adminEscHTML(c.text || '')}</div>
+              </div>
+            `;
+          }).join('');
+          body.querySelectorAll('[data-cmt]').forEach(btn => {
+            btn.addEventListener('click', () => deleteCmt(btn.dataset.cmt));
+          });
+        }, err => {
+          body.innerHTML = `<div class="op-cmt-empty">로딩 실패: ${adminEscHTML(err.message)}</div>`;
+        });
+    } catch (err) {
+      body.innerHTML = `<div class="op-cmt-empty">로딩 실패: ${adminEscHTML(err.message)}</div>`;
+    }
+  }
+  window.closeCmtModal = function() {
+    document.getElementById('cmtModal').classList.remove('open');
+    document.body.style.overflow = '';
+    if (_cmtUnsub) { try { _cmtUnsub(); } catch(e){} _cmtUnsub = null; }
+    _cmtCurrentId = null;
+  };
+
+  async function deleteCmt(cmtId) {
+    if (!_cmtCurrentId) return;
+    if (!(await sysConfirm('이 의견을 삭제할까요?', { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('opinions').doc(_cmtCurrentId)
+        .collection('comments').doc(cmtId).delete();
+      try {
+        await fb.db.collection('opinions').doc(_cmtCurrentId).update({
+          commentCount: fb.FieldValue.increment(-1)
+        });
+      } catch (_) {}
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  // 백드롭 클릭 시 닫기
+  document.getElementById('cmtModal').addEventListener('click', e => {
+    if (e.target.id === 'cmtModal') closeCmtModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (formModal.classList.contains('open')) closeCreateModal();
+    else closeCmtModal();
+  });
+
+  function subscribeOpinions() {
+    fb.db.collection('opinions').onSnapshot(snap => {
+      opinionList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderTable();
+    }, err => {
+      console.error('[opinions] 구독 실패:', err);
+      document.getElementById('opinionTable').innerHTML =
+        `<tr><td colspan="6" class="admin-empty">로딩 실패: ${adminEscHTML(err.message)}</td></tr>`;
+    });
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      subscribeOpinions();
+      // 오피니언 기능 ON/OFF 토글 구독
+      const toggle = document.getElementById('opinionEnabledToggle');
+      const label = document.getElementById('opinionEnabledLabel');
+      const msgInput = document.getElementById('opinionDisabledMsg');
+      const msgStatus = document.getElementById('opinionMsgStatus');
+      const msgSave = document.getElementById('opinionMsgSave');
+      let _msgDirty = false;
+      if (msgInput) msgInput.addEventListener('input', () => { _msgDirty = true; if (msgStatus) msgStatus.textContent = ''; });
+      if (toggle) {
+        // Firestore site/settings 실시간 구독 → 토글 상태 동기화
+        fb.db.collection('site').doc('settings').onSnapshot(snap => {
+          const data = snap.exists ? snap.data() : {};
+          const enabled = data.opinionsEnabled !== false;
+          toggle.checked = enabled;
+          if (label) label.textContent = enabled ? 'ON' : 'OFF';
+          // 사용자가 편집 중이 아니면 메시지 동기화
+          if (msgInput && !_msgDirty) msgInput.value = data.opinionsDisabledMsg || '';
+        });
+        // 안내메시지 저장
+        if (msgSave && msgInput) {
+          msgSave.addEventListener('click', async () => {
+            msgSave.disabled = true;
+            try {
+              await fb.db.collection('site').doc('settings').set({
+                opinionsDisabledMsg: msgInput.value.trim(),
+                updatedAt: fb.FieldValue.serverTimestamp()
+              }, { merge: true });
+              _msgDirty = false;
+              if (msgStatus) msgStatus.textContent = '저장되었습니다.';
+            } catch (err) {
+              sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+            } finally {
+              msgSave.disabled = false;
+            }
+          });
+        }
+        // 사용자가 토글 클릭 시 저장
+        toggle.addEventListener('change', async () => {
+          const enabled = toggle.checked;
+          if (label) label.textContent = enabled ? 'ON' : 'OFF';
+          try {
+            await fb.db.collection('site').doc('settings').set({
+              opinionsEnabled: enabled,
+              updatedAt: fb.FieldValue.serverTimestamp()
+            }, { merge: true });
+          } catch (err) {
+            sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+            toggle.checked = !enabled;
+            if (label) label.textContent = !enabled ? 'ON' : 'OFF';
+          }
+        });
+      }
+    } else {
+      document.getElementById('opinionTable').innerHTML =
+        `<tr><td colspan="6" class="admin-empty">관리자 권한이 필요합니다.</td></tr>`;
+    }
+  });
+</script>
+</body>
+</html>

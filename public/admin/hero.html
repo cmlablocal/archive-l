@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hero · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  .hero-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 1080px) { .hero-layout { grid-template-columns: 1fr; } }
+
+  .hero-col {
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 18px;
+    background: var(--bg);
+    min-height: 200px;
+  }
+  .hero-col h2 {
+    font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .hero-col h2 .col-count { font-size: 11px; color: var(--muted); }
+
+  .hero-search {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--fg); font-family: inherit;
+    margin-bottom: 12px;
+  }
+  .hero-search:focus { outline: none; border-color: var(--fg); }
+
+  .hero-list {
+    list-style: none; padding: 0; margin: 0;
+    max-height: 560px; overflow-y: auto;
+  }
+  .hero-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border: 1px solid var(--admin-border);
+    border-radius: 8px; margin-bottom: 6px;
+  }
+  .hero-thumb {
+    width: 64px; height: 40px; flex-shrink: 0;
+    border-radius: 4px; overflow: hidden;
+    background: var(--hover);
+  }
+  .hero-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero-meta { flex: 1; min-width: 0; }
+  .hero-title-text {
+    font-size: 13px; font-weight: 500; color: var(--fg);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hero-cat {
+    font-size: 11px; color: var(--muted); margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hero-src-tag {
+    display: inline-block; padding: 1px 5px; margin-right: 4px;
+    font-size: 9px; border-radius: 3px; vertical-align: middle;
+    background: var(--hover); color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .hero-actions { display: flex; gap: 4px; align-items: center; }
+  .hero-btn {
+    background: transparent; border: 1px solid var(--admin-border);
+    color: var(--fg); padding: 4px 8px; font-size: 11px;
+    border-radius: 4px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .hero-btn:hover:not(:disabled) { background: var(--hover); }
+  .hero-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .hero-btn.danger { color: #dc2626; }
+  .hero-btn.danger:hover { background: rgba(220, 38, 38, 0.08); }
+  .hero-btn.icon-only { padding: 4px 6px; }
+
+  .hero-empty {
+    padding: 36px 12px; text-align: center;
+    font-size: 12px; color: var(--muted);
+    border: 1px dashed var(--admin-border);
+    border-radius: 8px;
+  }
+
+  .hero-save-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid var(--admin-border);
+  }
+  .hero-save-status { font-size: 12px; color: var(--muted); }
+  .hero-save-status.ok { color: #16a34a; }
+  .hero-save-status.err { color: #dc2626; }
+
+  .hero-order { width: 26px; text-align: right; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  /* 드래그 핸들 + 항목 드래그 */
+  .hero-item[draggable="true"] { cursor: default; }
+  .drag-handle {
+    cursor: grab; color: var(--muted); font-size: 13px;
+    padding: 4px 6px; border-radius: 4px; display: inline-flex;
+    align-items: center; justify-content: center; user-select: none;
+    touch-action: none; flex-shrink: 0;
+  }
+  .drag-handle:hover { color: var(--fg); background: var(--hover); }
+  .drag-handle:active { cursor: grabbing; }
+  li.hero-item.dragging { opacity: 0.4; }
+  li.hero-item.drop-before { box-shadow: inset 0 2px 0 0 var(--fg); }
+  li.hero-item.drop-after { box-shadow: inset 0 -2px 0 0 var(--fg); }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">히어로 콘텐츠 관리</h1>
+        <p class="admin-page-sub">홈 페이지 상단 카루셀에 노출될 콘텐츠와 순서를 관리합니다.</p>
+      </div>
+    </div>
+
+    <div class="hero-layout">
+      <!-- LEFT: available articles -->
+      <div class="hero-col">
+        <h2>사용 가능한 콘텐츠 <span class="col-count" id="leftCount">0</span></h2>
+        <input type="text" id="heroSearch" class="hero-search" placeholder="제목·카테고리로 검색" autocomplete="off" />
+        <ul class="hero-list" id="leftList">
+          <li class="hero-empty">불러오는 중...</li>
+        </ul>
+      </div>
+
+      <!-- RIGHT: hero items -->
+      <div class="hero-col">
+        <h2>
+          히어로에 표시
+          <span class="col-count"><span id="rightCount">0</span> / <span id="rightMax">5</span></span>
+        </h2>
+        <ul class="hero-list" id="rightList">
+          <li class="hero-empty">아직 선택된 콘텐츠가 없습니다. 왼쪽에서 추가해주세요.</li>
+        </ul>
+
+        <div class="hero-save-bar">
+          <span class="hero-save-status" id="saveStatus">변경사항을 저장하지 않았습니다.</span>
+          <button class="admin-btn" id="saveBtn" disabled><i class="fa-regular fa-floppy-disk"></i> 저장</button>
+        </div>
+        <p style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.55;">
+          ※ 최대 <span id="maxHint">5</span>개까지 등록 가능합니다. 위쪽이 카루셀 첫 번째 슬라이드로 표시됩니다.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script src="/assets/js/data.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  const MAX_HERO = 5;
+  document.getElementById('rightMax').textContent = MAX_HERO;
+  document.getElementById('maxHint').textContent = MAX_HERO;
+
+  // ----- 상태 -----
+  // 카탈로그: id => { id, title, sub, cat, date, thumb, free, src, seriesName, seriesNo, seriesTotal, type }
+  let catalog = {};
+  // 선택된 히어로 항목 id 배열 (순서 의미 있음)
+  let heroIds = [];
+  // 저장된 마지막 스냅샷 (변경 감지용)
+  let savedSnapshot = '[]';
+  // 검색어
+  let searchQuery = '';
+
+  function buildItemFromFirestore(id, d) {
+    const seriesName = d.seriesName || '';
+    const seriesNo = d.seriesNo;
+    const seriesTotal = d.seriesTotal;
+    return {
+      id, src: 'firestore',
+      title: d.title || '(제목 없음)',
+      sub: d.sub || '',
+      cat: d.cat || d.category || '',
+      date: d.date || '',
+      thumb: d.thumb || d.thumbnail || '',
+      free: !!d.free,
+      seriesName, seriesNo, seriesTotal,
+      type: d.type || ''
+    };
+  }
+  function buildItemFromStatic(id, a) {
+    return {
+      id, src: 'static',
+      title: a.title || '(제목 없음)',
+      sub: a.sub || '',
+      cat: a.cat || '',
+      date: a.date || '',
+      thumb: a.thumb || '',
+      free: !!a.free,
+      seriesName: '', seriesNo: null, seriesTotal: null,
+      type: a.type || ''
+    };
+  }
+
+  function dirty() {
+    return JSON.stringify(heroIds) !== savedSnapshot;
+  }
+  function refreshSaveStatus() {
+    const btn = document.getElementById('saveBtn');
+    const status = document.getElementById('saveStatus');
+    if (dirty()) {
+      btn.disabled = false;
+      status.textContent = '저장하지 않은 변경사항이 있습니다.';
+      status.className = 'hero-save-status';
+    } else {
+      btn.disabled = true;
+      status.textContent = '모든 변경사항이 저장되었습니다.';
+      status.className = 'hero-save-status ok';
+    }
+  }
+
+  function renderLeft() {
+    const ul = document.getElementById('leftList');
+    const q = searchQuery.toLowerCase();
+    const all = Object.values(catalog)
+      .filter(it => !heroIds.includes(it.id))
+      .filter(it => {
+        if (!q) return true;
+        return (it.title || '').toLowerCase().includes(q)
+          || (it.cat || '').toLowerCase().includes(q)
+          || (it.seriesName || '').toLowerCase().includes(q);
+      })
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    document.getElementById('leftCount').textContent = all.length;
+
+    if (all.length === 0) {
+      ul.innerHTML = `<li class="hero-empty">${searchQuery ? '검색 결과가 없습니다.' : '추가 가능한 콘텐츠가 없습니다.'}</li>`;
+      return;
+    }
+    const atMax = heroIds.length >= MAX_HERO;
+    ul.innerHTML = all.map(it => `
+      <li class="hero-item">
+        <div class="hero-thumb"><img src="${adminEscHTML(it.thumb || '')}" alt="${adminEscHTML(it.title)}" onerror="this.style.display='none'" /></div>
+        <div class="hero-meta">
+          <div class="hero-title-text">
+            <span class="hero-src-tag">${it.src === 'firestore' ? 'FS' : 'STATIC'}</span>${adminEscHTML(it.title)}
+          </div>
+          <div class="hero-cat">${adminEscHTML(it.cat || it.seriesName || '')}${it.date ? ' · ' + adminEscHTML(it.date) : ''}</div>
+        </div>
+        <div class="hero-actions">
+          <button class="hero-btn" data-add="${adminEscHTML(it.id)}" ${atMax ? 'disabled' : ''} title="${atMax ? '최대 개수 도달' : '히어로에 추가'}">
+            <i class="fa-solid fa-plus"></i> 추가
+          </button>
+        </div>
+      </li>`).join('');
+
+    ul.querySelectorAll('[data-add]').forEach(btn => {
+      btn.addEventListener('click', () => addToHero(btn.dataset.add));
+    });
+  }
+
+  function renderRight() {
+    const ul = document.getElementById('rightList');
+    document.getElementById('rightCount').textContent = heroIds.length;
+
+    if (heroIds.length === 0) {
+      ul.innerHTML = '<li class="hero-empty">아직 선택된 콘텐츠가 없습니다. 왼쪽에서 추가해주세요.</li>';
+      refreshSaveStatus();
+      return;
+    }
+
+    ul.innerHTML = heroIds.map((id, idx) => {
+      const it = catalog[id];
+      const isFirst = idx === 0;
+      const isLast = idx === heroIds.length - 1;
+      if (!it) {
+        // 미해결 id (삭제된 글 등)
+        return `
+          <li class="hero-item" draggable="true" data-id="${adminEscHTML(id)}" style="opacity:0.6;">
+            <span class="drag-handle" title="끌어서 순서 변경" aria-label="순서 변경 핸들"><i class="fa-solid fa-grip-vertical"></i></span>
+            <div class="hero-meta">
+              <div class="hero-title-text" style="color:#dc2626;">(찾을 수 없는 콘텐츠: ${adminEscHTML(id)})</div>
+              <div class="hero-cat">콘텐츠가 삭제되었거나 ID가 변경되었습니다.</div>
+            </div>
+            <div class="hero-actions">
+              <button class="hero-btn danger icon-only" data-remove="${adminEscHTML(id)}" title="제거">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </li>`;
+      }
+      return `
+        <li class="hero-item" draggable="true" data-id="${adminEscHTML(id)}">
+          <span class="drag-handle" title="끌어서 순서 변경" aria-label="순서 변경 핸들"><i class="fa-solid fa-grip-vertical"></i></span>
+          <div class="hero-thumb"><img src="${adminEscHTML(it.thumb || '')}" alt="${adminEscHTML(it.title)}" onerror="this.style.display='none'" /></div>
+          <div class="hero-meta">
+            <div class="hero-title-text">
+              <span class="hero-src-tag">${it.src === 'firestore' ? 'FS' : 'STATIC'}</span>${adminEscHTML(it.title)}
+            </div>
+            <div class="hero-cat">${adminEscHTML(it.cat || it.seriesName || '')}${it.date ? ' · ' + adminEscHTML(it.date) : ''}</div>
+          </div>
+          <div class="hero-actions">
+            <button class="hero-btn danger icon-only" data-remove="${adminEscHTML(id)}" title="제거">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </div>
+        </li>`;
+    }).join('');
+
+    ul.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => removeFromHero(b.dataset.remove)));
+    bindHeroDrag(ul);
+
+    refreshSaveStatus();
+  }
+
+  // ===== 드래그 앤 드롭 순서 변경 =====
+  let _dragId = null;
+  function bindHeroDrag(ul) {
+    ul.querySelectorAll('li.hero-item[data-id]').forEach(row => {
+      row.addEventListener('dragstart', e => {
+        _dragId = row.dataset.id;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', _dragId); } catch (_) {}
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        clearHeroDropMarks(ul);
+        _dragId = null;
+      });
+      row.addEventListener('dragover', e => {
+        if (_dragId === null || row.dataset.id === _dragId) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        clearHeroDropMarks(ul);
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        row.classList.add(after ? 'drop-after' : 'drop-before');
+      });
+      row.addEventListener('drop', e => {
+        if (_dragId === null || row.dataset.id === _dragId) { clearHeroDropMarks(ul); return; }
+        e.preventDefault();
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        reorderHero(_dragId, row.dataset.id, after);
+        clearHeroDropMarks(ul);
+      });
+    });
+  }
+  function clearHeroDropMarks(ul) {
+    ul.querySelectorAll('.drop-before,.drop-after')
+      .forEach(r => r.classList.remove('drop-before', 'drop-after'));
+  }
+  function reorderHero(dragId, targetId, after) {
+    let list = heroIds.filter(x => x !== dragId);
+    let targetIdx = list.indexOf(targetId);
+    if (targetIdx < 0) return;
+    list.splice(after ? targetIdx + 1 : targetIdx, 0, dragId);
+    heroIds = list;
+    renderRight();
+  }
+
+  function addToHero(id) {
+    if (heroIds.includes(id)) return;
+    if (heroIds.length >= MAX_HERO) return;
+    heroIds.push(id);
+    renderLeft();
+    renderRight();
+  }
+  function removeFromHero(id) {
+    heroIds = heroIds.filter(x => x !== id);
+    renderLeft();
+    renderRight();
+  }
+  function moveItem(id, dir) {
+    const i = heroIds.indexOf(id);
+    if (i < 0) return;
+    const j = i + dir;
+    if (j < 0 || j >= heroIds.length) return;
+    const tmp = heroIds[i]; heroIds[i] = heroIds[j]; heroIds[j] = tmp;
+    renderRight();
+  }
+
+  // Search
+  document.getElementById('heroSearch').addEventListener('input', e => {
+    searchQuery = e.target.value.trim();
+    renderLeft();
+  });
+
+  // Save
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveBtn');
+    const status = document.getElementById('saveStatus');
+    btn.disabled = true;
+    status.textContent = '저장 중...';
+    status.className = 'hero-save-status';
+    try {
+      await fb.db.collection('site').doc('hero').set({
+        items: heroIds,
+        updatedAt: fb.FieldValue.serverTimestamp()
+      }, { merge: true });
+      savedSnapshot = JSON.stringify(heroIds);
+      refreshSaveStatus();
+      status.textContent = '저장되었습니다.';
+      status.className = 'hero-save-status ok';
+    } catch (err) {
+      status.textContent = '저장 실패: ' + err.message;
+      status.className = 'hero-save-status err';
+      btn.disabled = false;
+    }
+  });
+
+  // Initial: load static articles immediately into catalog
+  Object.entries(window.ARTICLES || {}).forEach(([id, a]) => {
+    catalog[id] = buildItemFromStatic(id, a);
+  });
+
+  async function loadFirestoreArticles() {
+    try {
+      const snap = await fb.db.collection('articles')
+        .where('status', '==', 'PUBLISHED').get();
+      snap.docs.forEach(doc => {
+        catalog[doc.id] = buildItemFromFirestore(doc.id, doc.data());
+      });
+    } catch (err) {
+      console.warn('[hero] articles 로드 실패:', err.message);
+    }
+  }
+
+  async function loadHeroDoc() {
+    try {
+      const snap = await fb.db.collection('site').doc('hero').get();
+      if (snap.exists) {
+        const d = snap.data();
+        heroIds = Array.isArray(d.items) ? d.items.filter(x => typeof x === 'string') : [];
+      } else {
+        heroIds = [];
+      }
+      savedSnapshot = JSON.stringify(heroIds);
+    } catch (err) {
+      console.warn('[hero] site/hero 로드 실패:', err.message);
+      heroIds = [];
+      savedSnapshot = '[]';
+    }
+  }
+
+  fb.authReady.then(async user => {
+    if (!user || !fb.isAdmin()) {
+      document.getElementById('leftList').innerHTML =
+        '<li class="hero-empty">관리자 권한이 필요합니다.</li>';
+      document.getElementById('rightList').innerHTML =
+        '<li class="hero-empty">관리자 권한이 필요합니다.</li>';
+      return;
+    }
+    await Promise.all([loadFirestoreArticles(), loadHeroDoc()]);
+    renderLeft();
+    renderRight();
+  });
+</script>
+</body>
+</html>

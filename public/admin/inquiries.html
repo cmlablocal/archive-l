@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>문의 접수 · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  .inq-filters { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .inq-filter-btn {
+    padding: 7px 14px; font-size: 12.5px; border: 1px solid var(--admin-border);
+    background: transparent; color: var(--muted); border-radius: 999px; cursor: pointer;
+    font-family: inherit; transition: all .15s;
+  }
+  .inq-filter-btn:hover { color: var(--fg); }
+  .inq-filter-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .inq-filter-btn .cnt { font-variant-numeric: tabular-nums; opacity: .7; margin-left: 4px; }
+
+  tr.inq-row { cursor: pointer; transition: background .12s; }
+  tr.inq-row:hover { background: var(--hover); }
+  tr.inq-row.unread .iq-subject { font-weight: 700; }
+  .iq-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--admin-border); }
+  tr.inq-row.unread .iq-dot { background: #2563eb; }
+  .iq-type { font-size: 11px; color: var(--muted); }
+  .iq-hidden-tag { font-size: 10px; font-weight: 700; color: #b45309; background: rgba(245,158,11,0.14); padding: 2px 6px; border-radius: 999px; margin-left: 6px; white-space: nowrap; }
+  .iq-subject { font-size: 13px; color: var(--fg); }
+  .iq-name { font-size: 12.5px; }
+  .iq-email { font-size: 11.5px; color: var(--muted); }
+  .iq-date { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* 상세 모달 */
+  .iq-detail-row { display: flex; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--admin-border); }
+  .iq-detail-row:last-child { border-bottom: none; }
+  .iq-detail-label { flex-shrink: 0; width: 150px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .iq-detail-val { font-size: 13.5px; color: var(--fg); line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .iq-detail-val a { color: var(--fg); text-decoration: underline; }
+  .iq-attach-link {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; margin: 3px 6px 3px 0;
+    border: 1px solid var(--admin-border); border-radius: 8px; font-size: 12.5px; color: var(--fg);
+    text-decoration: none !important;
+  }
+  .iq-attach-link:hover { background: var(--hover); }
+  .iq-meta-head { font-size: 12px; color: var(--muted); margin: 0 0 18px; line-height: 1.6; }
+  .iq-modal-actions { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+
+  /* 답변 작성 영역 */
+  .iq-reply-box { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--admin-border); }
+  .iq-reply-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .iq-reply-box textarea {
+    width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px;
+    padding: 11px 13px; font-family: inherit; font-size: 13.5px; line-height: 1.6;
+    color: var(--fg); background: transparent;
+    border: 1px solid var(--admin-border); border-radius: 8px;
+  }
+  .iq-reply-box textarea:focus { outline: none; border-color: var(--fg); }
+  .iq-reply-meta { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  .iq-reply-box .admin-btn { margin-top: 12px; }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">문의 접수</h1>
+        <p class="admin-page-sub">사이트에서 접수된 문의(컨택)를 확인합니다. 행을 클릭하면 상세 내용을 볼 수 있습니다.</p>
+      </div>
+    </div>
+
+    <!-- ===== 문의 기능 ON/OFF · 안내메시지 ===== -->
+    <style>
+      .inqf-toggle { width:46px;height:26px;appearance:none;background:#c9ccd1;border:0;border-radius:999px;position:relative;cursor:pointer;outline:none;transition:background .2s;flex:0 0 auto; }
+      .inqf-toggle::before { content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.25);transition:transform .2s; }
+      .inqf-toggle:checked { background:#22c55e; }
+      .inqf-toggle:checked::before { transform:translateX(20px); }
+      .inqf-row { padding:16px 0;border-top:1px solid var(--admin-border); }
+      .inqf-row:first-child { border-top:0; }
+      .inqf-head { display:flex;align-items:center;gap:10px;margin-bottom:10px; }
+      .inqf-name { font-size:13.5px;font-weight:600;color:var(--fg);flex:1; }
+      .inqf-state { font-size:12px;font-weight:700;min-width:30px;color:#9aa0a6; }
+      .inqf-state.is-on { color:#16a34a; }
+      .inqf-msg { width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;border:1px solid var(--admin-border);border-radius:8px;background:var(--bg);color:var(--fg);font-family:inherit;line-height:1.6;resize:vertical; }
+      #inqSettings summary { list-style:none; }
+      #inqSettings summary::-webkit-details-marker { display:none; }
+      #inqSettings[open] .inqf-chev { transform:rotate(180deg); }
+    </style>
+    <details class="inq-settings" id="inqSettings" style="margin:0 0 20px;border:1px solid var(--admin-border);border-radius:12px;background:var(--card,var(--bg));overflow:hidden;">
+      <summary style="cursor:pointer;padding:16px 20px;font-size:14px;font-weight:600;color:var(--fg);display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fa-solid fa-sliders" style="margin-right:8px;color:var(--muted);"></i>문의 기능 ON/OFF · 안내메시지</span>
+        <i class="fa-solid fa-chevron-down inqf-chev" style="color:var(--muted);font-size:12px;transition:transform .2s;"></i>
+      </summary>
+      <div style="padding:0 20px 20px;">
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px;line-height:1.6;">각 문의를 끄면, 방문자가 해당 문의를 열 때 폼 대신 안내메시지가 모달로 표시됩니다. 메시지를 비워두면 기본 문구가 사용됩니다. 토글은 즉시 반영되며, 안내메시지는 아래 저장 버튼을 눌러야 적용됩니다.</p>
+        <div id="inqFeatureRows"></div>
+        <div style="margin-top:16px;display:flex;align-items:center;gap:10px;justify-content:flex-end;">
+          <span id="inqFeatureStatus" style="font-size:12px;color:var(--muted);"></span>
+          <button type="button" class="admin-btn ghost" id="inqFeatureSave">안내메시지 저장</button>
+        </div>
+      </div>
+    </details>
+
+    <div class="inq-filters" id="inqFilters"></div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:24px;"></th>
+            <th style="width:170px;">유형</th>
+            <th>내용</th>
+            <th style="width:170px;">보낸 사람</th>
+            <th style="width:120px;">접수일</th>
+            <th style="width:60px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="inqTable"><tr><td colspan="6" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);">
+      ※ 문의는 로그인한 독자만 접수할 수 있습니다. 첨부파일은 새 탭에서 열립니다.
+    </p>
+  </main>
+</div>
+
+<!-- ===== 상세 모달 ===== -->
+<div class="admin-modal" id="detailModal">
+  <div class="admin-modal-inner">
+    <button type="button" class="admin-modal-close" id="detailClose" aria-label="닫기">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 class="admin-modal-title" id="detailTitle">문의 상세</h2>
+    <p class="iq-meta-head" id="detailMetaHead"></p>
+    <div id="detailBody"></div>
+    <div class="iq-reply-box">
+      <div class="iq-reply-label">답변 (독자 마이페이지로 전달됩니다)</div>
+      <textarea id="detailReplyInput" rows="4" placeholder="답변 내용을 입력하세요. 등록하면 독자의 마이페이지(마이 아카이브)에 표시됩니다."></textarea>
+      <div class="iq-reply-meta" id="detailReplyMeta"></div>
+      <button type="button" class="admin-btn" id="detailReplySaveBtn"><i class="fa-regular fa-paper-plane"></i> 답변 등록</button>
+    </div>
+    <div class="iq-modal-actions">
+      <button type="button" class="admin-btn ghost" id="detailToggleBtn"></button>
+      <button type="button" class="admin-btn ghost danger" id="detailDeleteBtn"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+
+  const TYPE_LABELS = {
+    general: '콘텐츠 이용 문의',
+    b2b: 'B2B 콘텐츠 제작',
+    lecture: '디자인 강의 제안',
+    curation: '기획·전략 큐레이션'
+  };
+
+  let inqList = [];          // [{id, data}]
+  let currentFilter = 'all'; // all | unread | <type>
+  let currentDetailId = null;
+
+  function fmtDate(ts) {
+    let d = null;
+    if (ts && typeof ts.toDate === 'function') d = ts.toDate();
+    else if (ts) d = new Date(ts);
+    if (!d || isNaN(d.getTime())) return '';
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function fmtDateShort(ts) {
+    let d = null;
+    if (ts && typeof ts.toDate === 'function') d = ts.toDate();
+    else if (ts) d = new Date(ts);
+    if (!d || isNaN(d.getTime())) return '';
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+  }
+  function typeLabel(d) {
+    return TYPE_LABELS[d.type] || d.typeLabel || d.type || '문의';
+  }
+  function previewText(d) {
+    if (d.category) return d.category;
+    const f = d.fields || {};
+    const keys = Object.keys(f);
+    return keys.length ? (f[keys[keys.length - 1]] || keys.map(k => f[k]).join(' · ')) : '(내용 없음)';
+  }
+
+  function sortedFiltered() {
+    let list = [...inqList];
+    if (currentFilter === 'unread') list = list.filter(x => (x.data.status || 'new') === 'new');
+    else if (currentFilter !== 'all') list = list.filter(x => x.data.type === currentFilter);
+    list.sort((a, b) => {
+      const ta = a.data.createdAt && a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0;
+      const tb = b.data.createdAt && b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    return list;
+  }
+
+  function renderFilters() {
+    const el = document.getElementById('inqFilters');
+    const total = inqList.length;
+    const unread = inqList.filter(x => (x.data.status || 'new') === 'new').length;
+    const counts = {};
+    inqList.forEach(x => { counts[x.data.type] = (counts[x.data.type] || 0) + 1; });
+    const btns = [
+      { key: 'all', label: '전체', cnt: total },
+      { key: 'unread', label: '미확인', cnt: unread }
+    ];
+    Object.keys(TYPE_LABELS).forEach(k => { if (counts[k]) btns.push({ key: k, label: TYPE_LABELS[k], cnt: counts[k] }); });
+    el.innerHTML = btns.map(b =>
+      `<button class="inq-filter-btn${currentFilter === b.key ? ' active' : ''}" data-key="${b.key}">${adminEscHTML(b.label)}<span class="cnt">${b.cnt}</span></button>`
+    ).join('');
+    el.querySelectorAll('.inq-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => { currentFilter = btn.dataset.key; renderFilters(); renderTable(); });
+    });
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('inqTable');
+    const list = sortedFiltered();
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="admin-empty">접수된 문의가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(item => {
+      const d = item.data;
+      const unread = (d.status || 'new') === 'new';
+      return `
+        <tr class="inq-row${unread ? ' unread' : ''}" data-id="${adminEscHTML(item.id)}">
+          <td style="text-align:center;"><span class="iq-dot"></span></td>
+          <td><span class="iq-type">${adminEscHTML(typeLabel(d))}</span>${d.hiddenForUser ? ' <span class="iq-hidden-tag">사용자 삭제</span>' : ''}</td>
+          <td><span class="iq-subject">${adminEscHTML(previewText(d))}</span></td>
+          <td><div class="iq-name">${adminEscHTML(d.name || '')}</div><div class="iq-email">${adminEscHTML(d.email || d.userEmail || '')}</div></td>
+          <td><span class="iq-date">${fmtDateShort(d.createdAt)}</span></td>
+          <td style="text-align:right;">
+            <button class="admin-btn ghost admin-btn-sm" data-action="open" data-id="${adminEscHTML(item.id)}"><i class="fa-solid fa-eye"></i></button>
+          </td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('.inq-row').forEach(row => {
+      row.addEventListener('click', () => openDetail(row.dataset.id));
+    });
+  }
+
+  // ===== 상세 모달 =====
+  const detailModal = document.getElementById('detailModal');
+  function closeDetail() {
+    detailModal.classList.remove('open');
+    document.body.style.overflow = '';
+    currentDetailId = null;
+  }
+  document.getElementById('detailClose').addEventListener('click', closeDetail);
+  detailModal.addEventListener('click', e => { if (e.target === detailModal) closeDetail(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && detailModal.classList.contains('open')) closeDetail(); });
+
+  function openDetail(id) {
+    const item = inqList.find(x => x.id === id);
+    if (!item) return;
+    const d = item.data;
+    currentDetailId = id;
+    document.getElementById('detailTitle').textContent = typeLabel(d) + ' · 상세';
+    document.getElementById('detailMetaHead').textContent =
+      `접수일 ${fmtDate(d.createdAt)} · 계정 ${d.userEmail || '-'}`;
+
+    const rows = [];
+    if (d.category) rows.push(['문의 유형', d.category]);
+    const f = d.fields || {};
+    Object.keys(f).forEach(label => rows.push([label, f[label]]));
+
+    let html = rows.map(([label, val]) =>
+      `<div class="iq-detail-row"><div class="iq-detail-label">${adminEscHTML(label)}</div><div class="iq-detail-val">${adminEscHTML(val)}</div></div>`
+    ).join('');
+
+    const atts = Array.isArray(d.attachments) ? d.attachments : [];
+    if (atts.length) {
+      const links = atts.map(a =>
+        `<a class="iq-attach-link" href="${adminEscHTML(a.url)}" target="_blank" rel="noopener"><i class="fa-regular fa-file"></i> ${adminEscHTML(a.name || '첨부파일')}</a>`
+      ).join('');
+      html += `<div class="iq-detail-row"><div class="iq-detail-label">첨부파일</div><div class="iq-detail-val">${links}</div></div>`;
+    }
+    document.getElementById('detailBody').innerHTML = html;
+
+    const unread = (d.status || 'new') === 'new';
+    const toggleBtn = document.getElementById('detailToggleBtn');
+    toggleBtn.innerHTML = unread
+      ? '<i class="fa-regular fa-circle-check"></i> 확인함으로 표시'
+      : '<i class="fa-regular fa-circle"></i> 미확인으로 표시';
+
+    // 답변 영역 채우기
+    document.getElementById('detailReplyInput').value = d.reply || '';
+    const replyMeta = document.getElementById('detailReplyMeta');
+    if (d.reply) {
+      replyMeta.textContent = '등록된 답변 · ' + fmtDate(d.repliedAt) + (d.repliedBy ? (' · ' + d.repliedBy) : '');
+      replyMeta.style.display = '';
+    } else {
+      replyMeta.textContent = '';
+      replyMeta.style.display = 'none';
+    }
+
+    detailModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // 열람 시 자동으로 read 처리
+    if (unread) setStatus(id, 'read', true);
+  }
+
+  // ===== 답변 등록 (독자 마이페이지로 전달) =====
+  document.getElementById('detailReplySaveBtn').addEventListener('click', async () => {
+    if (!currentDetailId) return;
+    const text = (document.getElementById('detailReplyInput').value || '').trim();
+    if (!text) { sysAlert('답변 내용을 입력하세요.'); return; }
+    const btn = document.getElementById('detailReplySaveBtn');
+    btn.disabled = true;
+    try {
+      await fb.db.collection('inquiries').doc(currentDetailId).update({
+        reply: text,
+        repliedAt: fb.FieldValue.serverTimestamp(),
+        repliedBy: adminEmail(),
+        status: 'answered',
+        updatedAt: fb.FieldValue.serverTimestamp()
+      });
+      sysAlert('답변을 등록했습니다. 독자의 마이페이지에 표시됩니다.');
+      closeDetail();
+    } catch (err) {
+      sysAlert('답변 등록 실패: ' + err.message, { icon: 'danger' });
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function setStatus(id, status, silent) {
+    try {
+      await fb.db.collection('inquiries').doc(id).update({
+        status,
+        updatedAt: fb.FieldValue.serverTimestamp()
+      });
+      if (!silent) sysAlert(status === 'read' ? '확인함으로 표시했습니다.' : '미확인으로 표시했습니다.');
+    } catch (err) {
+      sysAlert('상태 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  document.getElementById('detailToggleBtn').addEventListener('click', () => {
+    if (!currentDetailId) return;
+    const item = inqList.find(x => x.id === currentDetailId);
+    if (!item) return;
+    const unread = (item.data.status || 'new') === 'new';
+    setStatus(currentDetailId, unread ? 'read' : 'new');
+    // 모달 내 버튼 라벨 갱신은 onSnapshot 재렌더 후 다음 열람 시 반영 → 즉시 닫기
+    closeDetail();
+  });
+
+  document.getElementById('detailDeleteBtn').addEventListener('click', async () => {
+    if (!currentDetailId) return;
+    if (!(await sysConfirm('이 문의를 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.', { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('inquiries').doc(currentDetailId).delete();
+      closeDetail();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  });
+
+  function subscribe() {
+    fb.db.collection('inquiries').onSnapshot(snap => {
+      inqList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderFilters();
+      renderTable();
+    }, err => {
+      console.error('[inquiries] 구독 실패:', err);
+      document.getElementById('inqTable').innerHTML =
+        `<tr><td colspan="6" class="admin-empty">로딩 실패: ${adminEscHTML(err.message)}</td></tr>`;
+    });
+  }
+
+  /* ===== 문의 기능 ON/OFF · 안내메시지 ===== */
+  const INQ_FEATURES = [
+    { key: 'general',  label: '문의하기 (일반)',           flag: 'inqGeneralEnabled',  msg: 'inqGeneralMsg' },
+    { key: 'b2b',      label: 'B2B 콘텐츠 제작',           flag: 'inqB2bEnabled',      msg: 'inqB2bMsg' },
+    { key: 'lecture',  label: '디자인 강의 제안',          flag: 'inqLectureEnabled',  msg: 'inqLectureMsg' },
+    { key: 'curation', label: '디자인 기획·전략 큐레이션', flag: 'inqCurationEnabled', msg: 'inqCurationMsg' }
+  ];
+  let _inqMsgDirty = {};   // { key: true } — 편집 중인 메시지는 onSnapshot이 덮어쓰지 않음
+
+  function renderInqFeatureRows() {
+    const wrap = document.getElementById('inqFeatureRows');
+    if (!wrap || wrap.dataset.built) return;
+    wrap.dataset.built = '1';
+    wrap.innerHTML = INQ_FEATURES.map(f => `
+      <div class="inqf-row">
+        <div class="inqf-head">
+          <span class="inqf-name">${adminEscHTML(f.label)}</span>
+          <span class="inqf-state" id="inqfState_${f.key}">ON</span>
+          <input type="checkbox" class="inqf-toggle" id="inqfFlag_${f.key}" data-key="${f.key}" checked />
+        </div>
+        <textarea class="inqf-msg" id="inqfMsg_${f.key}" data-key="${f.key}" rows="2" placeholder="기능 OFF 시 표시할 안내메시지 (비우면 기본 문구 사용)"></textarea>
+      </div>`).join('');
+
+    // 토글: 즉시 저장
+    INQ_FEATURES.forEach(f => {
+      const t = document.getElementById('inqfFlag_' + f.key);
+      const s = document.getElementById('inqfState_' + f.key);
+      t.addEventListener('change', async () => {
+        const enabled = t.checked;
+        if (s) { s.textContent = enabled ? 'ON' : 'OFF'; s.classList.toggle('is-on', enabled); }
+        try {
+          await fb.db.collection('site').doc('settings').set({
+            [f.flag]: enabled,
+            updatedAt: fb.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (err) {
+          sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+          t.checked = !enabled;
+          if (s) { s.textContent = !enabled ? 'ON' : 'OFF'; s.classList.toggle('is-on', !enabled); }
+        }
+      });
+      const m = document.getElementById('inqfMsg_' + f.key);
+      m.addEventListener('input', () => {
+        _inqMsgDirty[f.key] = true;
+        const st = document.getElementById('inqFeatureStatus');
+        if (st) st.textContent = '';
+      });
+    });
+
+    // 안내메시지 일괄 저장
+    const saveBtn = document.getElementById('inqFeatureSave');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        const payload = { updatedAt: fb.FieldValue.serverTimestamp() };
+        INQ_FEATURES.forEach(f => {
+          const m = document.getElementById('inqfMsg_' + f.key);
+          payload[f.msg] = (m && m.value || '').trim();
+        });
+        try {
+          await fb.db.collection('site').doc('settings').set(payload, { merge: true });
+          _inqMsgDirty = {};
+          const st = document.getElementById('inqFeatureStatus');
+          if (st) st.textContent = '저장되었습니다.';
+        } catch (err) {
+          sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    }
+  }
+
+  function subscribeInqFeatures() {
+    renderInqFeatureRows();
+    fb.db.collection('site').doc('settings').onSnapshot(snap => {
+      const data = snap.exists ? snap.data() : {};
+      INQ_FEATURES.forEach(f => {
+        const t = document.getElementById('inqfFlag_' + f.key);
+        const s = document.getElementById('inqfState_' + f.key);
+        const m = document.getElementById('inqfMsg_' + f.key);
+        const enabled = data[f.flag] !== false;
+        if (t) t.checked = enabled;
+        if (s) { s.textContent = enabled ? 'ON' : 'OFF'; s.classList.toggle('is-on', enabled); }
+        if (m && !_inqMsgDirty[f.key]) m.value = data[f.msg] || '';
+      });
+    }, err => console.warn('[inqFeatures]', err.message));
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      subscribe();
+      subscribeInqFeatures();
+    } else {
+      document.getElementById('inqTable').innerHTML =
+        `<tr><td colspan="6" class="admin-empty">관리자 권한이 필요합니다.</td></tr>`;
+    }
+  });
+</script>
+</body>
+</html>

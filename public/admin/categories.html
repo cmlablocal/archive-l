@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Categories · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .field input, .field textarea, .field select {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--fg); font-family: inherit;
+  }
+  .field select { appearance: auto; }
+  .field textarea { resize: vertical; min-height: 64px; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--fg); }
+  .field-help { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+  .form-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .form-err { color: #dc2626; font-size: 12px; margin-top: 8px; min-height: 14px; }
+
+  /* 상위 카테고리 안내(2차 추가 시) */
+  .parent-info {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; margin-bottom: 14px;
+    background: var(--hover); border: 1px solid var(--admin-border);
+    border-radius: 8px; font-size: 13px; color: var(--fg);
+  }
+  .parent-info i { color: var(--muted); }
+  .parent-info b { font-weight: 600; }
+
+  /* 드래그 핸들 */
+  .drag-handle {
+    cursor: grab; color: var(--muted); font-size: 13px;
+    padding: 4px 6px; border-radius: 4px; display: inline-flex;
+    align-items: center; justify-content: center; user-select: none;
+    touch-action: none;
+  }
+  .drag-handle:hover { color: var(--fg); background: var(--hover); }
+  .drag-handle:active { cursor: grabbing; }
+
+  /* 드래그 중 행 상태 */
+  tr.cat-row { transition: background .12s; }
+  tr.cat-row.dragging { opacity: 0.4; }
+  tr.cat-row.drop-before td { box-shadow: inset 0 2px 0 0 var(--fg); }
+  tr.cat-row.drop-after td { box-shadow: inset 0 -2px 0 0 var(--fg); }
+  tr.cat-row.drop-block { cursor: not-allowed; }
+
+  /* 2차 추가 버튼(1차 행) */
+  .add-sub-btn {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--admin-border); background: transparent;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+  }
+  .add-sub-btn:hover { background: var(--hover); color: var(--fg); border-color: var(--fg); }
+
+  .cat-name-top { font-weight: 600; }
+  .cat-name-sub { display:inline-flex; align-items:center; gap:6px; padding-left:18px; position:relative; }
+  .cat-name-sub .branch { position:absolute; left:2px; color: var(--muted); }
+  .cat-badge-sub { font-size:11px; color: var(--muted); }
+
+  /* row-menu styles live in admin.css */
+  .admin-table-wrap { overflow: visible; }
+  .admin-table td { position: relative; }
+  .admin-hint { margin-top:12px; font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">카테고리 관리</h1>
+        <p class="admin-page-sub">1차 카테고리를 만들고, 각 1차 행의 <b>“+ 2차 추가”</b>로 하위 분류를 만드세요. 순서는 <b>핸들(⠿)을 끌어</b> 바꿉니다.</p>
+      </div>
+      <button type="button" class="admin-btn" onclick="openCreateTop()">
+        <i class="fa-solid fa-plus"></i> 새 1차 카테고리
+      </button>
+    </div>
+
+    <!-- 리스트 풀폭 -->
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:44px;"></th>
+            <th style="width:240px;">카테고리명</th>
+            <th>설명</th>
+            <th style="width:70px; text-align:right;">글 수</th>
+            <th style="width:90px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="catTable"><tr><td colspan="5" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+    <p class="admin-hint">
+      ※ 핸들(⠿)을 끌어 같은 묶음(1차끼리 / 같은 1차 아래 2차끼리) 안에서 순서를 바꿀 수 있습니다. "글 수"는 해당 카테고리에 분류된 콘텐츠 합계입니다.
+    </p>
+  </main>
+</div>
+
+<!-- ===== Modal ===== -->
+<div class="admin-modal" id="formModal">
+  <div class="admin-modal-inner">
+    <button type="button" class="admin-modal-close" id="formModalClose" aria-label="닫기">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 class="admin-modal-title" id="formTitle">새 1차 카테고리</h2>
+    <p class="admin-modal-sub">카테고리는 글·시리즈 작성 시 분류 기준이며, 공개 사이트의 필터 메뉴로 노출됩니다.</p>
+    <form id="catForm">
+      <div class="parent-info" id="parentInfo" hidden>
+        <i class="fa-solid fa-sitemap"></i>
+        <span>상위 1차 카테고리: <b id="parentInfoName"></b> 아래에 2차 카테고리를 추가합니다.</span>
+      </div>
+      <div class="field">
+        <label for="fName">카테고리명 *</label>
+        <input type="text" id="fName" placeholder="예: 디자인, 타이포그래피, AI, 브랜드" autocomplete="off" />
+        <div class="field-help">공개 사이트 메뉴·필터와 콘텐츠 작성 선택지에 그대로 표시됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="fDesc">설명</label>
+        <textarea id="fDesc" placeholder="카테고리를 한두 문장으로 소개 (선택)"></textarea>
+      </div>
+      <div class="form-err" id="formErr"></div>
+      <div class="form-actions">
+        <button type="submit" class="admin-btn" id="saveBtn"><i class="fa-solid fa-plus"></i> 카테고리 생성</button>
+        <button type="button" class="admin-btn ghost" id="cancelBtn">취소</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== 삭제 전 콘텐츠 이동 모달 ===== -->
+<div class="admin-modal" id="reassignModal">
+  <div class="admin-modal-inner">
+    <button type="button" class="admin-modal-close" id="reassignClose" aria-label="닫기">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 class="admin-modal-title">카테고리 삭제 전 콘텐츠 이동</h2>
+    <p class="admin-modal-sub" id="reassignSub"></p>
+    <div class="field">
+      <label for="reassignTarget">옮길 카테고리 *</label>
+      <select id="reassignTarget"></select>
+      <div class="field-help">이 카테고리의 모든 글을 선택한 카테고리로 옮긴 뒤 삭제합니다. 글이 사라지지 않습니다.</div>
+    </div>
+    <div class="form-err" id="reassignErr"></div>
+    <div class="form-actions">
+      <button type="button" class="admin-btn" id="reassignConfirm"><i class="fa-solid fa-arrow-right-arrow-left"></i> 이동 후 삭제</button>
+      <button type="button" class="admin-btn ghost" id="reassignCancel">취소</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script src="/assets/js/data.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  const F = {
+    name: document.getElementById('fName'),
+    desc: document.getElementById('fDesc'),
+    err: document.getElementById('formErr'),
+    form: document.getElementById('catForm'),
+    saveBtn: document.getElementById('saveBtn'),
+    cancelBtn: document.getElementById('cancelBtn'),
+    formTitle: document.getElementById('formTitle'),
+    parentInfo: document.getElementById('parentInfo'),
+    parentInfoName: document.getElementById('parentInfoName')
+  };
+
+  let editingId = null;          // null = create mode
+  let formParent = '';           // '' = 1차 생성, 값 있음 = 해당 1차 아래 2차 생성
+  let catList = [];              // [{id, data}]
+  let articleCatCounts = {};     // {name: count}
+
+  function countFor(name) {
+    return articleCatCounts[name] || 0;
+  }
+
+  // 같은 묶음(형제) 중 가장 큰 order + 1 을 반환 (새 항목을 맨 뒤에 배치)
+  function nextOrderFor(parentName) {
+    const siblings = catList.filter(c => (c.data.parent || '').trim() === (parentName || '').trim());
+    let max = -1;
+    siblings.forEach(c => { const o = c.data.order != null ? c.data.order : 0; if (o > max) max = o; });
+    return max + 1;
+  }
+
+  // ===== Modal open/close =====
+  const formModal = document.getElementById('formModal');
+  function openModal() {
+    formModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => F.name.focus(), 50);
+  }
+  window.closeCreateModal = function() {
+    formModal.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // 새 1차 카테고리
+  window.openCreateTop = function() {
+    editingId = null; formParent = '';
+    F.form.reset();
+    F.err.textContent = '';
+    F.parentInfo.hidden = true;
+    F.formTitle.textContent = '새 1차 카테고리';
+    F.saveBtn.innerHTML = '<i class="fa-solid fa-plus"></i> 카테고리 생성';
+    openModal();
+  };
+
+  // 특정 1차 아래에 2차 카테고리 추가
+  window.openCreateSub = function(parentName) {
+    editingId = null; formParent = parentName || '';
+    F.form.reset();
+    F.err.textContent = '';
+    F.parentInfo.hidden = false;
+    F.parentInfoName.textContent = parentName || '';
+    F.formTitle.textContent = '새 2차 카테고리';
+    F.saveBtn.innerHTML = '<i class="fa-solid fa-plus"></i> 2차 카테고리 생성';
+    openModal();
+  };
+
+  document.getElementById('formModalClose').addEventListener('click', closeCreateModal);
+  formModal.addEventListener('click', e => { if (e.target === formModal) closeCreateModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && formModal.classList.contains('open')) closeCreateModal(); });
+
+  function startEdit(id) {
+    const item = catList.find(c => c.id === id);
+    if (!item) return;
+    const d = item.data;
+    editingId = id;
+    formParent = (d.parent || '').trim();
+    F.name.value = d.name || '';
+    F.desc.value = d.description || '';
+    F.err.textContent = '';
+    if (formParent) {
+      F.parentInfo.hidden = false;
+      F.parentInfoName.textContent = formParent;
+      F.formTitle.textContent = '2차 카테고리 수정';
+    } else {
+      F.parentInfo.hidden = true;
+      F.formTitle.textContent = '1차 카테고리 수정';
+    }
+    F.saveBtn.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> 변경 저장';
+    openModal();
+  }
+
+  F.cancelBtn.addEventListener('click', closeCreateModal);
+
+  F.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    F.err.textContent = '';
+    const name = (F.name.value || '').trim();
+    const parent = (formParent || '').trim(); // '' = 1차, 값 = 2차
+
+    if (!name) { F.err.textContent = '카테고리명을 입력하세요.'; return; }
+    if (parent && parent === name) { F.err.textContent = '자기 자신을 상위로 지정할 수 없습니다.'; return; }
+    // 이름 중복 방지(편집 중인 항목은 예외)
+    const dup = catList.some(c => (c.data.name || '').trim() === name && c.id !== editingId);
+    if (dup) { F.err.textContent = '이미 존재하는 카테고리명입니다.'; return; }
+
+    const editingItem = editingId ? catList.find(c => c.id === editingId) : null;
+    const oldName = editingItem ? (editingItem.data.name || '').trim() : '';
+
+    const payload = {
+      name,
+      parent,
+      description: (F.desc.value || '').trim(),
+      updatedAt: fb.FieldValue.serverTimestamp()
+    };
+
+    F.saveBtn.disabled = true;
+    try {
+      if (editingId) {
+        const batch = fb.db.batch();
+        batch.update(fb.db.collection('categories').doc(editingId), payload);
+        // 1차 이름이 바뀌면 자식(2차)의 parent 참조도 함께 갱신해 고아 방지
+        if (!parent && oldName && oldName !== name) {
+          catList.filter(c => (c.data.parent || '').trim() === oldName)
+            .forEach(ch => batch.update(fb.db.collection('categories').doc(ch.id), {
+              parent: name, updatedAt: fb.FieldValue.serverTimestamp()
+            }));
+        }
+        await batch.commit();
+      } else {
+        payload.order = nextOrderFor(parent);
+        payload.createdAt = fb.FieldValue.serverTimestamp();
+        await fb.db.collection('categories').add(payload);
+      }
+      closeCreateModal();
+    } catch (err) {
+      F.err.textContent = '저장 실패: ' + err.message;
+    } finally {
+      F.saveBtn.disabled = false;
+    }
+  });
+
+  async function deleteCategory(id) {
+    const item = catList.find(c => c.id === id);
+    if (!item) return;
+    const name = (item.data.name || '');
+    const isTop = !(item.data.parent || '').trim();
+    // 1차 카테고리 삭제 시 자식(2차)이 남아있으면 먼저 정리하도록 차단
+    if (isTop) {
+      const kids = catList.filter(c => (c.data.parent || '').trim() === name);
+      if (kids.length) {
+        sysAlert(`'${name}' 아래에 2차 카테고리가 ${kids.length}개 있습니다. 먼저 2차 카테고리를 정리(삭제·이동)한 뒤 삭제할 수 있습니다.`, { icon: 'danger' });
+        return;
+      }
+    }
+    const used = countFor(name);
+    // 분류된 글이 있으면 → 다른 카테고리로 이동 후에만 삭제 가능
+    if (used > 0) { openReassign(id, name, used); return; }
+    // 글이 없으면 바로 삭제
+    if (!(await sysConfirm(`카테고리 '${name}'를 삭제하시겠습니까?`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('categories').doc(id).delete();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  // ===== 삭제 전 콘텐츠 이동 =====
+  const reassignModal = document.getElementById('reassignModal');
+  const reassignSel   = document.getElementById('reassignTarget');
+  const reassignErr   = document.getElementById('reassignErr');
+  const reassignSub   = document.getElementById('reassignSub');
+  const reassignConfirmBtn = document.getElementById('reassignConfirm');
+  let _reassignId = null;
+  let _reassignName = '';
+
+  function openReassign(id, name, used) {
+    _reassignId = id;
+    _reassignName = name;
+    reassignErr.textContent = '';
+    reassignSub.textContent = `'${name}' 카테고리에 분류된 글이 ${used}개 있습니다. 삭제하려면 먼저 다른 카테고리로 옮겨야 합니다.`;
+    // 자기 자신을 제외한 모든 카테고리를 옵션으로 (계층 라벨)
+    const byOrder = (a, b) => {
+      const oa = a.data.order != null ? a.data.order : 0;
+      const ob = b.data.order != null ? b.data.order : 0;
+      if (oa !== ob) return oa - ob;
+      return (a.data.name || '').localeCompare(b.data.name || '', 'ko');
+    };
+    const tops = catList.filter(c => !(c.data.parent || '').trim()).sort(byOrder);
+    const childrenOf = (nm) => catList.filter(c => (c.data.parent || '').trim() === nm).sort(byOrder);
+    const opts = [];
+    tops.forEach(t => {
+      const tn = (t.data.name || '');
+      if (tn && tn !== name) opts.push({ value: tn, label: tn });
+      childrenOf(tn).forEach(ch => {
+        const cn = (ch.data.name || '');
+        if (cn && cn !== name) opts.push({ value: cn, label: `${tn} › ${cn}` });
+      });
+    });
+    reassignSel.innerHTML = '<option value="">선택해주세요</option>' +
+      opts.map(o => `<option value="${adminEscHTML(o.value)}">${adminEscHTML(o.label)}</option>`).join('');
+    reassignModal.classList.add('open');
+  }
+  function closeReassign() {
+    reassignModal.classList.remove('open');
+    _reassignId = null; _reassignName = '';
+  }
+  document.getElementById('reassignClose').addEventListener('click', closeReassign);
+  document.getElementById('reassignCancel').addEventListener('click', closeReassign);
+  reassignModal.addEventListener('click', e => { if (e.target === reassignModal) closeReassign(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && reassignModal.classList.contains('open')) closeReassign(); });
+
+  reassignConfirmBtn.addEventListener('click', async () => {
+    const target = reassignSel.value;
+    if (!target) { reassignErr.textContent = '옮길 카테고리를 선택해 주세요.'; return; }
+    if (!_reassignId || !_reassignName) return;
+    const fromName = _reassignName;
+    const catId = _reassignId;
+    reassignConfirmBtn.disabled = true;
+    reassignErr.textContent = '이동 중…';
+    try {
+      const snap = await fb.db.collection('articles').where('category', '==', fromName).get();
+      let batch = fb.db.batch();
+      let ops = 0;
+      for (const doc of snap.docs) {
+        const upd = { category: target };
+        // 표시 라벨(cat)이 카테고리명과 같던(시리즈가 아닌) 글은 라벨도 함께 갱신
+        if ((doc.data().cat || '') === fromName) upd.cat = target;
+        batch.update(doc.ref, upd);
+        ops++;
+        if (ops >= 450) { await batch.commit(); batch = fb.db.batch(); ops = 0; }
+      }
+      if (ops > 0) await batch.commit();
+      // 글 이동 완료 후 카테고리 삭제
+      await fb.db.collection('categories').doc(catId).delete();
+      closeReassign();
+      sysAlert(`'${fromName}'의 글 ${snap.size}개를 '${target}'(으)로 옮기고 카테고리를 삭제했습니다.`, { icon: 'success' });
+      loadArticleCounts();
+    } catch (err) {
+      reassignErr.textContent = '처리 실패: ' + err.message;
+    } finally {
+      reassignConfirmBtn.disabled = false;
+    }
+  });
+
+  function renderTable() {
+    const tbody = document.getElementById('catTable');
+    if (catList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="admin-empty">아직 등록된 카테고리가 없습니다. 우측 상단 "새 카테고리" 버튼으로 추가하세요.</td></tr>`;
+      return;
+    }
+    const byOrder = (a, b) => {
+      const oa = a.data.order != null ? a.data.order : 0;
+      const ob = b.data.order != null ? b.data.order : 0;
+      if (oa !== ob) return oa - ob;
+      return (a.data.name || '').localeCompare(b.data.name || '', 'ko');
+    };
+    // 계층 정렬: 1차(상위 없음) → 그 아래 2차(해당 상위의 자식) 순으로 배치
+    const tops = catList.filter(c => !(c.data.parent || '').trim()).sort(byOrder);
+    const childrenOf = (nm) => catList.filter(c => (c.data.parent || '').trim() === nm).sort(byOrder);
+    const orphans = catList.filter(c => {
+      const p = (c.data.parent || '').trim();
+      return p && !catList.some(t => (t.data.name || '').trim() === p);
+    }).sort(byOrder);
+    const sorted = [];
+    tops.forEach(t => { sorted.push(t); childrenOf(t.data.name || '').forEach(ch => sorted.push(ch)); });
+    orphans.forEach(o => sorted.push(o));
+    tbody.innerHTML = sorted.map((item) => {
+      const d = item.data;
+      const id = item.id;
+      const cnt = countFor(d.name || '');
+      const isSub = !!(d.parent || '').trim();
+      const group = isSub ? (d.parent || '').trim() : '__top__';
+      const nameCell = isSub
+        ? `<span class="cat-name-sub"><span class="branch">└</span>${adminEscHTML(d.name || '(이름 없음)')}<span class="cat-badge-sub">2차</span></span>`
+        : `<span class="cat-name-top">${adminEscHTML(d.name || '(이름 없음)')}</span>`;
+      const addSubBtn = isSub ? '' :
+        `<button type="button" class="add-sub-btn" data-action="add-sub" data-name="${adminEscHTML(d.name || '')}"><i class="fa-solid fa-plus"></i> 2차 추가</button>`;
+      return `
+        <tr class="cat-row" draggable="true" data-id="${adminEscHTML(id)}" data-group="${adminEscHTML(group)}">
+          <td style="text-align:center;">
+            <span class="drag-handle" title="끌어서 순서 변경" aria-label="순서 변경 핸들"><i class="fa-solid fa-grip-vertical"></i></span>
+          </td>
+          <td>${nameCell}</td>
+          <td class="cell-desc">${adminEscHTML(d.description || '—')}</td>
+          <td style="text-align:right;">${cnt}</td>
+          <td>
+            <div class="admin-actions" style="justify-content:flex-end;gap:6px;align-items:center;">
+              ${addSubBtn}
+              <details class="row-menu">
+                <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+                <div class="row-menu-pop">
+                  <button data-action="edit" data-id="${adminEscHTML(id)}"><i class="fa-regular fa-pen-to-square"></i> 수정</button>
+                  <button data-action="delete" data-id="${adminEscHTML(id)}" class="danger"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+                </div>
+              </details>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        btn.closest('.row-menu')?.removeAttribute('open');
+        if (action === 'edit') startEdit(btn.dataset.id);
+        else if (action === 'delete') deleteCategory(btn.dataset.id);
+        else if (action === 'add-sub') openCreateSub(btn.dataset.name);
+      });
+    });
+
+    bindDragAndDrop(tbody);
+  }
+
+  // ===== 드래그 앤 드롭 순서 변경 (같은 묶음 안에서만) =====
+  let _dragId = null;
+  let _dragGroup = null;
+  function bindDragAndDrop(tbody) {
+    const rows = tbody.querySelectorAll('tr.cat-row');
+    rows.forEach(row => {
+      row.addEventListener('dragstart', e => {
+        _dragId = row.dataset.id;
+        _dragGroup = row.dataset.group;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', _dragId); } catch (_) {}
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        clearDropMarks(tbody);
+        _dragId = null; _dragGroup = null;
+      });
+      row.addEventListener('dragover', e => {
+        if (_dragId === null) return;
+        const sameGroup = row.dataset.group === _dragGroup;
+        clearDropMarks(tbody);
+        if (!sameGroup || row.dataset.id === _dragId) {
+          if (!sameGroup) row.classList.add('drop-block');
+          return; // 다른 묶음으로는 이동 불가
+        }
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        row.classList.add(after ? 'drop-after' : 'drop-before');
+      });
+      row.addEventListener('drop', e => {
+        if (_dragId === null) return;
+        if (row.dataset.group !== _dragGroup || row.dataset.id === _dragId) { clearDropMarks(tbody); return; }
+        e.preventDefault();
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        reorderWithinGroup(_dragGroup, _dragId, row.dataset.id, after);
+        clearDropMarks(tbody);
+      });
+    });
+  }
+  function clearDropMarks(tbody) {
+    tbody.querySelectorAll('.drop-before,.drop-after,.drop-block')
+      .forEach(r => r.classList.remove('drop-before', 'drop-after', 'drop-block'));
+  }
+
+  // 같은 묶음(group) 안에서 dragId 를 targetId 앞/뒤로 이동시키고 order 재계산 → batch 저장
+  async function reorderWithinGroup(group, dragId, targetId, after) {
+    const parentName = group === '__top__' ? '' : group;
+    const byOrder = (a, b) => {
+      const oa = a.data.order != null ? a.data.order : 0, ob = b.data.order != null ? b.data.order : 0;
+      if (oa !== ob) return oa - ob;
+      return (a.data.name || '').localeCompare(b.data.name || '', 'ko');
+    };
+    let siblings = catList
+      .filter(c => (c.data.parent || '').trim() === parentName)
+      .sort(byOrder);
+    const dragItem = siblings.find(c => c.id === dragId);
+    if (!dragItem) return;
+    siblings = siblings.filter(c => c.id !== dragId);
+    let targetIdx = siblings.findIndex(c => c.id === targetId);
+    if (targetIdx < 0) return;
+    const insertIdx = after ? targetIdx + 1 : targetIdx;
+    siblings.splice(insertIdx, 0, dragItem);
+
+    try {
+      const batch = fb.db.batch();
+      siblings.forEach((c, i) => {
+        if (c.data.order !== i) {
+          batch.update(fb.db.collection('categories').doc(c.id), {
+            order: i, updatedAt: fb.FieldValue.serverTimestamp()
+          });
+        }
+      });
+      await batch.commit();
+      // onSnapshot 이 renderTable 자동 호출
+    } catch (err) {
+      sysAlert('순서 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  function subscribeCategories() {
+    fb.db.collection('categories').onSnapshot(snap => {
+      catList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderTable();
+    }, err => {
+      console.error('[categories] 구독 실패:', err);
+      document.getElementById('catTable').innerHTML =
+        `<tr><td colspan="5" class="admin-empty">로딩 실패: ${adminEscHTML(err.message)}</td></tr>`;
+    });
+  }
+
+  // Count Firestore articles per category (one-time read)
+  async function loadArticleCounts() {
+    try {
+      const snap = await fb.db.collection('articles').get();
+      const counts = {};
+      snap.docs.forEach(doc => {
+        const c = doc.data().category;
+        if (c) counts[c] = (counts[c] || 0) + 1;
+      });
+      articleCatCounts = counts;
+      renderTable();
+    } catch (err) {
+      console.warn('[categories] 글 수 집계 실패:', err.message);
+    }
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      subscribeCategories();
+      loadArticleCounts();
+    }
+  });
+</script>
+</body>
+</html>

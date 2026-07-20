@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stats · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">통계</h1>
+        <p class="admin-page-sub">독자 참여 지표를 확인합니다.</p>
+      </div>
+    </div>
+
+    <h2 style="font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;">사이트 현황</h2>
+    <section class="admin-stats">
+      <div class="admin-stat" id="statTotalUsers">
+        <div class="admin-stat-label">총 독자</div>
+        <div class="admin-stat-value">—</div>
+      </div>
+      <div class="admin-stat" id="statRecentUsers">
+        <div class="admin-stat-label">최근 7일 가입</div>
+        <div class="admin-stat-value">—</div>
+      </div>
+      <div class="admin-stat" id="statTotalArticles">
+        <div class="admin-stat-label">총 발행 콘텐츠</div>
+        <div class="admin-stat-value">—</div>
+      </div>
+      <div class="admin-stat" id="statTotalBookmarks">
+        <div class="admin-stat-label">총 책갈피</div>
+        <div class="admin-stat-value">—</div>
+      </div>
+    </section>
+
+    <h2 style="font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:32px 0 14px;">글별 참여도</h2>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="admin-btn ghost admin-btn-sm sort-btn active" data-sort="views">조회 많은 순</button>
+      <button class="admin-btn ghost admin-btn-sm sort-btn" data-sort="bookmarks">책갈피 많은 순</button>
+      <button class="admin-btn ghost admin-btn-sm sort-btn" data-sort="reactions">반응 많은 순</button>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>제목</th>
+            <th style="width:90px; text-align:right;"><i class="fa-regular fa-eye"></i> 조회</th>
+            <th style="width:90px; text-align:right;"><i class="fa-regular fa-bookmark"></i> 저장</th>
+            <th style="width:90px; text-align:right;"><i class="fa-regular fa-lightbulb"></i> 새로움</th>
+            <th style="width:90px; text-align:right;"><i class="fa-solid fa-down-long"></i> 깊이</th>
+            <th style="width:110px; text-align:right;"><i class="fa-regular fa-paper-plane"></i> 친구에게</th>
+          </tr>
+        </thead>
+        <tbody id="engagementTable"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script src="/assets/js/data.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  // ===== State =====
+  let articlesList = [];   // Firestore articles
+  let usersList = [];      // Firestore users
+  let sortMode = 'views';  // 'views' | 'bookmarks' | 'reactions'
+  let articlesReady = false;
+  let usersReady = false;
+
+  // Helper — reaction counts (supports either reactionCounts.{new,deep,pass} or reactions{*-new,*-deep,*-pass})
+  function reactionCounts(a) {
+    const rc = a.reactionCounts || {};
+    let nw = Number(rc.new || 0);
+    let dp = Number(rc.deep || 0);
+    let ps = Number(rc.pass || 0);
+    // Fallback — sum reactions map by suffix
+    const r = a.reactions;
+    if (r && typeof r === 'object') {
+      Object.entries(r).forEach(([k, v]) => {
+        const n = Number(v) || 0;
+        if (k.endsWith('-new')) nw += n;
+        else if (k.endsWith('-deep')) dp += n;
+        else if (k.endsWith('-pass')) ps += n;
+      });
+    }
+    return { nw, dp, ps };
+  }
+
+  function totalReactions(a) {
+    const { nw, dp, ps } = reactionCounts(a);
+    return nw + dp + ps;
+  }
+
+  function render() {
+    // ===== Top stat cards =====
+    const totalUsers = usersList.length;
+    const weekAgo = Date.now() - 7 * 86400 * 1000;
+    const recentUsers = usersList.filter(u => {
+      const c = u.createdAt;
+      let t = 0;
+      if (c && typeof c.toDate === 'function') t = c.toDate().getTime();
+      else if (c && typeof c.seconds === 'number') t = c.seconds * 1000;
+      else if (typeof c === 'string') t = new Date(c).getTime() || 0;
+      else if (typeof c === 'number') t = c;
+      return t >= weekAgo;
+    }).length;
+
+    const pubArticles = articlesList.filter(a => a.status === 'PUBLISHED');
+    const legacyEntries = Object.entries(window.ARTICLES || {});
+    const totalArticles = pubArticles.length + legacyEntries.length;
+    const totalBookmarks = pubArticles.reduce((s, a) => s + (Number(a.bookmarkCount) || 0), 0);
+
+    const setVal = (id, v) => {
+      const el = document.querySelector(`#${id} .admin-stat-value`);
+      if (el) el.textContent = typeof v === 'number' ? fmtNum(v) : v;
+    };
+    // Until both subscriptions arrive, show '—' for the side that isn't loaded
+    setVal('statTotalUsers', usersReady ? totalUsers : '—');
+    setVal('statRecentUsers', usersReady ? recentUsers : '—');
+    setVal('statTotalArticles', articlesReady ? totalArticles : '—');
+    setVal('statTotalBookmarks', articlesReady ? totalBookmarks : '—');
+
+    // ===== Engagement table =====
+    const rows = [
+      ...pubArticles.map(a => ({
+        id: a.id,
+        src: 'fs',
+        title: a.title || '(제목 없음)',
+        cat: a.cat || a.category || '',
+        views: Number(a.viewCount) || 0,
+        bookmarks: Number(a.bookmarkCount) || 0,
+        ...reactionCounts(a)
+      })),
+      ...legacyEntries.map(([id, a]) => ({
+        id,
+        src: 'static',
+        title: a.title || '(제목 없음)',
+        cat: a.cat || '',
+        views: 0,
+        bookmarks: 0,
+        nw: 0, dp: 0, ps: 0
+      }))
+    ];
+
+    rows.forEach(r => { r.reactionsTotal = r.nw + r.dp + r.ps; });
+
+    if (sortMode === 'bookmarks') rows.sort((a, b) => b.bookmarks - a.bookmarks);
+    else if (sortMode === 'reactions') rows.sort((a, b) => b.reactionsTotal - a.reactionsTotal);
+    else rows.sort((a, b) => b.views - a.views);
+
+    const tbody = document.getElementById('engagementTable');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="admin-empty">콘텐츠가 없습니다.</td></tr>`;
+      return;
+    }
+
+    const dim = (n) => n > 0 ? String(fmtNum(n)) : '<span style="color:var(--muted);">—</span>';
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>
+          <a href="/articles/${r.id}.html" target="_blank" class="title-cell">${adminEscHTML(r.title)}</a>
+          <span class="title-cell-sub">${adminEscHTML(r.cat)}${r.src === 'static' ? ' · <span class="admin-tag static-tag">정적</span>' : ''}</span>
+        </td>
+        <td style="text-align:right;">${dim(r.views)}</td>
+        <td style="text-align:right;">${dim(r.bookmarks)}</td>
+        <td style="text-align:right;">${dim(r.nw)}</td>
+        <td style="text-align:right;">${dim(r.dp)}</td>
+        <td style="text-align:right;">${dim(r.ps)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Sort buttons
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sortMode = btn.dataset.sort;
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+      render();
+    });
+  });
+
+  // Subscribe to Firestore once auth is ready
+  fb.authReady.then(user => {
+    if (!user || !fb.isAdmin()) return;
+    fb.db.collection('articles').onSnapshot(snap => {
+      articlesList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      articlesReady = true;
+      render();
+    }, err => { console.warn('[stats] articles snapshot error:', err); });
+
+    fb.db.collection('users').onSnapshot(snap => {
+      usersList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      usersReady = true;
+      render();
+    }, err => { console.warn('[stats] users snapshot error:', err); });
+  });
+
+  // Initial render (shows '—' until data arrives — also seeds the table with static articles)
+  render();
+</script>
+</body>
+</html>

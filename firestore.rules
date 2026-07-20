@@ -7,18 +7,358 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // 관리자 판별: 이메일 화이트리스트
+    // 관리자 판별: 이메일 화이트리스트 (firebase.js의 ADMIN_EMAILS와 일치)
+    // 추후 Custom Claims(request.auth.token.admin == true)로 이전 권장
     function isAdmin() {
       return isSignedIn() && request.auth.token.email in [
         'cmlab.local@gmail.com'
       ];
     }
 
-    // 아카이브 항목(items): 누구나 읽기, 관리자만 쓰기
-    // 필드 예: { title, locationName, thumb, body, tags[], createdAt, order }
-    match /items/{id} {
+    // 현재 로그인 사용자의 역할 (users/{uid}.role) — 'reader' | 'editor' | 'admin'
+    // 주의: 역할/배정은 관리자만 수정 가능(아래 users/editorAssignments 규칙)하므로
+    //       editor 역할은 본인이 스스로 부여할 수 없다(권한 상승 차단).
+    function userRole() {
+      return isSignedIn()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'reader')
+        : 'reader';
+    }
+    function isEditor() {
+      return isSignedIn() && userRole() == 'editor';
+    }
+
+    // 사용자 프로필: 본인 또는 관리자.
+    // - 생성: 본인 문서만, 단 role은 'reader'만 허용(관리자 이메일은 'admin' 허용). editor 자가부여 차단.
+    // - 수정: 관리자는 전부, 본인은 role/disabled를 제외한 필드만(권한 상승·자가 활성화 차단).
+    match /users/{uid} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow create: if isSignedIn() && request.auth.uid == uid
+        && (
+          !('role' in request.resource.data)
+          || request.resource.data.role == 'reader'
+          || (request.resource.data.role == 'admin' && isAdmin())
+        );
+      allow update: if isAdmin()
+        || (isSignedIn() && request.auth.uid == uid
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'disabled']));
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+    }
+
+    // 에디터 배정: 관리자만 작성. 본인/관리자만 읽기.
+    // 문서ID = 에디터 uid. 필드 예: { active, formats:[], seriesCodes:[], seriesPlan:[], standaloneQuota, cycle, notes }
+    match /editorAssignments/{uid} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 에디터 배정 이력 로그: 관리자만 읽기·쓰기(어드민 전용 기록).
+    // 배정을 저장할 때마다 스냅샷을 남긴다. 필드: { uid, name, email, formats[],
+    //   seriesCodes[], seriesEpisodes{}, standaloneQuota, standaloneAccess, cycle,
+    //   activityStart, activityEnd, seriesCount, episodeCount, at, by }
+    match /editorAssignmentLogs/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // 에디터 지원: 로그인 사용자가 본인 명의로 접수. 열람·심사·삭제는 관리자(본인은 본인 것 열람).
+    match /editorApplications/{id} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // 콘텐츠 삭제 요청: 에디터가 본인 명의로 요청. 승인/거절/삭제는 관리자.
+    match /deletionRequests/{id} {
+      allow create: if isSignedIn() && request.resource.data.requestedBy == request.auth.uid;
+      allow read: if isAdmin() || (isSignedIn() && resource.data.requestedBy == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // 글: 발행(PUBLISHED)·발행예정(PRERELEASE) 글만 누구나 읽기, 작성/삭제는 관리자만
+    // (공개 목록 쿼리 시에는 .where('status','==','PUBLISHED') 등 status 필터 필요)
+    // 수정은 관리자만. 단, 누구나 PUBLISHED 글의 viewCount를 +1 할 수 있음.
+    function isViewCountIncrement() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
+        && request.resource.data.viewCount is int
+        && request.resource.data.viewCount == resource.data.get('viewCount', 0) + 1;
+    }
+    // 프리릴리즈 응원: 누구나 cheerCount를 +1/-1 만 조정 가능(0 미만 불가).
+    function isCheerCountAdjust() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cheerCount'])
+        && request.resource.data.cheerCount is int
+        && request.resource.data.cheerCount >= 0
+        && (request.resource.data.cheerCount == resource.data.get('cheerCount', 0) + 1
+          || request.resource.data.cheerCount == resource.data.get('cheerCount', 0) - 1);
+    }
+    // 자료 제공: 로그인 사용자가 contributionCount를 +1 만 가능.
+    function isContributionCountIncrement() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contributionCount'])
+        && request.resource.data.contributionCount is int
+        && request.resource.data.contributionCount == resource.data.get('contributionCount', 0) + 1;
+    }
+    // 한 정수 카운터를 정확히 +1 또는 -1(0 미만 불가)로만 조정했는지.
+    function isOneStep(nv, ov) {
+      return nv is int && nv >= 0 && (nv == ov + 1 || nv == ov - 1);
+    }
+    // 독자 반응 카운트: 로그인 사용자가 PUBLISHED 글의 rcNew/rcDeep/rcPass 중
+    // 정확히 하나를 ±1 만 조정 가능(좋아요 토글과 동일 패턴). 1인 1반응은 클라이언트
+    // 로컬 상태(persp_reactions, 클라우드 동기화)로 통제 — likeCount 방식과 일관.
+    function isReactionCountAdjust() {
+      return isSignedIn()
+        && resource.data.status == 'PUBLISHED'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rcNew', 'rcDeep', 'rcPass'])
+        && request.resource.data.diff(resource.data).affectedKeys().size() == 1
+        && (
+          isOneStep(request.resource.data.get('rcNew', 0),  resource.data.get('rcNew', 0))
+          || isOneStep(request.resource.data.get('rcDeep', 0), resource.data.get('rcDeep', 0))
+          || isOneStep(request.resource.data.get('rcPass', 0), resource.data.get('rcPass', 0))
+        );
+    }
+    match /articles/{id} {
+      allow read: if isAdmin()
+        || resource.data.status == 'PUBLISHED'
+        || resource.data.status == 'PRERELEASE'
+        // 에디터는 본인이 작성한 글(초안 포함)을 읽을 수 있음
+        || (isSignedIn() && resource.data.get('authorId', '') == request.auth.uid);
+      // 에디터는 본인 명의(authorId==uid)로 글 생성 가능. (시리즈/포맷/건수 제한은 UI+어드민 관리로 통제)
+      allow create: if isAdmin()
+        || (isEditor() && request.resource.data.get('authorId', '') == request.auth.uid);
+      // 에디터는 본인 글만 수정 가능. authorId 변경 불가(소유권 탈취 차단). 삭제는 불가(관리자 승인 필요).
+      allow update: if isAdmin()
+        || (resource.data.status == 'PUBLISHED' && isViewCountIncrement())
+        || (isSignedIn() && isCheerCountAdjust())
+        || isReactionCountAdjust()
+        || (isSignedIn() && isContributionCountIncrement())
+        || (isEditor()
+            && resource.data.get('authorId', '') == request.auth.uid
+            && request.resource.data.get('authorId', '') == request.auth.uid);
+      allow delete: if isAdmin();
+
+      // 독자가 보낸 자료(컨트리뷰션): 관리자만 열람, 로그인 사용자만 본인 명의로 제출.
+      match /contributions/{cid} {
+        allow read: if isAdmin();
+        allow create: if isSignedIn()
+          && request.resource.data.get('by', '') == request.auth.uid;
+        allow update, delete: if isAdmin();
+      }
+
+      // 프리릴리즈 응원 기록(1계정 1응원): 문서ID=uid.
+      // 누구나 읽기(집계/본인 여부 확인). 로그인 사용자만 본인 명의로 1개 생성·삭제(취소).
+      // 문서ID가 uid라 중복 생성이 불가능 → cheerCount 부풀리기(캐시 삭제 등) 차단.
+      match /cheers/{uid} {
+        allow read: if true;
+        allow create: if isSignedIn() && uid == request.auth.uid;
+        allow update: if false;
+        allow delete: if isSignedIn() && uid == request.auth.uid;
+      }
+    }
+
+    // 시리즈: 누구나 읽기(공개 사이트/작성기에서 사용), 생성·수정·삭제는 관리자만
+    match /series/{id} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
+    }
+
+    // 카테고리(메뉴): 누구나 읽기(공개 사이트 필터/작성기에서 사용), 생성·수정·삭제는 관리자만
+    match /categories/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 용어 사전집(에디터 전용): 관리자만 읽고 쓴다.
+    // 글 작성 시 참고·주석 삽입용 내부 자료 — 공개 사이트엔 노출되지 않음.
+    match /glossary/{id} {
+      allow read: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 사이트 텍스트(메인·어바웃·노티스): 누구나 읽기(공개 사이트 렌더링), 쓰기는 관리자만
+    match /site/{doc} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 노티스(메인 하단 티커): 누구나 읽기, 쓰기는 관리자만
+    match /notices/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 오피니언(토픽): 누구나 읽기, 생성·수정·삭제는 관리자만.
+    // 단, 로그인 사용자가 자신의 댓글을 +/-1 할 수 있도록 commentCount/updatedAt 증감 허용.
+    function isOpinionCountAdjust() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['commentCount', 'updatedAt'])
+        && request.resource.data.commentCount is int;
+    }
+    match /opinions/{topicId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isSignedIn() && isOpinionCountAdjust());
+
+      // 오피니언 토픽이 아직 종료되지 않았는지 (endAt 없거나, request.time < endAt)
+      function isOpinionActive() {
+        return get(/databases/$(database)/documents/opinions/$(topicId)).data.endAt == null
+          || request.time < get(/databases/$(database)/documents/opinions/$(topicId)).data.endAt;
+      }
+
+      // 댓글: 누구나 읽기. 로그인 사용자만 생성(본인 userId, 활성 기간만),
+      // 삭제는 관리자(언제든) 또는 본인(활성 기간에만).
+      // 공감(좋아요): 로그인 사용자가 likeCount를 +1/-1 만 조정 가능(기간 무관).
+      function isCommentLikeAdjust() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount'])
+          && request.resource.data.likeCount is int
+          && (request.resource.data.likeCount == resource.data.get('likeCount', 0) + 1
+            || request.resource.data.likeCount == resource.data.get('likeCount', 0) - 1);
+      }
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && isOpinionActive();
+        // 관리자는 의견을 '인사이트'로 큐레이션(#16: featured/insightNote/insightAt) 가능.
+        // 일반 로그인 사용자는 공감(likeCount) ±1 조정만 가능.
+        allow update: if isAdmin()
+          || (isSignedIn() && isCommentLikeAdjust());
+        allow delete: if isAdmin()
+          || (isSignedIn() && resource.data.userId == request.auth.uid && isOpinionActive());
+      }
+    }
+
+    // 문의(컨택 폼): 로그인 사용자만 본인 명의로 접수(생성). 열람·상태변경·삭제는 관리자만.
+    // 작성 시 개인정보 수집·이용 동의(agree==true) 필수.
+    match /inquiries/{id} {
+      // 일반 사용자는 본인 명의로만 접수. 관리자는 임의 사용자에게 안내 메시지(예: 에디터 선정)를 보낼 수 있음.
+      allow create: if isAdmin()
+        || (isSignedIn()
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.agree == true);
+      // 본인이 남긴 문의는 본인이 읽을 수 있음(마이페이지에서 답변 확인). 그 외는 관리자만.
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // 관리자는 전체 수정 가능. 본인은 마이페이지에서 'hiddenForUser'(목록 숨김) 플래그만 토글 가능.
+      // → 사용자가 목록에서 지워도 문서는 보존되어 관리자 기록에는 남는다.
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.userId == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenForUser'])
+            && request.resource.data.hiddenForUser is bool);
+      allow delete: if isAdmin();
+    }
+
+    // 노트(단상): 누구나 읽기. 작성·삭제는 관리자만.
+    // 단, 로그인 사용자는 likeCount를 +1/-1 만 조정 가능(좋아요 토글).
+    function isNoteLikeAdjust() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount'])
+        && request.resource.data.likeCount is int
+        && (request.resource.data.likeCount == resource.data.get('likeCount', 0) + 1
+          || request.resource.data.likeCount == resource.data.get('likeCount', 0) - 1);
+    }
+    match /notes/{id} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isSignedIn() && isNoteLikeAdjust());
+    }
+
+    // 설문(투표): 누구나 읽기, 생성·수정·삭제는 관리자만.
+    // 단, 로그인 사용자가 1표를 행사할 때 tally/totalVotes/updatedAt 증가를 허용.
+    // 1인 1표는 votes/{uid} 문서(문서ID=uid)로 강제.
+    function isPollVoteAdjust() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['tally', 'totalVotes', 'updatedAt'])
+        && request.resource.data.totalVotes is int
+        && request.resource.data.totalVotes == resource.data.get('totalVotes', 0) + 1;
+    }
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isSignedIn() && isPollVoteAdjust());
+
+      // 설문이 아직 종료되지 않았는지 (endAt 없거나, request.time < endAt)
+      function isPollActive() {
+        return get(/databases/$(database)/documents/polls/$(pollId)).data.endAt == null
+          || request.time < get(/databases/$(database)/documents/polls/$(pollId)).data.endAt;
+      }
+
+      // 투표 기록: 누구나 읽기(집계 확인). 로그인 사용자만 본인 명의로 1회 생성(활성 기간만).
+      // 문서ID가 uid이므로 재투표(중복 생성)는 불가. 수정 불가, 삭제는 관리자만.
+      match /votes/{uid} {
+        allow read: if true;
+        allow create: if isSignedIn()
+          && uid == request.auth.uid
+          && request.resource.data.optionIndex is int
+          && isPollActive();
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // 인스타그램 콘텐츠(캐러셀 이미지 + 캡션): 관리자만 읽기·쓰기.
+    match /instagramPosts/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // 썸네일 프리셋(재사용 썸네일 세트): 관리자만 읽기·쓰기.
+    // 필드: { name, thumb(가로 URL), thumbMobile(세로 URL), createdAt, by }
+    match /thumbnailPresets/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // 업커밍 티저(예약 발행 글의 공개용 미리보기): 누구나 읽기, 관리자만 쓰기.
+    // 본문은 절대 담지 않는다 — 제목/부제/카테고리/썸네일/공개예정시각만.
+    // SCHEDULED 글은 본문 공개 열람이 막혀 있으므로(rules), 메인 UPCOMING 노출은
+    // 이 안전한 미러 문서로만 한다. 문서 id = 원본 article id.
+    // 필드: { title, sub, cat, category, thumb, thumbMobile, scheduledAt, publishDateLabel, date, createdAt }
+    match /upcomingTeasers/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 에디터 공개 프로필(#29): 에디터/작가의 공개 소개 + 팔로워.
+    // 문서 id = 에디터 uid. 누구나 읽기. 본인(에디터) 또는 관리자만 프로필(소개) 작성·수정.
+    // 필드: { uid, name, bio, public, links?, updatedAt }
+    match /editorProfiles/{editorUid} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        || (isSignedIn() && request.auth.uid == editorUid && isEditor()
+            && request.resource.data.uid == editorUid);
+      allow delete: if isAdmin();
+
+      // 팔로워: 로그인 사용자가 본인 명의로 팔로우/언팔로우(생성·삭제). 누구나 읽기(팔로워 수 집계).
+      // 문서 id = 팔로워 uid. 필드: { followerUid, createdAt }
+      match /followers/{followerUid} {
+        allow read: if true;
+        allow create: if isSignedIn()
+          && request.auth.uid == followerUid
+          && request.resource.data.followerUid == followerUid;
+        allow delete: if isSignedIn() && request.auth.uid == followerUid;
+      }
+    }
+
+    // 공개 서재 프로필(#12): 회원이 직접 옵트인해 만든 공개 서재 스냅샷.
+    // 누구나 읽기, 본인만 자신의 문서(id == uid)를 생성/수정/삭제. 관리자도 삭제 가능.
+    // 본인이 공개를 선택한 큐레이션 데이터만 담는다(비공개 메모 등은 절대 포함하지 않음 — 클라이언트에서 보장).
+    match /publicProfiles/{uid} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid;
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+    }
+
+    // 독자 아이디(핸들) 역방향 인덱스: slug → uid
+    // 누구나 읽기(공개 서재·에디터 페이지 slug 해석). 본인만 자신의 uid를 가리키는 슬러그 생성.
+    // 필드: { uid } — uid 필드 하나만 허용(핸들 스쿼팅 차단).
+    // update 없음 — 슬러그 변경 시 구 문서 delete 후 새 문서 create.
+    // 삭제: 본인만(슬러그 변경 또는 탈퇴 시 구 슬러그 해제).
+    match /handles/{slug} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid']);
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
     // 그 외 모든 경로 차단

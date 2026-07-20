@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>에디터 관리 · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  /* 탭 */
+  .ed-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; border-bottom:1px solid var(--admin-border); padding-bottom:0; }
+  .ed-tab {
+    padding:9px 16px; font-size:13px; border:0; background:transparent; color:var(--muted);
+    cursor:pointer; font-family:inherit; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .15s;
+  }
+  .ed-tab:hover { color:var(--fg); }
+  .ed-tab.active { color:var(--fg); font-weight:600; border-bottom-color:var(--fg); }
+  .ed-tab .cnt { font-variant-numeric:tabular-nums; opacity:.65; margin-left:5px; }
+  .ed-panel { display:none; }
+  .ed-panel.active { display:block; }
+
+  /* 모집 설정 카드 */
+  .ed-setting-card { border:1px solid var(--admin-border); border-radius:12px; padding:20px; background:var(--card,var(--bg)); max-width:680px; }
+  .ed-toggle { width:46px;height:26px;appearance:none;background:#c9ccd1;border:0;border-radius:999px;position:relative;cursor:pointer;outline:none;transition:background .2s;flex:0 0 auto; }
+  .ed-toggle::before { content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.25);transition:transform .2s; }
+  .ed-toggle:checked { background:#22c55e; }
+  .ed-toggle:checked::before { transform:translateX(20px); }
+  .ed-set-row { display:flex; align-items:center; gap:12px; }
+  .ed-set-name { font-size:14px; font-weight:600; color:var(--fg); flex:1; }
+  .ed-set-state { font-size:12px; font-weight:700; color:#9aa0a6; min-width:32px; text-align:right; }
+  .ed-set-state.is-on { color:#16a34a; }
+  .ed-field { margin-top:16px; }
+  .ed-field label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .ed-field input, .ed-field textarea, .ed-field select {
+    width:100%; box-sizing:border-box; padding:10px 12px; font-size:13px; font-family:inherit;
+    border:1px solid var(--admin-border); border-radius:8px; background:var(--bg); color:var(--fg); line-height:1.6;
+  }
+  .ed-field input:focus, .ed-field textarea:focus, .ed-field select:focus { outline:none; border-color:var(--fg); }
+
+  /* 테이블 행 */
+  tr.ed-row { cursor:pointer; transition:background .12s; }
+  tr.ed-row:hover { background:var(--hover); }
+  .ed-name { font-size:13px; color:var(--fg); font-weight:500; }
+  .ed-email { font-size:11.5px; color:var(--muted); }
+  .ed-date { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ed-tags { display:flex; gap:4px; flex-wrap:wrap; }
+  .ed-tag { font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--admin-border); color:var(--muted); }
+  .ed-status { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+  .ed-status.PENDING { background:rgba(37,99,235,.12); color:#2563eb; }
+  .ed-status.APPROVED { background:rgba(22,163,74,.12); color:#16a34a; }
+  .ed-status.REJECTED { background:rgba(138,138,133,.15); color:#8a8a85; }
+  .ed-status.active { background:rgba(22,163,74,.12); color:#16a34a; }
+  .ed-status.inactive { background:rgba(138,138,133,.15); color:#8a8a85; }
+
+  /* 상세/배정 모달 */
+  .ed-detail-row { display:flex; gap:16px; padding:12px 0; border-bottom:1px solid var(--admin-border); }
+  .ed-detail-row:last-child { border-bottom:none; }
+  .ed-detail-label { flex-shrink:0; width:140px; font-size:12px; color:var(--muted); line-height:1.6; }
+  .ed-detail-val { font-size:13.5px; color:var(--fg); line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+  .ed-attach-link { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; margin:3px 6px 3px 0; border:1px solid var(--admin-border); border-radius:8px; font-size:12.5px; color:var(--fg); text-decoration:none !important; }
+  .ed-attach-link:hover { background:var(--hover); }
+  .ed-modal-actions { display:flex; gap:8px; margin-top:22px; flex-wrap:wrap; }
+  .ed-meta-head { font-size:12px; color:var(--muted); margin:0 0 18px; line-height:1.6; }
+
+  /* 배정 폼 */
+  .ed-assign-grid { display:flex; flex-direction:column; gap:16px; }
+  .ed-checks { display:flex; flex-wrap:wrap; gap:8px; }
+  .ed-check { display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border:1px solid var(--admin-border); border-radius:999px; font-size:12.5px; color:var(--fg); cursor:pointer; user-select:none; }
+  .ed-check input { width:14px; height:14px; margin:0; cursor:pointer; }
+  .ed-check.checked { border-color:var(--fg); background:var(--hover); }
+  .ed-series-list { display:flex; flex-direction:column; gap:8px; max-height:240px; overflow:auto; padding-right:4px; }
+  .ed-series-item { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid var(--admin-border); border-radius:8px; }
+  .ed-series-item input[type=checkbox] { margin-top:3px; }
+  .ed-series-meta { flex:1; }
+  .ed-series-name { font-size:13px; color:var(--fg); font-weight:500; }
+  .ed-series-sub { font-size:11.5px; color:var(--muted); margin-top:2px; }
+  /* 에피소드(편) 선택 */
+  .ed-ep-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px; }
+  .ed-ep-row[hidden] { display:none; }
+  .ed-ep { display:inline-flex; align-items:center; gap:4px; font-size:11.5px; color:var(--fg); padding:3px 9px; border:1px solid var(--admin-border); border-radius:999px; cursor:pointer; user-select:none; }
+  .ed-ep input { margin:0 !important; width:13px; height:13px; }
+  .ed-ep.checked { border-color:var(--admin-accent,#2563eb); background:rgba(37,99,235,.08); }
+  .ed-ep.is-all { font-weight:600; }
+  .ed-ep-none { font-size:11px; color:var(--muted); }
+
+  /* 에디터 글 목록(미니 테이블) */
+  .ed-articles { margin-top:8px; }
+  .ed-art-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--admin-border); }
+  .ed-art-row:last-child { border-bottom:none; }
+  .ed-art-title { flex:1; font-size:13px; color:var(--fg); min-width:0; }
+  .ed-art-title .t { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ed-art-badge { font-size:10.5px; padding:2px 7px; border-radius:999px; border:1px solid var(--admin-border); color:var(--muted); }
+  .ed-art-stat { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ed-empty-mini { font-size:12.5px; color:var(--muted); padding:14px 0; }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group" open>
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html" class="active"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">에디터 관리</h1>
+        <p class="admin-page-sub">에디터 모집을 켜고/끄고, 지원자를 심사해 에디터로 지정하고, 배정된 시리즈·포맷·콘텐츠 수를 관리합니다.</p>
+      </div>
+    </div>
+
+    <div class="ed-tabs">
+      <button class="ed-tab active" data-tab="recruit"><i class="fa-solid fa-bullhorn"></i> 모집 설정</button>
+      <button class="ed-tab" data-tab="apps"><i class="fa-regular fa-id-badge"></i> 지원자 <span class="cnt" id="cntApps">0</span></button>
+      <button class="ed-tab" data-tab="editors"><i class="fa-solid fa-pen-nib"></i> 활동 에디터 <span class="cnt" id="cntEditors">0</span></button>
+      <button class="ed-tab" data-tab="released"><i class="fa-solid fa-user-slash"></i> 해제 에디터 <span class="cnt" id="cntReleased">0</span></button>
+      <button class="ed-tab" data-tab="deletions"><i class="fa-regular fa-trash-can"></i> 삭제 요청 <span class="cnt" id="cntDels">0</span></button>
+    </div>
+
+    <!-- ===== 탭1: 모집 설정 ===== -->
+    <section class="ed-panel active" data-panel="recruit">
+      <div class="ed-setting-card">
+        <div class="ed-set-row">
+          <span class="ed-set-name">메인 에디터 모집 카드</span>
+          <span class="ed-set-state" id="recruitState">OFF</span>
+          <input type="checkbox" class="ed-toggle" id="recruitToggle" />
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.6;">
+          켜면 홈 ‘최신 아티클’ 그리드 3번째 줄에 에디터 모집 카드가 노출되고, 방문자가 클릭해 지원할 수 있습니다. 끄면 카드가 숨겨집니다.
+        </p>
+        <div class="ed-field">
+          <label>카드 제목</label>
+          <input type="text" id="recruitTitle" placeholder="에디터로 함께해요" maxlength="40" />
+        </div>
+        <div class="ed-field">
+          <label>카드 설명</label>
+          <input type="text" id="recruitDesc" placeholder="당신의 관점을 Local Layers에서 발행해보세요." maxlength="80" />
+        </div>
+        <div style="margin-top:16px;display:flex;align-items:center;gap:10px;justify-content:flex-end;">
+          <span id="recruitSaveStatus" style="font-size:12px;color:var(--muted);"></span>
+          <button type="button" class="admin-btn ghost" id="recruitSaveBtn">카드 문구 저장</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 탭2: 지원자 ===== -->
+    <section class="ed-panel" data-panel="apps">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>지원자</th>
+              <th style="width:200px;">희망 포맷</th>
+              <th style="width:130px;">발행 주기</th>
+              <th style="width:110px;">상태</th>
+              <th style="width:110px;">접수일</th>
+              <th style="width:60px;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="appsTable"><tr><td colspan="6" class="admin-empty">불러오는 중...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 탭3: 활동 에디터 ===== -->
+    <section class="ed-panel" data-panel="editors">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>에디터</th>
+              <th style="width:180px;">배정 포맷</th>
+              <th style="width:120px;">배정 시리즈</th>
+              <th style="width:90px;">상태</th>
+              <th style="width:60px;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="editorsTable"><tr><td colspan="5" class="admin-empty">불러오는 중...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 탭: 해제 에디터 ===== -->
+    <section class="ed-panel" data-panel="released">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>해제된 에디터</th>
+              <th style="width:180px;">이전 배정 포맷</th>
+              <th style="width:120px;">해제일</th>
+              <th style="width:160px;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="releasedTable"><tr><td colspan="4" class="admin-empty">불러오는 중...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 탭4: 삭제 요청 ===== -->
+    <section class="ed-panel" data-panel="deletions">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>대상 콘텐츠</th>
+              <th style="width:160px;">요청자</th>
+              <th style="width:110px;">상태</th>
+              <th style="width:110px;">요청일</th>
+              <th style="width:140px;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="delsTable"><tr><td colspan="5" class="admin-empty">불러오는 중...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== 지원자 상세 모달 ===== -->
+<div class="admin-modal" id="appModal">
+  <div class="admin-modal-inner">
+    <button type="button" class="admin-modal-close" id="appClose" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+    <h2 class="admin-modal-title">에디터 지원 상세</h2>
+    <p class="ed-meta-head" id="appMetaHead"></p>
+    <div id="appBody"></div>
+    <div class="ed-modal-actions">
+      <button type="button" class="admin-btn" id="appApproveBtn"><i class="fa-solid fa-user-check"></i> 승인 후 에디터 지정</button>
+      <button type="button" class="admin-btn ghost" id="appRejectBtn"><i class="fa-solid fa-user-xmark"></i> 거절</button>
+      <button type="button" class="admin-btn ghost danger" id="appDeleteBtn"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 에디터 배정/관리 모달 ===== -->
+<div class="admin-modal" id="assignModal">
+  <div class="admin-modal-inner" style="max-width:680px;">
+    <button type="button" class="admin-modal-close" id="assignClose" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+    <h2 class="admin-modal-title" id="assignTitle">에디터 배정</h2>
+    <p class="ed-meta-head" id="assignMetaHead"></p>
+    <div class="ed-assign-grid">
+      <div>
+        <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px;">활동 상태</label>
+        <div class="ed-set-row" style="max-width:240px;">
+          <span class="ed-set-name" style="font-size:13px;">활동 중</span>
+          <span class="ed-set-state" id="assignActiveState">OFF</span>
+          <input type="checkbox" class="ed-toggle" id="assignActive" />
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px;">발행 가능 포맷</label>
+        <div class="ed-checks" id="assignFormats"></div>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px;">배정 시리즈 (체크한 시리즈만 작성기에서 사용 가능)</label>
+        <div class="ed-series-list" id="assignSeries"></div>
+      </div>
+      <div class="ed-field" style="margin:0;">
+        <label>단독 아티클 발행 허용 건수 (standaloneQuota)</label>
+        <input type="number" id="assignQuota" min="0" step="1" placeholder="예) 5" />
+      </div>
+      <div class="ed-field" style="margin:0;">
+        <label>단독 아티클 공개 범위 (에디터 작성 시 자동 적용·변경 불가)</label>
+        <select id="assignAccess">
+          <option value="members">회원 전용</option>
+          <option value="public">모두 공개</option>
+        </select>
+      </div>
+      <div class="ed-field" style="margin:0;">
+        <label>발행 주기</label>
+        <input type="text" id="assignCycle" placeholder="예) 주 1회 · 격주 · 월 2회" />
+      </div>
+      <div class="ed-field" style="margin:0;">
+        <label>활동 기간 (에디터에게 안내됨)</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="date" id="assignActStart" style="flex:1;" />
+          <span style="color:var(--muted);font-size:13px;">~</span>
+          <input type="date" id="assignActEnd" style="flex:1;" />
+        </div>
+      </div>
+      <div class="ed-field" style="margin:0;">
+        <label>관리 메모 (에디터에게는 비공개)</label>
+        <textarea id="assignNotes" rows="2" placeholder="내부 메모"></textarea>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--admin-border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <strong style="font-size:13px;color:var(--fg);">발행·임시저장 콘텐츠</strong>
+        <span class="ed-art-stat" id="assignArtSummary"></span>
+      </div>
+      <div class="ed-articles" id="assignArticles"><div class="ed-empty-mini">불러오는 중...</div></div>
+    </div>
+
+    <div class="ed-modal-actions">
+      <button type="button" class="admin-btn" id="assignSaveBtn"><i class="fa-regular fa-floppy-disk"></i> 배정 저장</button>
+      <button type="button" class="admin-btn ghost" id="assignMsgBtn"><i class="fa-regular fa-paper-plane"></i> 메시지 보내기</button>
+      <button type="button" class="admin-btn ghost danger" id="assignRemoveBtn"><i class="fa-solid fa-user-minus"></i> 에디터 해제</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+
+  const FORMAT_OPTIONS = ['시리즈', '아티클', '영상'];
+  const esc = (s) => (window.adminEscHTML ? adminEscHTML(s) : String(s == null ? '' : s));
+
+  let appsList = [];      // editorApplications [{id,data}]
+  let editorsList = [];   // editorAssignments  [{id,data}]
+  let delsList = [];      // deletionRequests   [{id,data}]
+  let seriesList = [];    // series [{id,data}]
+  let usersMap = {};      // uid -> user data (role 확인용)
+
+  function fmtDate(ts) {
+    let d = null;
+    if (ts && typeof ts.toDate === 'function') d = ts.toDate();
+    else if (ts) d = new Date(ts);
+    if (!d || isNaN(d.getTime())) return '';
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function fmtDateShort(ts) {
+    let d = null;
+    if (ts && typeof ts.toDate === 'function') d = ts.toDate();
+    else if (ts) d = new Date(ts);
+    if (!d || isNaN(d.getTime())) return '';
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+  }
+  function tsMillis(ts) { return ts && ts.toMillis ? ts.toMillis() : 0; }
+
+  function reactionTotal(a) {
+    let total = 0;
+    const rc = a.reactionCounts || {};
+    total += (Number(rc.new) || 0) + (Number(rc.deep) || 0) + (Number(rc.pass) || 0);
+    const r = a.reactions;
+    if (r && typeof r === 'object') Object.values(r).forEach(v => { total += Number(v) || 0; });
+    return total;
+  }
+
+  /* ===== 탭 전환 ===== */
+  document.querySelectorAll('.ed-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.ed-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.ed-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panel = document.querySelector(`.ed-panel[data-panel="${tab.dataset.tab}"]`);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  /* ===== 모집 설정 ===== */
+  let _recruitDirty = false;
+  function bindRecruitSettings() {
+    const toggle = document.getElementById('recruitToggle');
+    const state = document.getElementById('recruitState');
+    toggle.addEventListener('change', async () => {
+      const on = toggle.checked;
+      state.textContent = on ? 'ON' : 'OFF';
+      state.classList.toggle('is-on', on);
+      try {
+        await fb.db.collection('site').doc('settings').set({
+          editorRecruitOpen: on, updatedAt: fb.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+        toggle.checked = !on;
+        state.textContent = !on ? 'ON' : 'OFF';
+        state.classList.toggle('is-on', !on);
+      }
+    });
+    ['recruitTitle', 'recruitDesc'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        _recruitDirty = true;
+        document.getElementById('recruitSaveStatus').textContent = '';
+      });
+    });
+    document.getElementById('recruitSaveBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('recruitSaveBtn');
+      btn.disabled = true;
+      try {
+        await fb.db.collection('site').doc('settings').set({
+          editorRecruitTitle: (document.getElementById('recruitTitle').value || '').trim(),
+          editorRecruitDesc: (document.getElementById('recruitDesc').value || '').trim(),
+          updatedAt: fb.FieldValue.serverTimestamp()
+        }, { merge: true });
+        _recruitDirty = false;
+        document.getElementById('recruitSaveStatus').textContent = '저장되었습니다.';
+      } catch (err) {
+        sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    fb.db.collection('site').doc('settings').onSnapshot(snap => {
+      const d = snap.exists ? snap.data() : {};
+      const on = d.editorRecruitOpen === true;
+      toggle.checked = on;
+      state.textContent = on ? 'ON' : 'OFF';
+      state.classList.toggle('is-on', on);
+      if (!_recruitDirty) {
+        document.getElementById('recruitTitle').value = d.editorRecruitTitle || '';
+        document.getElementById('recruitDesc').value = d.editorRecruitDesc || '';
+      }
+    }, err => console.warn('[recruit settings]', err.message));
+  }
+
+  /* ===== 지원자 ===== */
+  function renderApps() {
+    const tbody = document.getElementById('appsTable');
+    document.getElementById('cntApps').textContent =
+      appsList.filter(x => (x.data.status || 'PENDING') === 'PENDING').length;
+    const list = [...appsList].sort((a, b) => tsMillis(b.data.createdAt) - tsMillis(a.data.createdAt));
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="6" class="admin-empty">접수된 지원이 없습니다.</td></tr>`; return; }
+    tbody.innerHTML = list.map(item => {
+      const d = item.data;
+      const st = d.status || 'PENDING';
+      const stLabel = st === 'APPROVED' ? '승인됨' : st === 'REJECTED' ? '거절됨' : '대기중';
+      const fmts = Array.isArray(d.formats) ? d.formats : [];
+      return `
+        <tr class="ed-row" data-id="${esc(item.id)}">
+          <td><div class="ed-name">${esc(d.name || '(이름없음)')}</div><div class="ed-email">${esc(d.email || '')}</div></td>
+          <td><div class="ed-tags">${fmts.map(f => `<span class="ed-tag">${esc(f)}</span>`).join('') || '<span class="ed-email">-</span>'}</div></td>
+          <td><span class="ed-email">${esc(d.cycle || '-')}</span></td>
+          <td><span class="ed-status ${st}">${stLabel}</span></td>
+          <td><span class="ed-date">${fmtDateShort(d.createdAt)}</span></td>
+          <td style="text-align:right;"><button class="admin-btn ghost admin-btn-sm" data-id="${esc(item.id)}"><i class="fa-solid fa-eye"></i></button></td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('.ed-row').forEach(row => row.addEventListener('click', () => openApp(row.dataset.id)));
+  }
+
+  const appModal = document.getElementById('appModal');
+  let currentAppId = null;
+  function closeApp() { appModal.classList.remove('open'); document.body.style.overflow = ''; currentAppId = null; }
+  document.getElementById('appClose').addEventListener('click', closeApp);
+  appModal.addEventListener('click', e => { if (e.target === appModal) closeApp(); });
+
+  function openApp(id) {
+    const item = appsList.find(x => x.id === id);
+    if (!item) return;
+    const d = item.data;
+    currentAppId = id;
+    document.getElementById('appMetaHead').textContent =
+      `접수일 ${fmtDate(d.createdAt)} · 계정 ${d.email || '-'} · 상태 ${(d.status || 'PENDING')}`;
+    const rows = [
+      ['이름', d.name || ''],
+      ['이메일', d.email || ''],
+      ['전화번호', d.phone || ''],
+      ['희망 포맷', (Array.isArray(d.formats) ? d.formats.join(', ') : '')],
+      ['주제 및 내용', d.topic || ''],
+      ['콘텐츠 수', d.contentPlan || ''],
+      ['발행 주기', d.cycle || '']
+    ];
+    let html = rows.map(([l, v]) =>
+      `<div class="ed-detail-row"><div class="ed-detail-label">${esc(l)}</div><div class="ed-detail-val">${esc(v || '-')}</div></div>`).join('');
+    const atts = Array.isArray(d.attachments) ? d.attachments : [];
+    if (atts.length) {
+      const links = atts.map(a => `<a class="ed-attach-link" href="${esc(a.url)}" target="_blank" rel="noopener"><i class="fa-regular fa-file"></i> ${esc(a.name || '첨부파일')}</a>`).join('');
+      html += `<div class="ed-detail-row"><div class="ed-detail-label">첨부 (포트폴리오)</div><div class="ed-detail-val">${links}</div></div>`;
+    }
+    document.getElementById('appBody').innerHTML = html;
+    appModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // 에디터 선정 안내를 회원의 마이 아카이브(내 문의/답변)에 남긴다.
+  // 지원서 미러 문의(inquiryId)가 있으면 그 카드에 답변(reply)을 달고, 없으면 새 문의를 생성한다.
+  async function sendEditorSelectedMessage(uid, name, email, inquiryId) {
+    const ts = fb.FieldValue.serverTimestamp();
+    const greeting = name ? (name + ' 님,') : '안녕하세요,';
+    const replyMsg =
+      greeting + ' Local Layers 에디터로 선정되셨습니다. 진심으로 환영합니다!\n\n' +
+      '이제 프로필 메뉴(아바타)의 ‘에디터의 책상’에서 배정된 시리즈·포맷과 콘텐츠 현황을 확인하고 직접 콘텐츠를 작성·발행하실 수 있어요. ' +
+      '구체적인 배정 내용은 순차적으로 안내드리겠습니다.\n\n앞으로의 활동을 기대하겠습니다. 감사합니다.';
+    if (inquiryId) {
+      await fb.db.collection('inquiries').doc(inquiryId).set({
+        reply: replyMsg, repliedAt: ts, repliedBy: adminEmail(), status: 'ANSWERED', updatedAt: ts
+      }, { merge: true });
+    } else {
+      await fb.db.collection('inquiries').add({
+        userId: uid,
+        name: name || '',
+        email: email || '',
+        typeLabel: '에디터 선정',
+        category: 'editor-selected',
+        fields: { '안내': 'Local Layers 에디터로 선정되셨습니다.' },
+        reply: replyMsg,
+        repliedAt: ts,
+        repliedBy: adminEmail(),
+        status: 'ANSWERED',
+        agree: true,
+        createdAt: ts
+      });
+    }
+  }
+
+  // 활동 기간 문자열 만들기 (YYYY-MM-DD 입력값 → 사람이 읽기 좋은 한국어)
+  function fmtPeriodText(start, end) {
+    const s = (start || '').trim();
+    const e = (end || '').trim();
+    const dot = (v) => v.replace(/-/g, '. ').replace(/\.\s$/, '.');
+    if (s && e) return `${dot(s)} ~ ${dot(e)}`;
+    if (s) return `${dot(s)}부터`;
+    if (e) return `${dot(e)}까지`;
+    return '';
+  }
+
+  // 배정 완료 안내를 회원의 마이 아카이브에 남긴다. 배정 시리즈/아티클 수와 활동 기간을 안내한다.
+  // 기존 배정 안내 카드(assignMessageId)가 있으면 최신 내용으로 갱신하고, 없으면 새로 만들어 그 id를 돌려준다.
+  async function sendEditorAssignmentMessage(uid, name, email, info) {
+    const ts = fb.FieldValue.serverTimestamp();
+    const greeting = name ? (name + ' 님,') : '안녕하세요,';
+    const lines = [];
+    if (info.seriesCount > 0) {
+      lines.push(`· 시리즈: ${info.seriesCount}개 시리즈${info.episodeCount > 0 ? ` (총 ${info.episodeCount}편)` : ''}`);
+    }
+    if (info.standaloneQuota > 0) {
+      lines.push(`· 단독 아티클: ${info.standaloneQuota}건`);
+    }
+    if (info.cycle) lines.push(`· 발행 주기: ${info.cycle}`);
+    if (lines.length === 0) lines.push('· 구체적인 배정 내용은 에디터의 책상에서 확인하실 수 있어요.');
+    const periodText = fmtPeriodText(info.activityStart, info.activityEnd);
+    const replyMsg =
+      greeting + ' Local Layers 에디터로 선정되셨습니다. 진심으로 환영합니다!\n\n' +
+      '아래와 같이 활동 내용이 배정되었습니다.\n\n' +
+      '［배정 내용］\n' + lines.join('\n') + '\n\n' +
+      (periodText ? ('［활동 기간］\n' + periodText + '\n\n') : '') +
+      '프로필 메뉴(아바타)의 ‘에디터의 책상’에서 배정된 시리즈·아티클 현황을 확인하고 직접 콘텐츠를 작성·발행하실 수 있어요.\n\n' +
+      '앞으로의 활동을 기대하겠습니다. 감사합니다.';
+    if (info.assignMessageId) {
+      await fb.db.collection('inquiries').doc(info.assignMessageId).set({
+        reply: replyMsg, repliedAt: ts, repliedBy: adminEmail(), status: 'ANSWERED', updatedAt: ts
+      }, { merge: true });
+      return info.assignMessageId;
+    }
+    const ref = await fb.db.collection('inquiries').add({
+      userId: uid,
+      name: name || '',
+      email: email || '',
+      typeLabel: '에디터 배정 완료',
+      category: 'editor-assigned',
+      fields: { '안내': '에디터 배정이 완료되었습니다.' },
+      reply: replyMsg,
+      repliedAt: ts,
+      repliedBy: adminEmail(),
+      status: 'ANSWERED',
+      agree: true,
+      createdAt: ts
+    });
+    return ref.id;
+  }
+
+  // 에디터 지원 거절 안내를 마이 아카이브에 남긴다(미러 문의가 있으면 그 카드에 답변).
+  async function sendEditorRejectMessage(uid, name, email, inquiryId) {
+    const ts = fb.FieldValue.serverTimestamp();
+    const greeting = name ? (name + ' 님,') : '안녕하세요,';
+    const replyMsg =
+      greeting + ' 소중한 에디터 지원에 진심으로 감사드립니다.\n\n' +
+      '아쉽게도 이번 지원은 함께하기 어렵게 되었습니다. 보내주신 관점과 관심은 큰 의미가 있었으며, ' +
+      '앞으로 더 좋은 기회로 다시 만나뵐 수 있기를 바랍니다. 감사합니다.';
+    if (inquiryId) {
+      await fb.db.collection('inquiries').doc(inquiryId).set({
+        reply: replyMsg, repliedAt: ts, repliedBy: adminEmail(), status: 'ANSWERED', updatedAt: ts
+      }, { merge: true });
+    } else {
+      await fb.db.collection('inquiries').add({
+        userId: uid,
+        name: name || '',
+        email: email || '',
+        typeLabel: '에디터 지원 결과',
+        category: 'editor-rejected',
+        fields: { '안내': '에디터 지원 심사 결과 안내' },
+        reply: replyMsg,
+        repliedAt: ts,
+        repliedBy: adminEmail(),
+        status: 'ANSWERED',
+        agree: true,
+        createdAt: ts
+      });
+    }
+  }
+
+  document.getElementById('appApproveBtn').addEventListener('click', async () => {
+    if (!currentAppId) return;
+    const item = appsList.find(x => x.id === currentAppId);
+    if (!item) return;
+    const d = item.data;
+    if (!d.userId) { sysAlert('지원자 계정(userId)이 없어 에디터로 지정할 수 없습니다.', { icon: 'danger' }); return; }
+    if (!(await sysConfirm(`'${d.name || d.email}' 님을 에디터로 지정하시겠습니까?\n\n해당 계정의 권한이 '에디터'로 변경되고, 배정 문서가 생성됩니다. 이후 ‘활동 에디터’ 탭에서 시리즈·포맷·콘텐츠 수를 배정하세요.`, { okLabel: '에디터 지정' }))) return;
+    try {
+      const uid = d.userId;
+      await fb.db.collection('users').doc(uid).set({ role: 'editor', updatedAt: fb.FieldValue.serverTimestamp() }, { merge: true });
+      await fb.db.collection('editorAssignments').doc(uid).set({
+        active: true,
+        name: d.name || '',
+        email: d.email || '',
+        formats: Array.isArray(d.formats) ? d.formats : [],
+        seriesCodes: [],
+        seriesEpisodes: {},
+        standaloneQuota: 0,
+        standaloneAccess: 'members',
+        cycle: d.cycle || '',
+        notes: '',
+        applicationId: currentAppId,
+        assignedAt: fb.FieldValue.serverTimestamp(),
+        updatedAt: fb.FieldValue.serverTimestamp(),
+        released: false,
+        releasedAt: fb.FieldValue.delete(),
+        restoredAt: fb.FieldValue.serverTimestamp()
+      }, { merge: true });
+      await fb.db.collection('editorApplications').doc(currentAppId).update({
+        status: 'APPROVED', reviewedAt: fb.FieldValue.serverTimestamp(), reviewedBy: adminEmail()
+      });
+      // 안내 메시지는 '활동 에디터' 탭에서 배정을 저장(배정 완료)할 때 발송된다.
+      sysAlert('에디터로 지정했습니다. ‘활동 에디터’ 탭에서 시리즈·아티클·활동 기간을 배정하고 저장하면, 배정 완료 안내가 해당 회원의 마이 아카이브로 전송됩니다.');
+      closeApp();
+    } catch (err) {
+      sysAlert('승인 실패: ' + err.message, { icon: 'danger' });
+    }
+  });
+
+  document.getElementById('appRejectBtn').addEventListener('click', async () => {
+    if (!currentAppId) return;
+    const item = appsList.find(x => x.id === currentAppId);
+    const d = item ? item.data : {};
+    if (!(await sysConfirm('이 지원을 거절 처리하시겠습니까?\n\n거절 안내가 지원자의 마이 아카이브로 전송됩니다.'))) return;
+    try {
+      await fb.db.collection('editorApplications').doc(currentAppId).update({
+        status: 'REJECTED', reviewedAt: fb.FieldValue.serverTimestamp(), reviewedBy: adminEmail()
+      });
+      // 거절 안내 메시지를 마이 아카이브로 전송
+      if (d.userId) {
+        try { await sendEditorRejectMessage(d.userId, d.name || '', d.email || '', d.inquiryId || null); }
+        catch (e) { console.warn('[reject] 거절 메시지 전송 실패:', e && e.message); }
+      }
+      closeApp();
+    } catch (err) { sysAlert('처리 실패: ' + err.message, { icon: 'danger' }); }
+  });
+
+  document.getElementById('appDeleteBtn').addEventListener('click', async () => {
+    if (!currentAppId) return;
+    if (!(await sysConfirm('이 지원서를 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.', { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('editorApplications').doc(currentAppId).delete();
+      closeApp();
+    } catch (err) { sysAlert('삭제 실패: ' + err.message, { icon: 'danger' }); }
+  });
+
+  /* ===== 활동 에디터 ===== */
+  function renderEditors() {
+    const tbody = document.getElementById('editorsTable');
+    // 해제된 에디터는 '해제 에디터' 탭으로 분리
+    const active = editorsList.filter(x => x.data.released !== true);
+    document.getElementById('cntEditors').textContent = active.filter(x => x.data.active !== false).length;
+    const list = [...active].sort((a, b) => (a.data.name || '').localeCompare(b.data.name || '', 'ko'));
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="5" class="admin-empty">지정된 에디터가 없습니다. ‘지원자’ 탭에서 승인하면 여기에 표시됩니다.</td></tr>`; return; }
+    tbody.innerHTML = list.map(item => {
+      const d = item.data;
+      const active = d.active !== false;
+      const fmts = Array.isArray(d.formats) ? d.formats : [];
+      const sc = Array.isArray(d.seriesCodes) ? d.seriesCodes : [];
+      return `
+        <tr class="ed-row" data-id="${esc(item.id)}">
+          <td><div class="ed-name">${esc(d.name || '(이름없음)')}</div><div class="ed-email">${esc(d.email || '')}</div></td>
+          <td><div class="ed-tags">${fmts.map(f => `<span class="ed-tag">${esc(f)}</span>`).join('') || '<span class="ed-email">미배정</span>'}</div></td>
+          <td><span class="ed-email">${sc.length ? sc.length + '개' : '미배정'}</span></td>
+          <td><span class="ed-status ${active ? 'active' : 'inactive'}">${active ? '활동중' : '중지'}</span></td>
+          <td style="text-align:right;"><button class="admin-btn ghost admin-btn-sm" data-id="${esc(item.id)}"><i class="fa-solid fa-sliders"></i></button></td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('.ed-row').forEach(row => row.addEventListener('click', () => openAssign(row.dataset.id)));
+  }
+
+  /* ===== 해제 에디터 ===== */
+  function renderReleased() {
+    const tbody = document.getElementById('releasedTable');
+    if (!tbody) return;
+    const released = editorsList.filter(x => x.data.released === true);
+    document.getElementById('cntReleased').textContent = released.length;
+    const list = [...released].sort((a, b) => tsMillis(b.data.releasedAt) - tsMillis(a.data.releasedAt));
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="4" class="admin-empty">해제된 에디터가 없습니다.</td></tr>`; return; }
+    tbody.innerHTML = list.map(item => {
+      const d = item.data;
+      const fmts = Array.isArray(d.formats) ? d.formats : [];
+      return `
+        <tr>
+          <td><div class="ed-name">${esc(d.name || '(이름없음)')}</div><div class="ed-email">${esc(d.email || '')}</div></td>
+          <td><div class="ed-tags">${fmts.map(f => `<span class="ed-tag">${esc(f)}</span>`).join('') || '<span class="ed-email">-</span>'}</div></td>
+          <td><span class="ed-date">${fmtDateShort(d.releasedAt)}</span></td>
+          <td style="text-align:right;white-space:nowrap;">
+            <button class="admin-btn ghost admin-btn-sm" data-act="restore" data-id="${esc(item.id)}"><i class="fa-solid fa-rotate-left"></i> 복구</button>
+            <button class="admin-btn ghost danger admin-btn-sm" data-act="delete" data-id="${esc(item.id)}" style="margin-left:6px;"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+          </td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('button[data-act="restore"]').forEach(btn => {
+      btn.addEventListener('click', () => restoreEditor(btn.dataset.id));
+    });
+    tbody.querySelectorAll('button[data-act="delete"]').forEach(btn => {
+      btn.addEventListener('click', () => deleteReleasedEditor(btn.dataset.id));
+    });
+  }
+
+  // 해제된 에디터의 배정 기록을 완전히 삭제 (목록에서 제거). 계정·작성 콘텐츠는 유지됨.
+  async function deleteReleasedEditor(uid) {
+    const item = editorsList.find(x => x.id === uid);
+    if (!item) return;
+    const d = item.data;
+    if (!(await sysConfirm(`'${d.name || d.email}' 님의 에디터 배정 기록을 완전히 삭제하시겠습니까?\n\n해제 에디터 목록에서 사라집니다. 계정과 작성한 콘텐츠는 그대로 유지되며, 삭제 후에는 복구할 수 없습니다.`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('editorAssignments').doc(uid).delete();
+      sysAlert('에디터 배정 기록을 삭제했습니다.');
+    } catch (err) { sysAlert('삭제 실패: ' + err.message, { icon: 'danger' }); }
+  }
+
+  async function restoreEditor(uid) {
+    const item = editorsList.find(x => x.id === uid);
+    if (!item) return;
+    const d = item.data;
+    if (!(await sysConfirm(`'${d.name || d.email}' 님을 에디터로 복구하시겠습니까?\n\n계정 권한이 다시 ‘에디터’가 되고 활동 에디터 탭으로 이동합니다.`, { okLabel: '복구' }))) return;
+    try {
+      await fb.db.collection('users').doc(uid).set({ role: 'editor', updatedAt: fb.FieldValue.serverTimestamp() }, { merge: true });
+      await fb.db.collection('editorAssignments').doc(uid).set({
+        released: false, active: true, restoredAt: fb.FieldValue.serverTimestamp(), updatedAt: fb.FieldValue.serverTimestamp()
+      }, { merge: true });
+      sysAlert('에디터로 복구했습니다. ‘활동 에디터’ 탭에서 확인하세요.');
+    } catch (err) { sysAlert('복구 실패: ' + err.message, { icon: 'danger' }); }
+  }
+
+  const assignModal = document.getElementById('assignModal');
+  let currentEditorId = null;
+  function closeAssign() { assignModal.classList.remove('open'); document.body.style.overflow = ''; currentEditorId = null; }
+  document.getElementById('assignClose').addEventListener('click', closeAssign);
+  assignModal.addEventListener('click', e => { if (e.target === assignModal) closeAssign(); });
+
+  // 배정 모달의 시리즈/에피소드 체크박스 상호작용 연결
+  function wireAssignSeries() {
+    document.querySelectorAll('#assignSeries .ed-series-item').forEach(item => {
+      const main = item.querySelector('.ed-series-main');
+      const epRow = item.querySelector('.ed-ep-row');
+      const allCb = item.querySelector('.ed-ep-all');
+      const numCbs = Array.from(item.querySelectorAll('.ed-ep-num'));
+      const syncPill = cb => { const lab = cb.closest('.ed-ep'); if (lab) lab.classList.toggle('checked', cb.checked); };
+      // 시리즈 on/off → 에피소드 영역 표시. 켤 때 선택이 전혀 없으면 '전체' 기본 체크
+      if (main) main.addEventListener('change', () => {
+        if (epRow) epRow.hidden = !main.checked;
+        if (main.checked && allCb && !allCb.checked && !numCbs.some(c => c.checked)) {
+          allCb.checked = true; syncPill(allCb);
+        }
+      });
+      // '전체' 체크 → 개별 편 해제
+      if (allCb) allCb.addEventListener('change', () => {
+        if (allCb.checked) { numCbs.forEach(c => { c.checked = false; syncPill(c); }); }
+        syncPill(allCb);
+      });
+      // 개별 편 체크 → '전체' 해제 (하나라도 켜지면)
+      numCbs.forEach(c => c.addEventListener('change', () => {
+        if (c.checked && allCb) { allCb.checked = false; syncPill(allCb); }
+        // 개별 편을 모두 해제하면 '전체'로 되돌림
+        if (allCb && !numCbs.some(x => x.checked)) { allCb.checked = true; syncPill(allCb); }
+        syncPill(c);
+      }));
+    });
+  }
+
+  // 배정 모달에서 시리즈/에피소드 선택값 수집
+  function collectAssignSeries() {
+    const seriesCodes = [];
+    const seriesEpisodes = {};
+    document.querySelectorAll('#assignSeries .ed-series-item').forEach(item => {
+      const main = item.querySelector('.ed-series-main');
+      if (!main || !main.checked) return;
+      const code = main.value;
+      seriesCodes.push(code);
+      const allCb = item.querySelector('.ed-ep-all');
+      const nums = Array.from(item.querySelectorAll('.ed-ep-num:checked')).map(c => Number(c.value)).sort((a, b) => a - b);
+      // '전체'가 아니고 특정 편이 선택된 경우에만 에피소드 제한 저장. 그 외엔 전체(빈 배열)로 둠.
+      seriesEpisodes[code] = (allCb && allCb.checked) ? [] : nums;
+    });
+    return { seriesCodes, seriesEpisodes };
+  }
+
+  function openAssign(uid) {
+    const item = editorsList.find(x => x.id === uid);
+    if (!item) return;
+    const d = item.data;
+    currentEditorId = uid;
+    document.getElementById('assignTitle').textContent = (d.name || '에디터') + ' 배정';
+    document.getElementById('assignMetaHead').textContent = `${d.email || ''} · 지정일 ${fmtDate(d.assignedAt)}`;
+
+    // 활동 상태
+    const act = document.getElementById('assignActive');
+    const actState = document.getElementById('assignActiveState');
+    act.checked = d.active !== false;
+    actState.textContent = act.checked ? 'ON' : 'OFF';
+    actState.classList.toggle('is-on', act.checked);
+    act.onchange = () => { actState.textContent = act.checked ? 'ON' : 'OFF'; actState.classList.toggle('is-on', act.checked); };
+
+    // 포맷
+    const fmts = Array.isArray(d.formats) ? d.formats : [];
+    document.getElementById('assignFormats').innerHTML = FORMAT_OPTIONS.map(f => {
+      const on = fmts.includes(f);
+      return `<label class="ed-check${on ? ' checked' : ''}"><input type="checkbox" value="${esc(f)}"${on ? ' checked' : ''} /><span>${esc(f)}</span></label>`;
+    }).join('');
+    document.querySelectorAll('#assignFormats .ed-check').forEach(lab => {
+      const cb = lab.querySelector('input');
+      cb.addEventListener('change', () => lab.classList.toggle('checked', cb.checked));
+    });
+
+    // 시리즈 + 에피소드(편) 선택
+    const sc = Array.isArray(d.seriesCodes) ? d.seriesCodes : [];
+    const sEp = (d.seriesEpisodes && typeof d.seriesEpisodes === 'object') ? d.seriesEpisodes : {};
+    const sWrap = document.getElementById('assignSeries');
+    if (!seriesList.length) {
+      sWrap.innerHTML = `<div class="ed-empty-mini">등록된 시리즈가 없습니다. ‘시리즈’ 메뉴에서 먼저 시리즈를 생성하세요.</div>`;
+    } else {
+      sWrap.innerHTML = [...seriesList].sort((a, b) => (a.data.name || '').localeCompare(b.data.name || '', 'ko')).map(s => {
+        const code = s.id;
+        const total = Number(s.data.total) || 0;
+        const epArr = Array.isArray(sEp[code]) ? sEp[code].map(Number) : null; // 특정 편 배정
+        const assigned = sc.includes(code) || (epArr && epArr.length > 0);
+        const isAll = assigned && (!epArr || epArr.length === 0); // 전체 배정
+        const sub = `${s.data.category ? esc(s.data.category) + ' · ' : ''}${total ? '총 ' + total + '편' : ''}`;
+        let epHtml = '';
+        if (total > 0) {
+          let pills = `<label class="ed-ep is-all${isAll ? ' checked' : ''}"><input type="checkbox" class="ed-ep-all"${isAll ? ' checked' : ''} /><span>전체</span></label>`;
+          for (let n = 1; n <= total; n++) {
+            const onN = !!(epArr && epArr.indexOf(n) !== -1);
+            pills += `<label class="ed-ep${onN ? ' checked' : ''}"><input type="checkbox" class="ed-ep-num" value="${n}"${onN ? ' checked' : ''} /><span>${n}편</span></label>`;
+          }
+          epHtml = `<div class="ed-ep-row"${assigned ? '' : ' hidden'}>${pills}</div>`;
+        } else {
+          epHtml = `<div class="ed-ep-row"${assigned ? '' : ' hidden'}><span class="ed-ep-none">총 편수 미설정 — 시리즈 전체로 배정됩니다.</span></div>`;
+        }
+        return `<div class="ed-series-item" data-code="${esc(code)}">`
+          + `<input type="checkbox" class="ed-series-main" value="${esc(code)}"${assigned ? ' checked' : ''} />`
+          + `<div class="ed-series-meta"><div class="ed-series-name">${esc(s.data.name || code)} <span style="color:var(--muted);font-weight:400;">(${esc(code)})</span></div>`
+          + `<div class="ed-series-sub">${sub}</div>${epHtml}</div></div>`;
+      }).join('');
+      wireAssignSeries();
+    }
+
+    document.getElementById('assignQuota').value = (d.standaloneQuota != null ? d.standaloneQuota : '');
+    document.getElementById('assignAccess').value = (d.standaloneAccess === 'public' ? 'public' : 'members');
+    document.getElementById('assignCycle').value = d.cycle || '';
+    document.getElementById('assignActStart').value = d.activityStart || '';
+    document.getElementById('assignActEnd').value = d.activityEnd || '';
+    document.getElementById('assignNotes').value = d.notes || '';
+
+    // 글 목록 로드
+    loadEditorArticles(uid);
+
+    assignModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  async function loadEditorArticles(uid) {
+    const wrap = document.getElementById('assignArticles');
+    const summary = document.getElementById('assignArtSummary');
+    wrap.innerHTML = `<div class="ed-empty-mini">불러오는 중...</div>`;
+    summary.textContent = '';
+    try {
+      const snap = await fb.db.collection('articles').where('authorId', '==', uid).get();
+      const arts = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      if (!arts.length) { wrap.innerHTML = `<div class="ed-empty-mini">아직 발행/작성한 콘텐츠가 없습니다.</div>`; return; }
+      arts.sort((a, b) => tsMillis(b.data.updatedAt || b.data.createdAt) - tsMillis(a.data.updatedAt || a.data.createdAt));
+      const published = arts.filter(a => a.data.status === 'PUBLISHED').length;
+      const drafts = arts.filter(a => a.data.status === 'DRAFT').length;
+      let totalViews = 0, totalReact = 0;
+      arts.forEach(a => { totalViews += Number(a.data.viewCount) || 0; totalReact += reactionTotal(a.data); });
+      summary.textContent = `발행 ${published} · 임시 ${drafts} · 조회 ${totalViews.toLocaleString()} · 반응 ${totalReact.toLocaleString()}`;
+      wrap.innerHTML = arts.map(a => {
+        const st = a.data.status || 'DRAFT';
+        const stLabel = st === 'PUBLISHED' ? '발행' : st === 'DRAFT' ? '임시' : st === 'PRERELEASE' ? '예정' : st === 'SCHEDULED' ? '예약' : st;
+        const views = Number(a.data.viewCount) || 0;
+        const react = reactionTotal(a.data);
+        return `<div class="ed-art-row">
+          <span class="ed-art-badge">${esc(stLabel)}</span>
+          <div class="ed-art-title"><span class="t">${esc(a.data.title || '(제목없음)')}</span></div>
+          <span class="ed-art-stat"><i class="fa-regular fa-eye"></i> ${views.toLocaleString()} &nbsp; <i class="fa-regular fa-heart"></i> ${react.toLocaleString()}</span>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      wrap.innerHTML = `<div class="ed-empty-mini">글 목록 로딩 실패: ${esc(err.message)}</div>`;
+    }
+  }
+
+  document.getElementById('assignSaveBtn').addEventListener('click', async () => {
+    if (!currentEditorId) return;
+    const item = editorsList.find(x => x.id === currentEditorId);
+    const cur = item ? item.data : {};
+    const formats = Array.from(document.querySelectorAll('#assignFormats input:checked')).map(i => i.value);
+    const { seriesCodes, seriesEpisodes } = collectAssignSeries();
+    const quota = parseInt(document.getElementById('assignQuota').value, 10);
+    const stdQuota = isNaN(quota) ? 0 : Math.max(0, quota);
+    const cycle = (document.getElementById('assignCycle').value || '').trim();
+    const activityStart = (document.getElementById('assignActStart').value || '').trim();
+    const activityEnd = (document.getElementById('assignActEnd').value || '').trim();
+    if (activityStart && activityEnd && activityEnd < activityStart) {
+      sysAlert('활동 종료일이 시작일보다 빠릅니다. 기간을 확인하세요.', { icon: 'danger' }); return;
+    }
+    // 배정 에피소드(편) 총합: 특정 편 배정이면 그 개수, 전체 배정이면 시리즈 총편수
+    let episodeCount = 0;
+    seriesCodes.forEach(code => {
+      const eps = Array.isArray(seriesEpisodes[code]) ? seriesEpisodes[code] : [];
+      if (eps.length > 0) { episodeCount += eps.length; return; }
+      const s = seriesList.find(x => x.id === code);
+      episodeCount += (s && Number(s.data.total)) ? Number(s.data.total) : 0;
+    });
+    const btn = document.getElementById('assignSaveBtn');
+    btn.disabled = true;
+    try {
+      await fb.db.collection('editorAssignments').doc(currentEditorId).set({
+        active: document.getElementById('assignActive').checked,
+        formats,
+        seriesCodes,
+        seriesEpisodes,
+        standaloneQuota: stdQuota,
+        standaloneAccess: (document.getElementById('assignAccess').value === 'public' ? 'public' : 'members'),
+        cycle,
+        activityStart,
+        activityEnd,
+        notes: (document.getElementById('assignNotes').value || '').trim(),
+        updatedAt: fb.FieldValue.serverTimestamp()
+      }, { merge: true });
+      // 배정 이력 스냅샷 기록 (어드민 전용). 저장할 때마다 한 건씩 남긴다.
+      try {
+        await fb.db.collection('editorAssignmentLogs').add({
+          uid: currentEditorId,
+          name: cur.name || '',
+          email: cur.email || '',
+          formats,
+          seriesCodes,
+          seriesEpisodes,
+          standaloneQuota: stdQuota,
+          standaloneAccess: (document.getElementById('assignAccess').value === 'public' ? 'public' : 'members'),
+          cycle,
+          activityStart,
+          activityEnd,
+          seriesCount: seriesCodes.length,
+          episodeCount,
+          at: fb.FieldValue.serverTimestamp(),
+          by: adminEmail()
+        });
+      } catch (e) { console.warn('[assign] 배정 이력 기록 실패:', e && e.message); }
+      // 배정 완료 안내 메시지 발송 (배정 개수·활동 기간 포함). 기존 안내 카드가 있으면 갱신.
+      let msgOk = true;
+      let assignMessageId = cur.assignMessageId || null;
+      try {
+        assignMessageId = await sendEditorAssignmentMessage(currentEditorId, cur.name || '', cur.email || '', {
+          seriesCount: seriesCodes.length,
+          episodeCount,
+          standaloneQuota: stdQuota,
+          cycle,
+          activityStart,
+          activityEnd,
+          assignMessageId: cur.assignMessageId || null
+        });
+        if (assignMessageId && assignMessageId !== cur.assignMessageId) {
+          await fb.db.collection('editorAssignments').doc(currentEditorId).set({ assignMessageId }, { merge: true });
+        }
+      } catch (e) { msgOk = false; console.warn('[assign] 배정 안내 전송 실패:', e && e.message); }
+      sysAlert(msgOk
+        ? '배정을 저장하고, 배정 완료 안내를 에디터의 마이 아카이브로 보냈습니다.'
+        : '배정은 저장했지만 안내 메시지 전송에 실패했습니다. 다시 시도해 주세요.', { icon: msgOk ? 'success' : 'danger' });
+      closeAssign();
+    } catch (err) {
+      sysAlert('저장 실패: ' + err.message, { icon: 'danger' });
+    } finally { btn.disabled = false; }
+  });
+
+  document.getElementById('assignMsgBtn').addEventListener('click', () => {
+    if (!currentEditorId) return;
+    const item = editorsList.find(x => x.id === currentEditorId);
+    const d = item ? item.data : {};
+    // 공용 메시지 모달(작성 / 발송 이력 / 배정 이력[에디터]) 열기
+    window.openAdminMsgModal(currentEditorId, { name: d.name || '', email: d.email || '', kind: 'editor' });
+  });
+
+  document.getElementById('assignRemoveBtn').addEventListener('click', async () => {
+    if (!currentEditorId) return;
+    if (!(await sysConfirm('이 에디터를 해제하시겠습니까?\n\n계정 권한이 ‘독자’로 돌아가고 ‘해제 에디터’ 탭으로 이동합니다. 작성한 콘텐츠는 그대로 유지됩니다.', { danger: true, okLabel: '에디터 해제' }))) return;
+    try {
+      await fb.db.collection('users').doc(currentEditorId).set({ role: 'reader', updatedAt: fb.FieldValue.serverTimestamp() }, { merge: true });
+      await fb.db.collection('editorAssignments').doc(currentEditorId).set({
+        active: false, released: true, releasedAt: fb.FieldValue.serverTimestamp(), updatedAt: fb.FieldValue.serverTimestamp()
+      }, { merge: true });
+      sysAlert('에디터를 해제했습니다. ‘해제 에디터’ 탭에서 확인하거나 복구할 수 있습니다.');
+      closeAssign();
+    } catch (err) { sysAlert('해제 실패: ' + err.message, { icon: 'danger' }); }
+  });
+
+  /* ===== 삭제 요청 ===== */
+  function renderDels() {
+    const tbody = document.getElementById('delsTable');
+    document.getElementById('cntDels').textContent = delsList.filter(x => (x.data.status || 'PENDING') === 'PENDING').length;
+    const list = [...delsList].sort((a, b) => tsMillis(b.data.createdAt) - tsMillis(a.data.createdAt));
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="5" class="admin-empty">삭제 요청이 없습니다.</td></tr>`; return; }
+    tbody.innerHTML = list.map(item => {
+      const d = item.data;
+      const st = d.status || 'PENDING';
+      const stLabel = st === 'APPROVED' ? '승인(삭제됨)' : st === 'REJECTED' ? '거절됨' : '대기중';
+      const stCls = st === 'APPROVED' ? 'APPROVED' : st === 'REJECTED' ? 'REJECTED' : 'PENDING';
+      const pending = st === 'PENDING';
+      return `
+        <tr>
+          <td><div class="ed-name">${esc(d.articleTitle || d.articleId || '-')}</div>${d.reason ? `<div class="ed-email">사유: ${esc(d.reason)}</div>` : ''}</td>
+          <td><span class="ed-email">${esc(d.requestedByName || d.requestedByEmail || d.requestedBy || '')}</span></td>
+          <td><span class="ed-status ${stCls}">${stLabel}</span></td>
+          <td><span class="ed-date">${fmtDateShort(d.createdAt)}</span></td>
+          <td style="text-align:right;">
+            ${pending ? `<button class="admin-btn admin-btn-sm" data-act="approve" data-id="${esc(item.id)}">승인·삭제</button>
+              <button class="admin-btn ghost admin-btn-sm" data-act="reject" data-id="${esc(item.id)}">거절</button>` :
+              `<button class="admin-btn ghost admin-btn-sm" data-act="remove" data-id="${esc(item.id)}"><i class="fa-regular fa-trash-can"></i></button>`}
+          </td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', () => handleDel(btn.dataset.act, btn.dataset.id));
+    });
+  }
+
+  async function handleDel(act, id) {
+    const item = delsList.find(x => x.id === id);
+    if (!item) return;
+    const d = item.data;
+    if (act === 'approve') {
+      if (!(await sysConfirm(`'${d.articleTitle || d.articleId}' 콘텐츠를 삭제하시겠습니까?\n\n콘텐츠가 영구 삭제되고 요청이 승인 처리됩니다.`, { danger: true, okLabel: '삭제 승인' }))) return;
+      try {
+        if (d.articleId) await fb.db.collection('articles').doc(d.articleId).delete();
+        await fb.db.collection('deletionRequests').doc(id).update({
+          status: 'APPROVED', reviewedAt: fb.FieldValue.serverTimestamp(), reviewedBy: adminEmail()
+        });
+      } catch (err) { sysAlert('삭제 실패: ' + err.message, { icon: 'danger' }); }
+    } else if (act === 'reject') {
+      if (!(await sysConfirm('이 삭제 요청을 거절하시겠습니까?'))) return;
+      try {
+        await fb.db.collection('deletionRequests').doc(id).update({
+          status: 'REJECTED', reviewedAt: fb.FieldValue.serverTimestamp(), reviewedBy: adminEmail()
+        });
+      } catch (err) { sysAlert('처리 실패: ' + err.message, { icon: 'danger' }); }
+    } else if (act === 'remove') {
+      if (!(await sysConfirm('이 요청 기록을 삭제하시겠습니까?', { danger: true, okLabel: '삭제' }))) return;
+      try { await fb.db.collection('deletionRequests').doc(id).delete(); }
+      catch (err) { sysAlert('삭제 실패: ' + err.message, { icon: 'danger' }); }
+    }
+  }
+
+  /* ===== 구독 ===== */
+  function subscribeAll() {
+    fb.db.collection('series').onSnapshot(snap => {
+      seriesList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+    }, err => console.warn('[series]', err.message));
+
+    fb.db.collection('editorApplications').onSnapshot(snap => {
+      appsList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderApps();
+    }, err => {
+      console.error('[editorApplications]', err);
+      document.getElementById('appsTable').innerHTML = `<tr><td colspan="6" class="admin-empty">로딩 실패: ${esc(err.message)}</td></tr>`;
+    });
+
+    fb.db.collection('editorAssignments').onSnapshot(snap => {
+      editorsList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderEditors();
+      renderReleased();
+    }, err => {
+      console.error('[editorAssignments]', err);
+      document.getElementById('editorsTable').innerHTML = `<tr><td colspan="5" class="admin-empty">로딩 실패: ${esc(err.message)}</td></tr>`;
+      document.getElementById('releasedTable').innerHTML = `<tr><td colspan="4" class="admin-empty">로딩 실패: ${esc(err.message)}</td></tr>`;
+    });
+
+    fb.db.collection('deletionRequests').onSnapshot(snap => {
+      delsList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderDels();
+    }, err => {
+      console.error('[deletionRequests]', err);
+      document.getElementById('delsTable').innerHTML = `<tr><td colspan="5" class="admin-empty">로딩 실패: ${esc(err.message)}</td></tr>`;
+    });
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      bindRecruitSettings();
+      subscribeAll();
+    } else {
+      ['appsTable', 'editorsTable', 'releasedTable', 'delsTable'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<tr><td colspan="6" class="admin-empty">관리자 권한이 필요합니다.</td></tr>`;
+      });
+    }
+  });
+</script>
+</body>
+</html>

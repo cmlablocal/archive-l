@@ -11,11 +11,14 @@
       "**/node_modules/**"
     ],
     "cleanUrls": true,
+    "rewrites": [
+      { "source": "/articles/**", "destination": "/article.html" }
+    ],
     "headers": [
       {
         "source": "**/*.@(jpg|jpeg|png|webp|svg|gif|ico)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+          { "key": "Cache-Control", "value": "public, max-age=300" }
         ]
       },
       {

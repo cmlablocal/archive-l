@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Articles · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">콘텐츠 관리</h1>
+        <p class="admin-page-sub">발행된 콘텐츠와 기존 콘텐츠를 함께 관리합니다.</p>
+      </div>
+      <a class="admin-btn" href="/admin/new-article.html">
+        <i class="fa-solid fa-plus"></i> 새 콘텐츠 작성
+      </a>
+    </div>
+
+    <!-- Status filter chips (임시저장은 별도 메뉴로 분리) -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="admin-btn ghost admin-btn-sm filter-btn active" data-filter="all">전체 <span class="cnt-badge" id="cntAll">0</span></button>
+      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="PUBLISHED">게시중 <span class="cnt-badge" id="cntPUBLISHED">0</span></button>
+      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="HIDDEN">숨김 <span class="cnt-badge" id="cntHIDDEN">0</span></button>
+      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="STATIC">기존 <span class="cnt-badge" id="cntSTATIC">0</span></button>
+    </div>
+
+    <!-- 카테고리별 / 시리즈별 보기 -->
+    <div class="content-filters">
+      <label class="content-filter">
+        <span>카테고리</span>
+        <select id="catFilter"><option value="all">전체 카테고리</option></select>
+      </label>
+      <label class="content-filter">
+        <span>시리즈</span>
+        <select id="seriesFilter"><option value="all">전체 시리즈</option></select>
+      </label>
+      <button class="admin-btn ghost admin-btn-sm" id="resetFilters" type="button"><i class="fa-solid fa-rotate-left"></i> 초기화</button>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:80px;"></th>
+            <th>제목</th>
+            <th style="width:160px;">카테고리 · 시리즈</th>
+            <th style="width:100px;">발행일</th>
+            <th style="width:100px;">상태</th>
+            <th style="width:80px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="articleTable"><tr><td colspan="6" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script src="/assets/js/data.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  let currentFilter = 'all';
+  let currentCat = 'all';
+  let currentSeries = 'all';
+  let seriesMap = {}; // code -> name
+  let firestoreArticles = []; // [{ id, src:'firestore', data }]
+  const STATIC_ARTICLES = Object.entries(window.ARTICLES || {}).map(([id, a]) => ({
+    id, src: 'static', data: a
+  }));
+
+  // Active filter style
+  const style = document.createElement('style');
+  style.textContent = `
+    .filter-btn.active { background: var(--admin-accent); color: var(--bg); border-color: var(--admin-accent); }
+    .cnt-badge { display:inline-block; min-width:18px; padding:1px 6px; margin-left:6px;
+      background: rgba(0,0,0,0.08); border-radius: 999px; font-size: 10px; }
+    body.dark .cnt-badge { background: rgba(255,255,255,0.12); }
+    .filter-btn.active .cnt-badge { background: rgba(255,255,255,0.18); }
+    .admin-tag.scheduled { color: #2563eb; border-color: rgba(37, 99, 235, 0.35); }
+    .admin-tag.draft { color: #94a3b8; }
+    .admin-tag.hidden { color: #64748b; }
+    .admin-tag.static-tag { color: #94a3b8; }
+    /* row-menu styles now live in admin.css */
+    .admin-table-wrap { overflow: visible; }
+    .admin-table td { position: relative; }
+    .content-filters { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; }
+    .content-filter { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--muted); }
+    .content-filter select {
+      min-width:180px; padding:7px 10px; font-size:13px; font-family:inherit;
+      background:transparent; color:var(--fg);
+      border:1px solid var(--admin-border); border-radius:6px; cursor:pointer;
+    }
+  `;
+  document.head.appendChild(style);
+
+  function dateMs(item) {
+    const d = item.data;
+    // Firestore: prefer updatedAt
+    if (item.src === 'firestore') {
+      const t = d.updatedAt || d.publishedAt || d.createdAt;
+      if (t && t.toDate) return t.toDate().getTime();
+    }
+    // Static or fallback: parse 'YYYY.MM.DD'
+    if (d.date) {
+      const ms = Date.parse(String(d.date).replace(/\./g, '-'));
+      if (!isNaN(ms)) return ms;
+    }
+    return 0;
+  }
+
+  function statusOf(item) {
+    if (item.src === 'static') return 'STATIC';
+    return item.data.status || 'DRAFT';
+  }
+
+  function statusBadge(status) {
+    const map = {
+      PUBLISHED: '<span class="admin-tag published">게시중</span>',
+      SCHEDULED: '<span class="admin-tag scheduled">예약</span>',
+      DRAFT: '<span class="admin-tag draft">임시저장</span>',
+      HIDDEN: '<span class="admin-tag hidden">숨김</span>',
+      STATIC: '<span class="admin-tag static-tag">기존</span>'
+    };
+    return map[status] || `<span class="admin-tag">${status}</span>`;
+  }
+
+  // 임시저장(DRAFT)은 별도 메뉴(drafts.html)에서 관리 → 콘텐츠 관리 목록에서는 제외
+  function combinedList() {
+    return [...firestoreArticles, ...STATIC_ARTICLES]
+      .filter(item => statusOf(item) !== 'DRAFT')
+      .sort((a, b) => dateMs(b) - dateMs(a));
+  }
+
+  function catOf(item) {
+    return (item.data.cat || item.data.category || '').trim();
+  }
+  function seriesCodeOf(item) {
+    return (item.data.series || '').trim();
+  }
+  function seriesLabel(code) {
+    return seriesMap[code] || code;
+  }
+
+  function updateCounts(all) {
+    const counts = { all: all.length, PUBLISHED:0, HIDDEN:0, STATIC:0 };
+    all.forEach(item => {
+      const s = statusOf(item);
+      if (counts[s] != null) counts[s]++;
+    });
+    document.getElementById('cntAll').textContent = counts.all;
+    document.getElementById('cntPUBLISHED').textContent = counts.PUBLISHED;
+    document.getElementById('cntHIDDEN').textContent = counts.HIDDEN;
+    document.getElementById('cntSTATIC').textContent = counts.STATIC;
+  }
+
+  // 카테고리 / 시리즈 드롭다운 옵션 채우기 (현재 데이터 기준)
+  function refreshFilterOptions(all) {
+    const catSel = document.getElementById('catFilter');
+    const serSel = document.getElementById('seriesFilter');
+    if (!catSel || !serSel) return;
+
+    const cats = Array.from(new Set(all.map(catOf).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ko'));
+    const serCodes = Array.from(new Set(all.map(seriesCodeOf).filter(Boolean)))
+      .sort((a, b) => seriesLabel(a).localeCompare(seriesLabel(b), 'ko'));
+
+    catSel.innerHTML = '<option value="all">전체 카테고리</option>' +
+      cats.map(c => `<option value="${adminEscHTML(c)}">${adminEscHTML(c)}</option>`).join('');
+    serSel.innerHTML = '<option value="all">전체 시리즈</option>' +
+      serCodes.map(c => `<option value="${adminEscHTML(c)}">${adminEscHTML(seriesLabel(c))}</option>`).join('');
+
+    // 선택값 복원 (없어졌으면 all)
+    catSel.value = cats.includes(currentCat) ? currentCat : 'all';
+    serSel.value = serCodes.includes(currentSeries) ? currentSeries : 'all';
+    currentCat = catSel.value;
+    currentSeries = serSel.value;
+  }
+
+  function renderTable() {
+    const all = combinedList();
+    updateCounts(all);
+    refreshFilterOptions(all);
+
+    const rows = all.filter(item => {
+      if (currentFilter !== 'all' && statusOf(item) !== currentFilter) return false;
+      if (currentCat !== 'all' && catOf(item) !== currentCat) return false;
+      if (currentSeries !== 'all' && seriesCodeOf(item) !== currentSeries) return false;
+      return true;
+    });
+
+    const tbody = document.getElementById('articleTable');
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="admin-empty">해당 조건의 글이 없습니다.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(item => {
+      const d = item.data;
+      const id = item.id;
+      const status = statusOf(item);
+      const title = d.title || '(제목 없음)';
+      const sub = d.sub || '';
+      const cat = d.cat || d.category || '—';
+      const serName = seriesCodeOf(item) ? seriesLabel(seriesCodeOf(item)) : '';
+      const date = d.date || '—';
+      const thumb = d.thumb || d.thumbnail || '';
+      const isFs = item.src === 'firestore';
+      const isPub = status === 'PUBLISHED';
+
+      // 모든 액션을 단일 ⋯ 메뉴로 통합.
+      let menuItems = '';
+      menuItems += `<a href="/articles/${id}" target="_blank"><i class="fa-regular fa-eye"></i> 보기</a>`;
+      if (isFs) {
+        menuItems += `<a href="/admin/new-article.html?id=${id}"><i class="fa-regular fa-pen-to-square"></i> 수정</a>`;
+        menuItems += `<button data-action="toggle" data-id="${id}"><i class="fa-solid fa-${isPub ? 'eye-slash' : 'paper-plane'}"></i> ${isPub ? '숨김 처리' : '바로 게시'}</button>`;
+        menuItems += `<button data-action="delete" data-id="${id}" class="danger"><i class="fa-regular fa-trash-can"></i> 삭제</button>`;
+      } else {
+        menuItems += `<a href="/admin/new-article.html?id=${id}"><i class="fa-solid fa-arrow-right-arrow-left"></i> 편집기로 이전</a>`;
+      }
+      const kebab = `
+        <details class="row-menu">
+          <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+          <div class="row-menu-pop">${menuItems}</div>
+        </details>`;
+      const actions = [kebab];
+
+      return `
+        <tr>
+          <td>${thumb ? `<img src="${adminEscHTML(thumb)}" alt="" class="admin-thumb" loading="lazy" />` : '<div class="admin-thumb" style="background:var(--admin-row);"></div>'}</td>
+          <td>
+            <a href="/articles/${id}" target="_blank" class="title-cell">${adminEscHTML(title)}</a>
+            <span class="title-cell-sub">${adminEscHTML(sub)}</span>
+          </td>
+          <td>${adminEscHTML(cat)}${serName ? `<span class="title-cell-sub"><i class="fa-solid fa-layer-group" style="font-size:9px;margin-right:3px;"></i>${adminEscHTML(serName)}</span>` : ''}</td>
+          <td>${adminEscHTML(date)}</td>
+          <td>${statusBadge(status)}</td>
+          <td>
+            <div class="admin-actions" style="justify-content:flex-end;flex-wrap:wrap;gap:6px;">
+              ${actions.join('')}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Wire toggle/delete buttons
+    tbody.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        if (action === 'toggle') toggleStatus(id);
+        else if (action === 'delete') deleteArticle(id);
+      });
+    });
+  }
+
+  async function toggleStatus(id) {
+    const item = firestoreArticles.find(x => x.id === id);
+    if (!item) return;
+    const current = item.data.status || 'DRAFT';
+    const next = current === 'PUBLISHED' ? 'HIDDEN' : 'PUBLISHED';
+    if (!(await sysConfirm(`'${item.data.title}'를 ${next === 'PUBLISHED' ? '게시' : '숨김'} 상태로 변경할까요?`))) return;
+    try {
+      const payload = {
+        status: next,
+        updatedAt: fb.FieldValue.serverTimestamp()
+      };
+      if (next === 'PUBLISHED' && !item.data.publishedAt) {
+        payload.publishedAt = fb.FieldValue.serverTimestamp();
+      }
+      await fb.db.collection('articles').doc(id).update(payload);
+    } catch (err) {
+      sysAlert('상태 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  async function deleteArticle(id) {
+    const item = firestoreArticles.find(x => x.id === id);
+    if (!item) return;
+    if (!(await sysConfirm(`'${item.data.title || id}'을 정말 삭제하시겠습니까? 복구할 수 없습니다.`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('articles').doc(id).delete();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  // Subscribe to Firestore articles
+  function subscribeArticles() {
+    fb.db.collection('articles')
+      .orderBy('updatedAt', 'desc')
+      .onSnapshot(snap => {
+        firestoreArticles = snap.docs
+          .map(doc => ({ id: doc.id, src: 'firestore', data: doc.data() }))
+          .filter(item => (item.data.status || 'DRAFT') !== 'PRERELEASE'); // 프리릴리즈는 Up Coming 페이지로 분리
+        renderTable();
+      }, err => {
+        console.error('[articles] Firestore 구독 실패:', err);
+        document.getElementById('articleTable').innerHTML =
+          `<tr><td colspan="6" class="admin-empty">콘텐츠 불러오기 실패: ${adminEscHTML(err.message)}</td></tr>`;
+      });
+  }
+
+  // 시리즈 컬렉션 로드 → code→name 매핑 (드롭다운 라벨용)
+  function subscribeSeries() {
+    fb.db.collection('series').onSnapshot(snap => {
+      seriesMap = {};
+      snap.docs.forEach(doc => {
+        const sd = doc.data() || {};
+        seriesMap[doc.id] = sd.name || doc.id;
+      });
+      renderTable();
+    }, err => { console.warn('[articles] 시리즈 로드 실패:', err.message); });
+  }
+
+  // Status chip events
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderTable();
+    });
+  });
+
+  // 카테고리 / 시리즈 드롭다운 events
+  document.getElementById('catFilter').addEventListener('change', e => {
+    currentCat = e.target.value; renderTable();
+  });
+  document.getElementById('seriesFilter').addEventListener('change', e => {
+    currentSeries = e.target.value; renderTable();
+  });
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    currentFilter = 'all'; currentCat = 'all'; currentSeries = 'all';
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    renderTable();
+  });
+
+  // Initial render (with only static items) then start subscription
+  renderTable();
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) { subscribeArticles(); subscribeSeries(); }
+  });
+</script>
+</body>
+</html>

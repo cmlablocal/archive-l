@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <!-- ===== Sidebar ===== -->
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">대시보드</h1>
+        <p class="admin-page-sub" id="todayLine"></p>
+      </div>
+      <a href="/admin/new-article.html" class="admin-btn">
+        <i class="fa-solid fa-plus"></i> 새 콘텐츠 작성
+      </a>
+    </div>
+
+    <!-- Stat cards -->
+    <section class="admin-stats" id="dashboardStats"></section>
+
+    <!-- Recent articles -->
+    <h2 style="font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;">최근 발행</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:80px;"></th>
+            <th>제목</th>
+            <th style="width:120px;">시리즈</th>
+            <th style="width:100px;">발행일</th>
+            <th style="width:80px;">상태</th>
+          </tr>
+        </thead>
+        <tbody id="recentArticles"></tbody>
+      </table>
+    </div>
+
+    <!-- Popular articles (by viewCount) -->
+    <h2 style="font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:32px 0 14px;">인기 아티클 · 조회수</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:48px;">#</th>
+            <th>제목</th>
+            <th style="width:120px;">시리즈</th>
+            <th style="width:100px;">조회수</th>
+          </tr>
+        </thead>
+        <tbody id="popularArticles">
+          <tr><td colspan="4" style="color:var(--muted);">불러오는 중…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script src="/assets/js/data.js"></script>
+<script>
+  // Logo dark/light switch
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+
+  // Top-right user label
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  // Today line
+  const today = new Date();
+  document.getElementById('todayLine').textContent =
+    today.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+
+  // Stats — initial placeholders; live values arrive via Firestore subscriptions below.
+  const articles = window.ARTICLES || {};
+  const stats = [
+    { label: '미확인 문의', value: '—', delta: '확인 대기 중인 문의', id: 'statUnreadInq', href: '/admin/inquiries.html' },
+    { label: '신규 가입 · 7일', value: '—', delta: '최근 7일 가입한 독자', id: 'statNewUsers7', href: '/admin/users.html' },
+    { label: '총 발행 글', value: '—', delta: '발행 콘텐츠 합계', id: 'statPubArticles' },
+    { label: '총 독자', value: '—', delta: '가입한 독자 수', id: 'statReaders' },
+    { label: '총 책갈피', value: '—', delta: '독자들이 저장한 글', id: 'statBookmarks' },
+    { label: 'Up Coming', value: '—', delta: '프리릴리즈 콘텐츠', id: 'statUpcoming' }
+  ];
+  document.getElementById('dashboardStats').innerHTML = stats.map(s => {
+    const inner = `
+      <div class="admin-stat-label">${s.label}</div>
+      <div class="admin-stat-value">${typeof s.value === 'number' ? fmtNum(s.value) : s.value}</div>
+      <div class="admin-stat-delta">${s.delta}</div>`;
+    return s.href
+      ? `<a class="admin-stat"${s.id ? ` id="${s.id}"` : ''} href="${s.href}">${inner}</a>`
+      : `<div class="admin-stat"${s.id ? ` id="${s.id}"` : ''}>${inner}</div>`;
+  }).join('');
+
+  // Initial render of "최근 발행" from static data (fallback before Firestore loads)
+  function renderRecent(combined) {
+    document.getElementById('recentArticles').innerHTML = combined.map(a => `
+      <tr>
+        <td><img src="${a.thumb || ''}" alt="" class="admin-thumb" loading="lazy" /></td>
+        <td>
+          <a href="/articles/${a.id}.html" target="_blank" class="title-cell">${adminEscHTML(a.title || '(제목 없음)')}</a>
+          <span class="title-cell-sub">${adminEscHTML(a.sub || '')}</span>
+        </td>
+        <td>${adminEscHTML(a.cat || a.category || '—')}</td>
+        <td>${a.date || '—'}</td>
+        <td>${a.free ? '<span class="admin-tag free">FREE</span>' : '<span class="admin-tag published">발행</span>'}</td>
+      </tr>
+    `).join('');
+  }
+  const staticEntries = Object.entries(articles).map(([id, a]) => ({ id, ...a }));
+  renderRecent(
+    [...staticEntries]
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .slice(0, 5)
+  );
+
+  // 인기 아티클(조회수) — Firestore PUBLISHED 글만(viewCount 추적 대상)
+  function renderPopular(fsArticles) {
+    const tbody = document.getElementById('popularArticles');
+    if (!tbody) return;
+    const ranked = [...fsArticles]
+      .filter(a => (a.viewCount || 0) > 0)
+      .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+      .slice(0, 5);
+    if (!ranked.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);">아직 조회수 데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = ranked.map((a, i) => `
+      <tr>
+        <td style="font-weight:700;color:var(--muted);">${i + 1}</td>
+        <td>
+          <a href="/articles/${a.id}.html" target="_blank" class="title-cell">${adminEscHTML(a.title || '(제목 없음)')}</a>
+        </td>
+        <td>${adminEscHTML(a.seriesName || a.cat || a.category || '—')}</td>
+        <td style="font-variant-numeric:tabular-nums;font-weight:600;">${fmtNum(a.viewCount || 0)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Firestore-backed live stats + recent articles
+  fb.authReady.then(user => {
+    if (!user || !fb.isAdmin()) return;
+
+    // 총 발행 글 (PUBLISHED Firestore + 정적 글)
+    fb.db.collection('articles').where('status', '==', 'PUBLISHED').onSnapshot(snap => {
+      const staticCount = window.ARTICLES ? Object.keys(window.ARTICLES).length : 0;
+      const cell = document.querySelector('#statPubArticles .admin-stat-value');
+      if (cell) cell.textContent = fmtNum(snap.size + staticCount);
+    }, err => console.warn('[dashboard] PUBLISHED count:', err.message));
+
+    // 총 독자 + 최근 7일 신규 가입
+    fb.db.collection('users').onSnapshot(snap => {
+      const cell = document.querySelector('#statReaders .admin-stat-value');
+      if (cell) cell.textContent = fmtNum(snap.size);
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      let recent = 0;
+      snap.docs.forEach(d => {
+        const c = d.data().createdAt;
+        let ms = 0;
+        if (c && c.toDate) ms = c.toDate().getTime();
+        else if (typeof c === 'number') ms = c;
+        else if (c) { const t = new Date(c).getTime(); if (!isNaN(t)) ms = t; }
+        if (ms >= weekAgo) recent++;
+      });
+      const cell7 = document.querySelector('#statNewUsers7 .admin-stat-value');
+      if (cell7) cell7.textContent = fmtNum(recent);
+    }, err => console.warn('[dashboard] users:', err.message));
+
+    // 미확인 문의 — status가 'new'(또는 없음)인 문의 수, 0보다 크면 강조
+    fb.db.collection('inquiries').onSnapshot(snap => {
+      const unread = snap.docs.filter(d => (d.data().status || 'new') === 'new').length;
+      const cell = document.querySelector('#statUnreadInq .admin-stat-value');
+      if (cell) cell.textContent = fmtNum(unread);
+      const card = document.getElementById('statUnreadInq');
+      if (card) card.classList.toggle('is-alert', unread > 0);
+    }, err => console.warn('[dashboard] inquiries:', err.message));
+
+    // 총 책갈피 — PUBLISHED 글의 bookmarkCount 합계 + 인기 아티클(조회수)
+    fb.db.collection('articles').where('status', '==', 'PUBLISHED').onSnapshot(snap => {
+      const total = snap.docs.reduce((s, d) => s + (d.data().bookmarkCount || 0), 0);
+      const cell = document.querySelector('#statBookmarks .admin-stat-value');
+      if (cell) cell.textContent = fmtNum(total);
+      renderPopular(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, err => console.warn('[dashboard] bookmarks:', err.message));
+
+    // Up Coming (PRERELEASE)
+    fb.db.collection('articles').where('status', '==', 'PRERELEASE').onSnapshot(snap => {
+      const cell = document.querySelector('#statUpcoming .admin-stat-value');
+      if (cell) cell.textContent = fmtNum(snap.size);
+    }, err => console.warn('[dashboard] PRERELEASE:', err.message));
+
+    // 최근 발행 — Firestore PUBLISHED + 정적 글 병합, 날짜 내림차순 Top 5
+    try {
+      fb.db.collection('articles').where('status', '==', 'PUBLISHED')
+        .orderBy('publishedAt', 'desc').limit(20).onSnapshot(snap => {
+          const fsArticles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          const combined = [...fsArticles, ...staticEntries]
+            .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+            .slice(0, 5);
+          renderRecent(combined);
+        }, err => {
+          // publishedAt 인덱스 없을 경우 단순 status 쿼리로 폴백
+          console.warn('[dashboard] recent(orderBy) 실패, 폴백:', err.message);
+          fb.db.collection('articles').where('status', '==', 'PUBLISHED').onSnapshot(snap2 => {
+            const fsArticles = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+            const combined = [...fsArticles, ...staticEntries]
+              .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+              .slice(0, 5);
+            renderRecent(combined);
+          });
+        });
+    } catch (e) {
+      console.warn('[dashboard] recent subscribe 예외:', e.message);
+    }
+  });
+</script>
+</body>
+</html>

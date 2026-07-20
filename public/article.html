@@ -1,165 +1,1056 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>공장 골조 위에 얹은 스테이 — LOCAL LAYERS</title>
-<meta name="description" content="40년 된 봉제공장의 철골을 남기고 머무는 동선만 새로 설계한 성수동 스테이. Local Layers가 세 가지 층위로 들여다본 기록." />
+<!-- SEO:START -->
+<title>아티클 | Local Layers</title>
+<meta name="description" content="Local Layers는 시선이 머문 공간, 그리고 그 너머의 경험을 기록하는 로컬 인스퍼레이션 아카이브입니다." />
+<meta name="robots" content="index, follow" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Local Layers" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:title" content="Local Layers — 시선이 머문 공간, 그리고 그 너머의 경험" />
+<meta property="og:description" content="Local Layers는 시선이 머문 공간, 그리고 그 너머의 경험을 기록하는 로컬 인스퍼레이션 아카이브입니다." />
+<meta property="og:image" content="https://archive-l.web.app/assets/img/anothermovement_logo.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Local Layers — 시선이 머문 공간, 그리고 그 너머의 경험" />
+<meta name="twitter:description" content="Local Layers는 시선이 머문 공간, 그리고 그 너머의 경험을 기록하는 로컬 인스퍼레이션 아카이브입니다." />
+<meta name="twitter:image" content="https://archive-l.web.app/assets/img/anothermovement_logo.png" />
+<!-- SEO:END -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-<link rel="stylesheet" href="/assets/css/persp.css" />
-<style>
-  :root{ --bg:#ffffff; --fg:#111111; --accent:#9a6a43; }
-  body{ background:#ffffff !important; color:#111111; word-break:keep-all; }
-  .header{ border-bottom:none; }
-  .container{ padding:0 40px; }
-  .header-inner{ height:auto; padding:45px 40px 26px; }
-  .logo img{ height:30px; }
-
-  .brand-lockup{ display:flex; align-items:flex-end; gap:11px; }
-  .brand-msg{ font-size:9pt; line-height:1; color:var(--muted); letter-spacing:-0.01em; white-space:nowrap; }
-  @media (max-width:680px){ .brand-msg{ display:none; } }
-
-  .art-col{ max-width:740px; margin:0 auto; }
-
-  /* 제목 블록 (이미지보다 먼저) */
-  .art-head{ padding:64px 0 0; }
-  .art-cat{ display:inline-block; border:1px solid #d8d6d1; padding:5px 10px; line-height:1; font-size:10.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:#333; }
-  .art-title{ margin:22px 0 22px; font-size:clamp(32px,5vw,56px); font-weight:800; line-height:1.14; letter-spacing:-0.04em; }
-  .art-lead{ margin:0; font-size:clamp(18px,2.1vw,22px); font-weight:500; line-height:1.75; color:#46423b; }
-  .art-byline{ display:flex; align-items:center; gap:12px; margin-top:26px; font-size:13px; color:var(--muted); letter-spacing:.01em; }
-  .art-byline .dot{ width:3px; height:3px; border-radius:50%; background:#c9c7c2; display:inline-block; }
-
-  /* 도판 */
-  .art-fig{ margin:46px 0; }
-  .art-fig.hero{ margin:44px 0 8px; }
-  .art-fig img{ width:100%; aspect-ratio:16/10; max-height:520px; object-fit:cover; background:#eee; display:block; }
-  .art-fig figcaption{ margin-top:12px; max-width:740px; margin-left:auto; margin-right:auto; font-size:12.5px; color:var(--muted); line-height:1.65; }
-
-  /* 본문 */
-  .art-body{ padding:30px 0 84px; }
-  .art-layer{ margin-top:56px; }
-  .art-layer:first-child{ margin-top:0; }
-  .art-k{ font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); }
-  .art-layer h2{ margin:10px 0 18px; font-size:25px; font-weight:700; letter-spacing:-0.025em; }
-  .art-body p{ margin:0 0 21px; font-size:17.5px; line-height:1.95; color:#1d1d1d; }
-
-  /* 풀쿼트 */
-  .art-quote{ margin:54px 0; padding:6px 0 6px 24px; border-left:3px solid #111; }
-  .art-quote p{ margin:0; font-size:clamp(21px,2.8vw,30px); font-weight:700; line-height:1.45; letter-spacing:-0.03em; color:#111; }
-
-  .art-foot{ margin-top:60px; padding-top:28px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .art-tags{ display:flex; gap:14px; flex-wrap:wrap; }
-  .art-tag{ font-size:12.5px; color:var(--muted); }
-  .art-back{ font-size:13px; font-weight:600; color:#111; }
-  .art-back:hover{ opacity:.6; }
-
-  .ll-footer{ background:#111111; }
-  .ll-footer-in{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:30px; padding-bottom:36px; flex-wrap:wrap; }
-  .ll-copy{ font-size:12.5px; color:#8f8a82; }
-  .ll-about{ font-size:13px; color:#fff; font-weight:600; }
-  .ll-about:hover{ opacity:.65; }
-
-  @media (max-width:680px){
-    .art-head{ padding:40px 0 0; }
-    .art-fig img{ aspect-ratio:4/3; }
-  }
-</style>
+<link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body data-view="article">
+<div class="article-progress" id="articleProgress"></div>
+<script>try{if(localStorage.getItem("pv:auth")==="1")document.body.classList.add("logged-in");}catch(e){}</script>
+<div class="toast" id="toast" aria-live="polite"></div>
 
-<!-- HEADER -->
+<!-- ============== HEADER ============== -->
 <header class="header">
   <div class="container header-inner">
-    <div class="brand-lockup">
-      <a href="/proto.html" class="logo" aria-label="LOCAL LAYERS">
-        <img src="/img/logo.png" class="logo-black" alt="LOCAL LAYERS" />
-        <img src="/img/logo_white.png" class="logo-white" alt="LOCAL LAYERS" style="display:none" />
-      </a>
-      <span class="brand-msg">시선이 머문 공간, 그리고 그 너머의 경험</span>
-    </div>
+    <a href="/" class="logo" data-view="home" aria-label="LOCAL LAYERS">
+      <img src="/assets/img/black_logo.png" class="logo-black" alt="LOCAL LAYERS" />
+      <img src="/assets/img/white_logo.png" class="logo-white" alt="LOCAL LAYERS" />
+    </a>
+
     <nav class="header-nav">
-      <a class="nav-link" href="/proto.html">Archive</a>
-      <a class="nav-link" href="/brand.html">About</a>
+      <a class="nav-link" data-view="series" href="/series.html">Series</a>
+      <a class="nav-link" data-view="notes" href="/notes.html">Notes</a>
+      <a class="nav-link" data-view="mypage" href="/mypage.html">My Archive</a>
+      <a class="nav-link" data-view="about" href="/about.html">About</a>
     </nav>
+
+    <div class="header-right">
+      <button class="icon-btn" aria-label="Search" onclick="openSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+      </button>
+      <button class="icon-btn login-btn" id="loginBtn" aria-label="Login" onclick="openLogin()">
+        <i class="ico-user fa-regular fa-circle-user"></i>
+        <i class="ico-user-filled fa-solid fa-circle-user"></i>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()">
+        <svg class="ico-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="ico-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <button class="icon-btn menu-toggle" aria-label="Menu" onclick="openDrawer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
   </div>
 </header>
 
-<main>
-  <!-- 제목 블록 (이미지보다 먼저) -->
-  <div class="container">
-    <div class="art-col art-head">
-      <span class="art-cat">Experience</span>
-      <h1 class="art-title">공장 골조 위에 얹은 스테이</h1>
-      <p class="art-lead">40년 된 봉제공장의 철골을 그대로 남기고, 머무는 사람의 동선만 새로 설계했다. 성수동 골목 안쪽, 간판도 없는 이 스테이의 결을 천천히 따라가 봤다.</p>
-      <div class="art-byline">
-        <span>서울 · 성수</span><i class="dot"></i><span>2026.06.24</span><i class="dot"></i><span>Editor. CM LAB</span>
+<!-- ============== MOBILE DRAWER ============== -->
+<div class="drawer" id="drawer">
+  <div class="drawer-inner">
+    <div class="drawer-top">
+      <div class="logo" aria-label="LOCAL LAYERS">
+        <img src="/assets/img/black_logo.png" class="logo-black" alt="LOCAL LAYERS" />
+        <img src="/assets/img/white_logo.png" class="logo-white" alt="LOCAL LAYERS" />
       </div>
-      <!-- lead: 레이어 언급 제거 -->
+      <button class="icon-btn" aria-label="Close" onclick="closeDrawer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <nav class="drawer-nav">
+      <a href="/" data-view="home">Home</a>
+      <a href="/about.html" data-view="about">About</a>
+      <a href="/series.html" data-view="series">Series</a>
+      <a href="/notes.html" data-view="notes">Notes</a>
+      <a href="/mypage.html" data-view="mypage">My Archive</a>
+      <a href="/notices.html" data-view="notices">Notice</a>
+    </nav>
+    <div class="drawer-foot">
+      <button onclick="openSearch(); closeDrawer();">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+        Search
+      </button>
+      <button onclick="toggleTheme()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="theme-label">Dark mode</span>
+      </button>
     </div>
   </div>
+</div>
 
-  <!-- 히어로 도판 (제목 뒤, 본문과 같은 리딩 컬럼 폭) -->
-  <div class="container">
-    <div class="art-col">
-      <figure class="art-fig hero">
-        <img src="/img/items/seongsu.jpg" alt="공장 골조 위에 얹은 스테이" />
-        <figcaption>8미터 높이의 박공 지붕과 그 아래를 가로지르는 녹슨 철골. 공장이었던 시간을 가장 잘 보이는 자리에 남겨두었다.</figcaption>
-      </figure>
-    </div>
+<!-- ============== ARTICLE VIEW (dynamically populated) ============== -->
+<main class="article-view" id="articleMain">
+  <div class="container" style="padding: 80px 0; text-align: center; color: var(--muted); font-size: 14px;">
+    불러오는 중...
   </div>
-
-  <!-- 본문 -->
-  <div class="container">
-    <article class="art-col art-body">
-
-      <section class="art-layer">
-        <h2>지우지 않은 천장</h2>
-        <p>문을 열면 가장 먼저 천장이 보인다. 8미터 높이의 박공 지붕과 그 아래를 가로지르는 녹슨 철골. 공장이었던 시간을 지우지 않고, 오히려 가장 잘 보이는 자리에 남겨두었다.</p>
-        <p>낮에는 톱라이트로 들어온 빛이 콘크리트 바닥에 길게 떨어지고, 해가 기울면 그 빛은 벽돌 벽의 결을 따라 천천히 옮겨간다. 가구는 의도적으로 낮다. 시선이 자꾸 위로, 구조로 향하도록.</p>
-      </section>
-
-      <figure class="art-fig">
-        <img src="/img/hero/hero-2.jpg" alt="" loading="lazy" />
-        <figcaption>새것의 매끈함 대신 오래된 표면의 깊이를 택한 선택이 공간 전체의 톤을 만든다.</figcaption>
-      </figure>
-
-      <section class="art-layer">
-        <h2>리셉션 없는 체크인</h2>
-        <p>이곳의 경험은 체크인부터 다르다. 리셉션이 없다. 도착하면 문자로 받은 도어록 번호를 누르고, 텅 빈 1층을 가로질러 계단을 오른다. 안내받는 대신 스스로 공간을 발견하게 하는, 설계된 비움이다.</p>
-        <p>운영자는 ‘머무는 시간을 방해하지 않는 것’을 원칙으로 삼았다. 비품은 최소한으로, 그러나 필요한 순간엔 정확히 그 자리에 있다. 보이지 않게 작동하는 운영의 촘촘함이 이 스테이의 진짜 완성도다.</p>
-      </section>
-
-      <blockquote class="art-quote">
-        <p>“무엇을 지우고 무엇을 남길지 — 그 편집의 기준이 곧 이 로컬의 정체성이 된다.”</p>
-      </blockquote>
-
-      <section class="art-layer">
-        <h2>지우지 말아야 할 시간</h2>
-        <p>공장을 헐지 않고 남긴 결정은 비용이 아니라 태도의 문제였다. 화려한 신축 대신 ‘남길 것’을 고른 편집의 감각이, 결국 이 로컬을 다른 곳과 구별 짓는다.</p>
-        <p>다른 로컬을 기획하는 사람에게 이 스테이가 건네는 질문은 단순하다. 당신의 공간에서, 지우지 말아야 할 시간은 무엇인가.</p>
-      </section>
-
-      <div class="art-foot">
-        <div class="art-tags">
-          <span class="art-tag">#성수</span>
-          <span class="art-tag">#스테이</span>
-          <span class="art-tag">#적응적재사용</span>
-        </div>
-        <a class="art-back" href="/proto.html">← 아카이브</a>
-      </div>
-
-    </article>
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="ll-footer">
-    <div class="container ll-footer-in">
-      <span class="ll-copy">© 2026 LOCAL LAYERS — CM LAB : space &amp; experience</span>
-    </div>
-  </footer>
 </main>
 
+<!-- ============== FOOTER ============== -->
+<div class="container">
+  <footer class="footer">
+      <div class="footer-top">
+        <div class="notice-ticker">
+          <span class="meta-label">NOTICE</span>
+          <div class="ticker-track" id="footerTicker"></div>
+        </div>
+        <div class="footer-links">
+          <a href="/about.html" data-view="about">About</a>
+          <a href="/series.html" data-view="series">Series</a>
+          <a href="/list.html" data-view="list">Articles</a>
+          <a href="/notices.html" data-view="notices">Notice</a>
+          <a href="mailto:cmlab.local@gmail.com">Contact</a>
+          <a href="#">Instagram</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 LOCAL LAYERS — CM LAB</span>
+        <span class="footer-legal">
+          <a href="/terms.html" data-view="terms">이용약관</a>
+          <a href="/privacy.html" data-view="privacy">개인정보처리방침</a>
+        </span>
+      </div>
+    </footer>
+</div>
+
+<!-- ============== SEARCH MODAL ============== -->
+<div class="search-modal" id="searchModal">
+  <div class="search-modal-inner">
+    <div class="search-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+      <input type="text" id="searchInput" placeholder="제목, 시리즈명, 태그로 검색" autocomplete="off" />
+      <button class="search-close" onclick="closeSearch()" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="search-body">
+      <div class="search-empty" id="searchEmpty">
+        <span class="meta-label">SUGGESTED</span>
+        <div class="search-suggestions">
+          <button class="suggest" onclick="document.getElementById('searchInput').value='AI'; doSearch()">AI</button>
+          <button class="suggest" onclick="document.getElementById('searchInput').value='저작권'; doSearch()">저작권</button>
+          <button class="suggest" onclick="document.getElementById('searchInput').value='기록'; doSearch()">기록</button>
+          <button class="suggest" onclick="document.getElementById('searchInput').value='관점'; doSearch()">관점</button>
+        </div>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== LOGIN MODAL ============== -->
+<div class="login-modal" id="loginModal">
+  <div class="login-modal-inner">
+    <button class="login-close" id="loginCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="login-brand">
+      <img src="/assets/img/black_logo.png" class="logo-black" alt="LOCAL LAYERS" />
+      <img src="/assets/img/white_logo.png" class="logo-white" alt="LOCAL LAYERS" />
+    </div>
+    <h2 class="login-title">로그인</h2>
+    <p class="login-sub">Local Layers 독자가 되면<br/>모든 아티클을 끝까지 읽을 수 있어요.</p>
+    <form class="login-form" novalidate onsubmit="doAuth(); return false;">
+      <input type="text" id="loginName" placeholder="이름" autocomplete="name" style="display:none" />
+      <input type="email" id="loginEmail" placeholder="이메일" required autocomplete="email" />
+      <input type="password" id="loginPassword" placeholder="비밀번호" required autocomplete="current-password" />
+      <button type="submit" class="login-submit" id="loginSubmitBtn">로그인</button>
+    </form>
+    <div class="login-meta">
+      <a href="#" onclick="openPasswordReset(); return false;">비밀번호 찾기</a>
+      <span class="login-meta-sep">·</span>
+      <a href="#" id="loginModeToggle" onclick="toggleLoginMode(); return false;">회원가입 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============== CONFIRM MODAL ============== -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-modal-inner">
+    <div class="confirm-icon"><i class="fa-regular fa-circle-question"></i></div>
+    <h3 class="confirm-title"></h3>
+    <p class="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="confirm-btn ghost" id="confirmCancelBtn">취소</button>
+      <button class="confirm-btn primary" id="confirmOkBtn"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/assets/js/data.js"></script>
+<script src="/assets/js/pod-player.js"></script>
+
+<script>
+// ===== Resolve article ID from URL =====
+//   /articles/{id}        (clean URL — firebase rewrite)
+//   /article.html?id=...  (fallback)
+function resolveArticleId() {
+  const params = new URLSearchParams(location.search);
+  const qid = params.get('id');
+  if (qid) return qid;
+  const parts = location.pathname.split('/').filter(Boolean);
+  const last = parts[parts.length - 1] || '';
+  if (last === 'article.html') return null;
+  // Strip optional .html suffix just in case
+  return last.replace(/\.html$/i, '') || null;
+}
+
+function escHTML(s) {
+  return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function renderNotFound(message) {
+  document.getElementById('articleMain').innerHTML = `
+    <div class="container" style="padding: 80px 20px; text-align: center;">
+      <h2 style="font-size: 22px; margin-bottom: 12px;">${escHTML(message || '비공개 글이거나 존재하지 않는 글입니다')}</h2>
+      <p style="color: var(--muted); margin-bottom: 24px;">요청하신 글을 찾을 수 없습니다.</p>
+      <a href="/" class="gate-btn primary" style="display:inline-block; text-decoration:none;">홈으로 돌아가기</a>
+    </div>
+  `;
+}
+
+function renderPrerelease(id, d) {
+  document.body.setAttribute('data-article-id', id);
+  document.title = (d.title || '아티클') + ' · Local Layers';
+
+  const seriesName = d.seriesName || '';
+  const noStr = d.seriesNo != null ? String(d.seriesNo).padStart(2,'0') : '';
+  const totalStr = d.seriesTotal != null ? String(d.seriesTotal).padStart(2,'0') : '';
+  const isSeries = !!seriesName;
+
+  const badgeName = isSeries
+    ? `SERIES ${noStr || ''}`.trim()
+    : '단편 · 작성 중';
+  const badgeProgress = isSeries
+    ? (totalStr ? `작성 중 · ${Number(totalStr)}편 예정` : '작성 중')
+    : '작성 중';
+
+  const seriesBadge = `
+    <div class="series-badge">
+      <span class="series-name">${escHTML(badgeName)}</span>
+      <span class="sep"></span>
+      <span class="progress">${escHTML(badgeProgress)}</span>
+    </div>`;
+
+  const dateLabel = d.publishDateLabel
+    ? d.publishDateLabel
+    : (d.date ? `${d.date} 발행 예정` : '발행 예정');
+
+  const leadHTML = d.sub
+    ? `<p class="article-lead">${escHTML(d.sub).replace(/\n/g, '<br/>')}</p>`
+    : (d.lead ? `<p class="article-lead">${escHTML(d.lead).replace(/\n/g, '<br/>')}</p>` : '');
+
+  // Outline (시리즈) — array of { num, title, description }
+  const outline = Array.isArray(d.outline) ? d.outline : [];
+  const outlineNote = d.outlineNote || '잠정 — 발행 시점에 달라질 수 있어요';
+  const outlineHTML = (isSeries && outline.length > 0) ? `
+    <div class="prerelease-outline">
+      <div class="outline-head">
+        <span class="outline-label">작성 중인 목차</span>
+        <span class="outline-note">${escHTML(outlineNote)}</span>
+      </div>
+      <ol class="outline-list">
+        ${outline.map(item => `
+          <li>
+            <span class="outline-num">${escHTML(item.num || '')}</span>
+            <div>
+              <div class="outline-item-title">${escHTML(item.title || '')}</div>
+              <div class="outline-item-desc">${escHTML(item.description || '')}</div>
+            </div>
+          </li>`).join('')}
+      </ol>
+    </div>` : '';
+
+  // Intent (단편) — 발행본과 동일하게 흰색 '이 콘텐츠는' 박스로 표시
+  const intent = d.intent || '';
+  const intentHTML = (!isSeries && intent)
+    ? `<aside class="article-intent-box">
+        <span class="intent-box-label">이 콘텐츠는</span>
+        <p class="intent-box-text">${escHTML(intent).replace(/\n/g, '<br/>')}</p>
+      </aside>`
+    : '';
+
+  // 종결 메시지
+  const closingText = d.prereleaseClosing || '이 글은 지금 쓰여지고 있어요.\n발행 전 여러분의 응원과 자료가 글을 더 깊게 만듭니다.';
+  const closingHTML = `<p class="prerelease-closing">${escHTML(closingText).replace(/\n/g, '<br/>')}</p>`;
+
+  const articleHTML = `
+    <article id="article-${escHTML(id)}" class="article-content prerelease" data-prerelease="true">
+      <section class="article-header">
+        <div class="container">
+          <a href="/" class="back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+          </a>${seriesBadge}
+          <h1 class="article-title">${escHTML(d.title || '')}</h1>
+          <div class="article-meta">
+            <span><strong>${escHTML(dateLabel)}</strong></span>
+            <span class="article-author">${escHTML(d.author || 'Local Layers')}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="article-body prerelease-body">
+        ${leadHTML}
+        ${outlineHTML}
+        ${intentHTML}
+        ${closingHTML}
+      </section>
+
+      <section class="article-reactions">
+        <div class="container">
+          <span class="meta-label">함께 만들어보세요</span>
+          <div class="reactions-row pr-reactions">
+            <button class="reaction pr-cheer-reaction" onclick="cheerPrerelease('${escHTML(id)}', this)">
+              <span><i class="fa-regular fa-thumbs-up"></i> 이 콘텐츠 기대돼요</span>
+              <span class="r-count" id="prCheerCount-${escHTML(id)}">${Number(d.cheerCount) || 0}</span>
+            </button>
+            <button class="reaction pr-submit-reaction" onclick="openContributeModal('${escHTML(id)}')">
+              <span><i class="fa-regular fa-paper-plane"></i> 자료 제공하기</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </article>
+  `;
+
+  document.getElementById('articleMain').innerHTML = articleHTML;
+}
+
+// 파일 크기 표시
+function fmtFileSize(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// 추천 콘텐츠(다음 이야기) 자동 산출
+//  - 시리즈물이면 다음 순번(seriesNo+1) 에피소드
+//  - 시리즈 마지막/단편/영상이면 단편 아티클 추천 (같은 카테고리 우선, 최신순, 현재 글 제외)
+async function renderRecommendation(id, d) {
+  const slot = document.getElementById('recommendSlot');
+  if (!slot || !window.fb || !fb.db) return;
+  let rec = null;  // { id, title, sub, thumb, label, isNext }
+  const _mk = (a, isNext) => ({
+    id: a.id,
+    title: a.title || '',
+    sub: a.sub || a.lead || '',
+    thumb: a.thumb || a.cover || '',
+    label: isNext ? '다음 에피소드' : (_catLabelSafe(a.cat || a.category) || '추천 콘텐츠'),
+    isNext: !!isNext
+  });
+  try {
+    // 1) 시리즈 다음 순번
+    if (d.series && d.seriesNo != null) {
+      const snap = await fb.db.collection('articles').where('series', '==', d.series).get();
+      const eps = snap.docs
+        .map(x => ({ id: x.id, ...x.data() }))
+        .filter(a => a.status === 'PUBLISHED' && a.id !== id);
+      const next = eps.find(a => Number(a.seriesNo) === Number(d.seriesNo) + 1);
+      if (next) rec = _mk(next, true);
+    }
+    // 2) 단편 추천 (같은 카테고리 우선, 최신순)
+    if (!rec) {
+      const snap = await fb.db.collection('articles').where('status', '==', 'PUBLISHED').get();
+      const pool = snap.docs
+        .map(x => ({ id: x.id, ...x.data() }))
+        .filter(a => a.id !== id && !a.series);
+      const sameCat = d.category ? pool.filter(a => a.category === d.category) : [];
+      const chooseFrom = sameCat.length ? sameCat : pool;
+      chooseFrom.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+      if (chooseFrom.length) rec = _mk(chooseFrom[0], false);
+    }
+  } catch (e) { /* 권한/네트워크 무시 */ }
+
+  if (!rec) { slot.innerHTML = ''; return; }
+  const thumbHTML = rec.thumb
+    ? `<div class="next-part-thumb"><img src="${escHTML(rec.thumb)}" alt="${escHTML(rec.title)}" loading="lazy" /></div>`
+    : `<div class="next-part-thumb next-part-thumb-empty" aria-hidden="true"><span>perspective</span></div>`;
+  const subHTML = rec.sub ? `<div class="next-part-sub">${escHTML(rec.sub)}</div>` : '';
+  slot.innerHTML = `
+    <section class="next-article">
+      <div class="container">
+        <div class="series-nav-bar">
+          <div class="series-info"><span class="series-name">다음 이야기</span></div>
+        </div>
+        <a class="next-part-card" href="/articles/${escHTML(rec.id)}">
+          ${thumbHTML}
+          <div class="next-part-text">
+            <div class="next-part-label"><span class="arrow-mini"></span>${escHTML(rec.label)}</div>
+            <div class="next-part-title" id="nextPartTitle">${escHTML(rec.title || '다음 글')}</div>
+            ${subHTML}
+          </div>
+          <div class="next-part-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+        </a>
+      </div>
+    </section>`;
+}
+
+// 카테고리 라벨 안전 변환 (app.js의 _catLabel이 있으면 사용)
+function _catLabelSafe(c) {
+  if (!c) return '';
+  try { if (typeof window._catLabel === 'function') return window._catLabel(c); } catch (e) {}
+  return String(c);
+}
+
+// ===== 팟캐스트 콘텐츠 — podcast.html 프로토타입 플레이어 재사용 =====
+function _podParseYouTubeId(u) {
+  if (!u) return '';
+  if (/^[\w-]{11}$/.test(u)) return u;
+  const m = String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  return m ? m[1] : '';
+}
+function _podFmtTime(sec) {
+  sec = Math.max(0, Math.floor(Number(sec) || 0));
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+function renderPodcast(id, d) {
+  document.body.setAttribute('data-article-id', id);
+  document.title = (d.title || '팟캐스트') + ' · Local Layers';
+  window.__currentArticle = {
+    id: id, title: d.title || '',
+    cat: d.cat || d.category || '', date: d.date || '', thumb: d.thumb || ''
+  };
+
+  const ytId = d.audioId || _podParseYouTubeId(d.podcastUrl || '');
+  const audioSrc = (!ytId && (d.audioSrc || d.podcastUrl)) ? (d.audioSrc || d.podcastUrl) : '';
+
+  // 독자 전용(무료 공개 아님) 팟캐스트 + 비회원 → 플레이어를 잠금 카드로 대체하여 재생 차단
+  const _viewerLoggedIn = !!(document.body && document.body.classList.contains('logged-in'));
+  const _podLocked = !d.free && !_viewerLoggedIn;
+
+  const eyebrowParts = [];
+  if (d.cat || d.category) eyebrowParts.push(escHTML(d.cat || d.category));
+  eyebrowParts.push('Local Layers Audio');
+  const eyebrow = eyebrowParts.join(' · ');
+
+  const subText = d.sub || d.lead || '';
+  const subHTML = subText ? `<p class="pod-sub">${escHTML(subText).replace(/\n/g, '<br/>')}</p>` : '';
+
+  const viewNum = (typeof d.viewCount === 'number' ? d.viewCount : 0) + 1;
+  const viewsHTML = `<span class="article-views" aria-label="조회수"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${viewNum.toLocaleString()}</span>`;
+
+  // 챕터
+  const chapters = Array.isArray(d.chapters) ? d.chapters.filter(c => c && (c.label || c.title)) : [];
+  const chapBtnHTML = (cl) => chapters.map(c =>
+    `<button class="pod-chap${cl || ''}" data-t="${Number(c.t) || 0}"><span class="t">${escHTML(_podFmtTime(c.t))}</span><span class="l">${escHTML(c.label || c.title || '')}</span></button>`
+  ).join('');
+  const chaptersSection = chapters.length ? `
+    <section class="pod-section">
+      <h2 class="pod-h2">챕터</h2>
+      <div class="pod-chapters" id="chapters">${chapBtnHTML('')}</div>
+    </section>` : '';
+
+  // 본문(스크립트)
+  const leadHTML = d.lead ? `<p class="lead">${escHTML(d.lead).replace(/\n/g, '<br/>')}</p>` : '';
+  const bodyHTML = d.bodyHtml || '';
+  const scriptSection = (bodyHTML || leadHTML) ? `
+    <section class="pod-section">
+      <div class="pod-body article-body">${leadHTML}${bodyHTML}</div>
+    </section>` : '';
+
+  // 다운로드 (웹 오디오 URL일 때만 — 유튜브는 pod-player.js가 숨김)
+  const downloadSection = `
+    <section class="pod-section">
+      <h2 class="pod-h2">다운로드</h2>
+      <div class="pod-download">
+        <div class="pod-dl-info">
+          <span class="pod-dl-ic"><i class="fa-solid fa-file-audio"></i></span>
+          <div class="pod-dl-txt">
+            <span class="pod-dl-name">${escHTML(d.title || '에피소드')}</span>
+            <span class="pod-dl-meta">오디오 음원</span>
+          </div>
+        </div>
+        <a class="pod-dl-btn" id="dlBtn" href="#" download><i class="fa-solid fa-arrow-down-to-line"></i> 음원 다운로드</a>
+      </div>
+    </section>`;
+
+  // 참고자료/도움주신 분
+  const thanks = Array.isArray(d.thanks) ? d.thanks.filter(t => t && (t.role || t.name)) : [];
+  const thanksSection = thanks.length ? `
+    <section class="article-thanks pod-section">
+      <ul class="thanks-list">${thanks.map(t =>
+        `<li><span class="thanks-role">${escHTML(t.role)}</span><span class="thanks-name">${escHTML(t.name)}</span></li>`
+      ).join('')}</ul>
+    </section>` : '';
+
+  const tagsList = Array.isArray(d.tags) ? d.tags : [];
+  const tagsHTML = tagsList.length ? tagsList.map(t => `<a class="tag">${escHTML(t)}</a>`).join('') : '';
+  const reactionsHTML = `
+    <section class="article-reactions">
+      <div class="container">
+        <span class="meta-label">이 에피소드가 어떠셨나요</span>
+        <div class="reactions-row">
+          <button class="reaction" data-key="${escHTML(id)}-new"><span>이 관점이 새로웠어요</span><span class="r-count">0</span></button>
+          <button class="reaction" data-key="${escHTML(id)}-deep"><span>더 깊이 듣고 싶어요</span><span class="r-count">0</span></button>
+          <button class="reaction" data-key="${escHTML(id)}-pass"><span>친구에게 들려주고 싶어요</span><span class="r-count">0</span></button>
+        </div>
+      </div>
+    </section>`;
+  const footerHTML = `
+    <div class="container">
+      <div class="article-footer">
+        <div class="article-tags"><span class="meta-label">TAGS</span><span class="tag-sep">|</span>${tagsHTML}</div>
+        <div class="article-actions">
+          <button class="action-btn bookmark-btn" data-article-id="${escHTML(id)}" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="action-btn" aria-label="Copy link" onclick="copyLink && copyLink('${escHTML(id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        </div>
+      </div>
+    </div>`;
+
+  // 잠금 상태: 본문/챕터/다운로드/도크 대신 게이트 CTA를 노출
+  const podGateHTML = _podLocked ? `
+    <section class="gate-cta">
+      <div class="container">
+        <div class="gate-inner">
+          <div class="gate-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <h3 class="gate-title">이 에피소드는<br/>독자에게 공개됩니다</h3>
+          <p class="gate-sub">Local Layers에 가입하고 모든 에피소드를 끝까지 들어보세요.<br/>3분이면 충분합니다.</p>
+          <div class="gate-actions">
+            <button class="gate-btn primary" onclick="openLogin()">로그인 / 가입</button>
+            <a class="gate-btn ghost" href="/">홈으로 돌아가기</a>
+          </div>
+        </div>
+      </div>
+    </section>` : '';
+
+  const html = `
+    <article id="article-${escHTML(id)}" class="article-content"${d.free ? ' data-free="true"' : ''}>
+      <section class="pod-hero">
+        <div class="pod-wrap">
+          <a href="/" class="back-btn" style="margin-bottom:18px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+          </a>
+          <div class="pod-eyebrow">${eyebrow}</div>
+          <h1 class="pod-title">${escHTML(d.title || '')}</h1>
+          ${subHTML}
+          <div class="article-meta">
+            <span><strong>${escHTML(d.date || '')}</strong></span>
+            ${viewsHTML}
+            <span class="article-author">${escHTML(d.author || 'Local Layers')}</span>
+          </div>
+          ${_podLocked ? `
+          <div class="pod-player">
+            <div class="pod-stage pod-stage--locked">
+              <div class="pod-logo-bg" aria-hidden="true">
+                <img src="/assets/img/black_logo.png" class="logo-black" alt="" />
+                <img src="/assets/img/white_logo.png" class="logo-white" alt="" />
+              </div>
+              <div class="pod-lock-inner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                <span class="pod-lock-title">독자 전용 에피소드예요</span>
+                <span class="pod-lock-sub">로그인하고 끝까지 들어보세요</span>
+                <button class="pod-lock-btn" type="button" onclick="openLogin()">로그인 / 가입</button>
+              </div>
+            </div>
+          </div>` : `
+          <div class="pod-player">
+            <div class="pod-stage" id="stage">
+              <div class="pod-logo-bg" aria-hidden="true">
+                <img src="/assets/img/black_logo.png" class="logo-black" alt="" />
+                <img src="/assets/img/white_logo.png" class="logo-white" alt="" />
+              </div>
+              <span class="pod-ring"></span><span class="pod-ring"></span><span class="pod-ring"></span>
+              <div class="pod-speak" aria-hidden="true"><span></span><span></span><span></span></div>
+              <button class="pod-playbtn" id="playBtn" aria-label="재생/중지">
+                <i class="fa-solid fa-play"></i><i class="fa-solid fa-stop"></i>
+              </button>
+            </div>
+          </div>`}
+        </div>
+      </section>
+      ${_podLocked ? podGateHTML : `
+      <div class="pod-wrap">
+        ${chaptersSection}
+        ${scriptSection}
+        ${audioSrc ? downloadSection : ''}
+        ${thanksSection}
+      </div>
+      ${reactionsHTML}
+      ${footerHTML}`}
+      <div id="recommendSlot"></div>
+    </article>
+    ${_podLocked ? '' : `<div class="pod-dock" id="dock">
+      ${chapters.length ? `<div class="pod-chap-panel" id="chapPanel"><div class="pod-chap-panel-inner"><div class="pod-chap-panel-h">챕터</div>${chapBtnHTML('')}</div></div>` : ''}
+      <div class="pod-dock-inner">
+        <button class="pod-dock-btn" id="dockPlay" aria-label="재생/일시정지"><i class="fa-solid fa-play"></i><i class="fa-solid fa-pause"></i></button>
+        <button class="pod-skip" id="back15" aria-label="15초 뒤로"><i class="fa-solid fa-rotate-left"></i></button>
+        <button class="pod-skip" id="fwd15" aria-label="15초 앞으로"><i class="fa-solid fa-rotate-right"></i></button>
+        <div class="pod-dock-meta"><span class="nm">${escHTML(d.title || '')}</span></div>
+        <div class="pod-dock-track">
+          <span class="pod-dock-time" id="dCur">0:00</span>
+          <div class="pod-prog" id="prog" aria-label="진행 바 (클릭해서 이동)">
+            <div class="pod-prog-track"><div class="pod-prog-fill" id="progFill"></div><div class="pod-prog-thumb" id="progThumb"></div></div>
+          </div>
+          <span class="pod-dock-time" id="dDur">--:--</span>
+        </div>
+        <button class="pod-rate" id="rateBtn">1.0×</button>
+        ${chapters.length ? `<button class="pod-chapbtn" id="chapBtn" aria-label="챕터 목록" title="챕터"><i class="fa-solid fa-list-ul"></i></button>` : ''}
+      </div>
+    </div>`}`;
+
+  document.getElementById('articleMain').innerHTML = html;
+
+  if (typeof syncReactionsState === 'function') syncReactionsState();
+  if (typeof syncBookmarkState === 'function') syncBookmarkState();
+  // 잠금 상태가 아닐 때만 플레이어 초기화 (비회원 재생 차단)
+  if (!_podLocked && typeof window.initPodcastPlayer === 'function') {
+    window.initPodcastPlayer({ ytId: ytId, audioSrc: audioSrc, downloadName: id + '.mp3' });
+  }
+  renderRecommendation(id, d);
+
+  // 비회원이 잠금 상태에서 로그인하면 → 자동으로 다시 렌더하여 플레이어 노출
+  if (_podLocked) {
+    const _mo = new MutationObserver(function () {
+      if (document.body.classList.contains('logged-in')) {
+        try { _mo.disconnect(); } catch (e) {}
+        renderPodcast(id, d);
+      }
+    });
+    _mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    if (document.body.classList.contains('logged-in')) {
+      try { _mo.disconnect(); } catch (e) {}
+      renderPodcast(id, d);
+    }
+  }
+}
+
+function renderArticle(id, d) {
+  document.body.setAttribute('data-article-id', id);
+  document.title = (d.title || '아티클') + ' · Local Layers';
+  // 읽음 추적용 메타데이터 노출 (app.js가 ARTICLES 정적 카탈로그 없이도 기록 가능하게)
+  window.__currentArticle = {
+    id: id,
+    title: d.title || '',
+    cat: d.cat || d.seriesName || d.category || '',
+    date: d.date || '',
+    thumb: d.thumb || d.cover || ''
+  };
+
+  const seriesName = d.seriesName || '';
+  const noStr = d.seriesNo != null ? String(d.seriesNo).padStart(2,'0') : '';
+  const totalStr = d.seriesTotal != null ? String(d.seriesTotal).padStart(2,'0') : '';
+  const partLabel = (noStr && totalStr) ? `PART ${noStr} / ${totalStr}` : '';
+
+  const seriesBadge = (seriesName && partLabel) ? `
+    <div class="series-badge">
+      <span class="series-name">${escHTML(seriesName)}</span>
+      <span class="sep"></span>
+      <span class="progress">${escHTML(partLabel)}</span>
+    </div>` : '';
+
+  // 헤더 공통: 카테고리/시리즈 + 포맷 라벨 (팟캐스트와 동일 위계)
+  // 시리즈물은 [시리즈명 · PART xx/yy] 한 줄로 통합 (중복 배지 제거)
+  const catText = d.cat || d.category || '';
+  const formatLabel = d.videoMode ? 'Local Layers Video' : 'Local Layers';
+  const isSeriesArticle = !!(seriesName && partLabel);
+  let eyebrowInner;
+  if (isSeriesArticle) {
+    // 시리즈물: [SERIES · 시리즈명 · PART xx / yy]
+    eyebrowInner = `SERIES · ${escHTML(seriesName)} · ${escHTML(partLabel)}`;
+  } else {
+    const eyebrowParts = [];
+    if (catText) eyebrowParts.push(escHTML(catText));
+    eyebrowParts.push(formatLabel);
+    eyebrowInner = eyebrowParts.join(' · ');
+  }
+  const eyebrowHTML = `<div class="article-eyebrow">${eyebrowInner}</div>`;
+  const subText = d.sub || '';
+  const subHTML = subText ? `<p class="article-sub">${escHTML(subText).replace(/\n/g, '<br/>')}</p>` : '';
+
+  // 조회수 — 현재 열람 1회를 포함해 표시(증가는 loadArticle에서 별도 처리)
+  const viewNum = (typeof d.viewCount === 'number' ? d.viewCount : 0) + 1;
+  const viewsHTML = `<span class="article-views" aria-label="조회수"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${viewNum.toLocaleString()}</span>`;
+
+  const leadHTML = d.lead ? `<p class="article-lead">${escHTML(d.lead).replace(/\n/g, '<br/>')}</p>` : '';
+  // 프리릴리즈 단계에서 적어둔 '이 콘텐츠가 어떤 내용일지'(intent)를
+  // 발행된 글에서는 본문 상단의 흰색 박스(에디터 노트)로 보여준다.
+  const intentText = d.intent || '';
+  const intentBoxHTML = intentText ? `
+    <aside class="article-intent-box">
+      <span class="intent-box-label">이 콘텐츠는</span>
+      <p class="intent-box-text">${escHTML(intentText).replace(/\n/g, '<br/>')}</p>
+    </aside>` : '';
+  // 동영상: videoId 우선, 없으면 videoUrl에서 파싱
+  let videoId = d.videoId || '';
+  if (!videoId && d.videoUrl) {
+    const patterns = [
+      /youtu\.be\/([\w-]{6,})/,
+      /youtube\.com\/watch\?v=([\w-]{6,})/,
+      /youtube\.com\/embed\/([\w-]{6,})/,
+      /youtube\.com\/shorts\/([\w-]{6,})/
+    ];
+    for (const p of patterns) { const m = String(d.videoUrl).match(p); if (m) { videoId = m[1]; break; } }
+  }
+  // 모달("아티클 같이 보기")에서 넘어온 경우 #t=초 가 붙는다 → 보던 지점부터 자동 이어재생
+  const _resumeMatch = (location.hash || '').match(/[#&]t=(\d+)/);
+  const _resume = !!_resumeMatch;
+  const _resumeT = _resumeMatch ? (parseInt(_resumeMatch[1], 10) || 0) : 0;
+  // 모바일 브라우저는 소리 있는 자동재생을 차단 → 이어재생 시 모바일은 mute=1로 자동재생 보장.
+  const _isMobileV = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  const _resumeMuted = _resume && _isMobileV; // 모바일 이어재생은 음소거로 시작 → "소리 켜기" 오버레이 제공
+  const _vParams = _resume
+    ? ('?autoplay=1&rel=0&playsinline=1&enablejsapi=1' + (_resumeMuted ? '&mute=1' : '') + (_resumeT > 0 ? '&start=' + _resumeT : '') + '&origin=' + encodeURIComponent(location.origin))
+    : '?rel=0&playsinline=1';
+  const _posterThumb = d.thumb || (videoId ? ('https://img.youtube.com/vi/' + videoId + '/maxresdefault.jpg') : '');
+  // 독자 전용(무료 공개 아님) 영상 + 비회원 → 아예 플레이어(iframe)를 렌더하지 않고 잠금 포스터만 노출 → 재생 자체 불가
+  const _viewerLoggedIn = !!(document.body && document.body.classList.contains('logged-in'));
+  const _videoLocked = !d.free && !_viewerLoggedIn;
+  const _lockPoster = `
+    <div class="article-video-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+      <div class="av-lock av-lock--static">
+        <img class="av-lock-bg" src="${escHTML(_posterThumb)}" alt="" />
+        <div class="av-lock-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span class="av-lock-title">독자 전용 영상이에요</span>
+          <span class="av-lock-sub">로그인하고 끝까지 시청해 보세요</span>
+        </div>
+      </div>
+    </div>`;
+  const _unmuteOverlay = _resumeMuted ? `
+      <button type="button" id="articleVideoUnmute" class="av-unmute" aria-label="소리 켜기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <span>소리 켜기</span>
+      </button>` : '';
+  const _videoPlayer = `
+    <div class="article-video-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+      <iframe
+        id="articleVideoIframe"
+        src="https://www.youtube-nocookie.com/embed/${escHTML(videoId)}${_vParams}"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+        allow="accelerometer; autoplay; encrypted-media; fullscreen; picture-in-picture"
+        allowfullscreen></iframe>${_unmuteOverlay}
+    </div>`;
+  const videoHTML = videoId ? (_videoLocked ? _lockPoster : _videoPlayer) : '';
+  const bodyHTML = d.bodyHtml || '';
+
+  const gateHTML = !d.free ? `
+    <section class="gate-cta">
+      <div class="container">
+        <div class="gate-inner">
+          <div class="gate-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <h3 class="gate-title">이 글의 나머지는<br/>독자에게 공개됩니다</h3>
+          <p class="gate-sub">Local Layers에 가입하고 모든 아티클을 끝까지 읽어보세요.<br/>3분이면 충분합니다.</p>
+          <div class="gate-actions">
+            <button class="gate-btn primary" onclick="openLogin()">로그인 / 가입</button>
+            <a class="gate-btn ghost" href="/">홈으로 돌아가기</a>
+          </div>
+        </div>
+      </div>
+    </section>` : '';
+
+  const thanks = Array.isArray(d.thanks) ? d.thanks : [];
+  const thanksHTML = thanks.length > 0 ? `
+    <section class="article-thanks">
+      <div class="container">
+        <ul class="thanks-list">${thanks.map(t =>
+          `<li><span class="thanks-role">${escHTML(t.role)}</span><span class="thanks-name">${escHTML(t.name)}</span></li>`
+        ).join('')}</ul>
+      </div>
+    </section>` : '';
+
+  const tagsList = Array.isArray(d.tags) ? d.tags : [];
+  const tagsHTML = tagsList.length > 0
+    ? tagsList.map(t => `<a class="tag">${escHTML(t)}</a>`).join('')
+    : '';
+
+  const reactionsHTML = `
+    <section class="article-reactions">
+      <div class="container">
+        <span class="meta-label">이 글이 어떠셨나요</span>
+        <div class="reactions-row">
+          <button class="reaction" data-key="${escHTML(id)}-new"><span>이 관점이 새로웠어요</span><span class="r-count">0</span></button>
+          <button class="reaction" data-key="${escHTML(id)}-deep"><span>더 깊이 알고 싶어요</span><span class="r-count">0</span></button>
+          <button class="reaction" data-key="${escHTML(id)}-pass"><span>친구에게 보내고 싶어요</span><span class="r-count">0</span></button>
+        </div>
+      </div>
+    </section>`;
+
+  const footerHTML = `
+    <div class="container">
+      <div class="article-footer">
+        <div class="article-tags">
+          <span class="meta-label">TAGS</span>
+          <span class="tag-sep">|</span>
+          ${tagsHTML}
+        </div>
+        <div class="article-actions">
+          <button class="action-btn bookmark-btn" data-article-id="${escHTML(id)}" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="action-btn" aria-label="Instagram" onclick="shareTo && shareTo('instagram','${escHTML(id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/></svg></button>
+          <button class="action-btn" aria-label="Copy link" onclick="copyLink && copyLink('${escHTML(id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+        </div>
+      </div>
+    </div>`;
+
+  // 첨부파일(PDF) — 다운로드 링크
+  const attachList = Array.isArray(d.attachments) ? d.attachments.filter(a => a && a.url) : [];
+  const attachHTML = attachList.length ? `
+    <div class="container">
+      <section class="article-attachments">
+        <span class="meta-label">첨부파일</span>
+        <div class="attach-download-list">
+          ${attachList.map(a => `
+            <a class="attach-download" href="${escHTML(a.url)}" target="_blank" rel="noopener" download>
+              <span class="attach-dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+              <span class="attach-dl-name">${escHTML(a.name || 'PDF 문서')}</span>
+              ${a.size ? `<span class="attach-dl-size">${fmtFileSize(a.size)}</span>` : ''}
+              <span class="attach-dl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span>
+            </a>`).join('')}
+        </div>
+      </section>
+    </div>` : '';
+
+  // 추천 콘텐츠(다음 이야기)는 렌더 후 비동기로 자동 산출 → #recommendSlot에 채움
+  const nextHTML = `<div id="recommendSlot"></div>`;
+
+  // 영상 콘텐츠도 일반 아티클과 동일한 템플릿(좌측 정렬)으로 렌더 — 영상은 본문 상단 ${videoHTML}로 삽입됨
+  const articleHTML = `
+    <article id="article-${escHTML(id)}" class="article-content"${d.free ? ' data-free="true"' : ''}>
+      <section class="article-header">
+        <div class="container">
+          <a href="/" class="back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+          </a>
+          ${eyebrowHTML}
+          <h1 class="article-title">${escHTML(d.title)}</h1>
+          ${subHTML}
+          <div class="article-meta">
+            <span><strong>${escHTML(d.date)}</strong></span>
+            ${viewsHTML}
+            <span class="article-author">${escHTML(d.author || 'Local Layers')}</span>
+          </div>
+        </div>
+      </section>
+      <section class="article-body">
+        ${videoHTML}
+        ${intentBoxHTML}
+        ${leadHTML}
+        ${bodyHTML}
+      </section>${gateHTML}${attachHTML}${thanksHTML}${reactionsHTML}${footerHTML}${nextHTML}
+    </article>
+  `;
+
+  document.getElementById('articleMain').innerHTML = articleHTML;
+
+  // After render, kick app.js sync routines (reactions/bookmark/progress)
+  if (typeof syncReactionsState === 'function') syncReactionsState();
+  if (typeof syncBookmarkState === 'function') syncBookmarkState();
+  if (typeof updateProgress === 'function') updateProgress();
+  renderRecommendation(id, d);
+
+  // 모바일 이어재생: 음소거로 자동재생됨 → "소리 켜기" 오버레이 탭 시 음소거 해제 + 재생
+  const _unmuteBtn = document.getElementById('articleVideoUnmute');
+  const _avFrame = document.getElementById('articleVideoIframe');
+  if (_unmuteBtn && _avFrame) {
+    _unmuteBtn.addEventListener('click', function() {
+      try {
+        const w = _avFrame.contentWindow;
+        w.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: '' }), '*');
+        w.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+      } catch (e) {}
+      _unmuteBtn.classList.add('av-unmute--gone');
+      setTimeout(function() { if (_unmuteBtn.parentNode) _unmuteBtn.parentNode.removeChild(_unmuteBtn); }, 280);
+    });
+  }
+
+  // 비회원이 독자 전용 영상에서 막혔다가(잠금 포스터) 로그인하면
+  // → 자동으로 전체화면 재생으로 진입 + 인라인 잠금 포스터를 실제 플레이어로 교체
+  if (d.videoMode && videoId && _videoLocked) {
+    let _fsOpened = false;
+    const _subText = (d.cat || d.category || '') + (d.date ? ' · ' + d.date : '');
+    const _tryFullscreen = function() {
+      if (_fsOpened) return;
+      if (!document.body.classList.contains('logged-in')) return;
+      _fsOpened = true;
+      try { _mo.disconnect(); } catch (e) {}
+      // 인라인 잠금 포스터 → 실제 플레이어로 교체 (전체화면을 닫아도 이어서 볼 수 있게)
+      const embed = document.querySelector('#articleMain .article-video-embed');
+      if (embed && embed.querySelector('.av-lock')) {
+        const wrap = document.createElement('div');
+        wrap.className = 'article-video-embed';
+        wrap.setAttribute('style', 'position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;');
+        wrap.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + escHTML(videoId) + '?rel=0&playsinline=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer; autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+        embed.parentNode.replaceChild(wrap, embed);
+      }
+      // 전체화면 모달 열기 (이미 로그인 → 게이트 통과)
+      if (typeof window.openVideo === 'function') {
+        window.openVideo({ videoId: videoId, title: d.title || '', sub: _subText, articleId: '', contentId: id, free: true });
+      }
+    };
+    const _mo = new MutationObserver(_tryFullscreen);
+    _mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    // 렌더 직후 이미 로그인된 레이스 상황 방어
+    _tryFullscreen();
+  }
+}
+
+async function loadArticle() {
+  const id = resolveArticleId();
+  if (!id) { renderNotFound('잘못된 주소입니다'); return; }
+
+  try {
+    const snap = await fb.db.collection('articles').doc(id).get();
+    if (!snap.exists) {
+      // 정적 카탈로그 폴백 — 본문/영상이 있는 샘플 글만 렌더 (Firestore 글이 우선)
+      const staticA = (window.ARTICLES || {})[id];
+      if (staticA && (staticA.bodyHtml || staticA.videoMode || staticA.podcastMode)) {
+        if (staticA.podcastMode) renderPodcast(id, staticA);
+        else renderArticle(id, staticA);
+        return;
+      }
+      renderNotFound('비공개 글이거나 존재하지 않는 글입니다');
+      return;
+    }
+    const d = snap.data();
+    if (d.status === 'PRERELEASE') {
+      renderPrerelease(id, d);
+      // Increment viewCount (fire-and-forget)
+      fb.db.collection('articles').doc(id).update({
+        viewCount: firebase.firestore.FieldValue.increment(1)
+      }).catch(() => {});
+      return;
+    }
+    if (d.status !== 'PUBLISHED') {
+      renderNotFound('비공개 글이거나 존재하지 않는 글입니다');
+      return;
+    }
+    if (d.podcastMode) renderPodcast(id, d);
+    else renderArticle(id, d);
+
+    // 조회수 증가: 실제로 본문을 읽을 수 있는 경우에만 +1
+    // (무료 공개 글은 누구나, 회원 전용 글은 로그인한 회원만)
+    let canCount = (d.free === true);
+    if (!canCount) {
+      try { await fb.authReady; } catch (e) {}
+      canCount = !!(fb.currentUser && fb.currentUser());
+    }
+    if (canCount) {
+      fb.db.collection('articles').doc(id).update({
+        viewCount: firebase.firestore.FieldValue.increment(1)
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('[article.html] 로딩 실패:', err);
+    renderNotFound('글을 불러오지 못했습니다: ' + err.message);
+  }
+}
+
+// Wait for firebase init then load
+if (window.fb && fb.db) {
+  loadArticle();
+} else {
+  // Poll briefly until fb is available
+  const _t = setInterval(() => {
+    if (window.fb && fb.db) { clearInterval(_t); loadArticle(); }
+  }, 50);
+}
+</script>
+
+<!-- 전체화면 영상 모달 (영상 아티클에서 비회원 로그인 후 자동 진입에 사용) -->
+<div class="video-modal" id="videoModal">
+  <button class="video-close" id="videoClose" aria-label="Close">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <div class="video-modal-inner">
+    <div class="video-player">
+      <iframe
+        id="videoIframe"
+        title="영상"
+        frameborder="0"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+    <div class="video-modal-meta">
+      <div>
+        <div class="video-modal-title"></div>
+        <div class="video-modal-sub"></div>
+      </div>
+      <div class="video-modal-actions">
+        <button class="video-modal-cta" onclick="openInterviewArticle()" style="display:none">
+          <i class="fa-regular fa-newspaper"></i> 아티클 같이 보기
+        </button>
+        <a class="video-fallback-link" href="#" target="_blank" rel="noopener">
+          YouTube에서 보기 <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== CONTRIBUTE MODAL (자료 제공하기) ============== -->
+<div class="contribute-modal" id="contributeModal">
+  <div class="contribute-modal-inner">
+    <button class="contribute-close" id="contributeCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="contribute-head">
+      <div class="contribute-icon"><i class="fa-regular fa-lightbulb"></i></div>
+      <h2 class="contribute-title">자료 제공하기</h2>
+      <p class="contribute-sub">알고 계신 정보·책·링크·인사이트를 보내주시면<br/>글을 더 입체적으로 만드는 데 활용합니다.</p>
+    </div>
+    <form class="contribute-form" id="contributeForm" onsubmit="submitContribution(event)">
+      <div class="contribute-field">
+        <label>종류</label>
+        <div class="contribute-type-row">
+          <label class="contribute-radio"><input type="radio" name="cType" value="link" checked /> 링크</label>
+          <label class="contribute-radio"><input type="radio" name="cType" value="book" /> 책</label>
+          <label class="contribute-radio"><input type="radio" name="cType" value="memo" /> 메모</label>
+          <label class="contribute-radio"><input type="radio" name="cType" value="etc" /> 기타</label>
+        </div>
+      </div>
+      <div class="contribute-field">
+        <label>제목 / 이름 <span class="required">*</span></label>
+        <input id="cTitle" type="text" placeholder="예: 디자인의 도덕적 책임" required />
+      </div>
+      <div class="contribute-field">
+        <label>링크 (선택)</label>
+        <input id="cUrl" type="url" placeholder="https://" />
+      </div>
+      <div class="contribute-field">
+        <label>한 줄 메모 (선택)</label>
+        <textarea id="cNote" rows="3" placeholder="왜 도움이 될지, 어떤 부분이 인상적이었는지..."></textarea>
+      </div>
+      <div class="contribute-field contribute-checkbox">
+        <label><input type="checkbox" id="cAnonymous" /> 익명으로 보내기</label>
+      </div>
+      <button type="submit" class="contribute-submit">보내기</button>
+    </form>
+  </div>
+</div>
+
+<!-- app.js (header/drawer/modals/reactions/bookmarks behavior) -->
+<script src="/assets/js/app.js"></script>
 </body>
 </html>

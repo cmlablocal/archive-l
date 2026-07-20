@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Login · Local Layers</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<script>window.__ADMIN_PUBLIC = true;</script>
+</head>
+<body class="admin">
+<div class="admin-login">
+  <form class="admin-login-card" id="adminLoginForm">
+    <div class="admin-login-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="logo-dark" style="display:none" />
+      <div class="admin-login-brand-label">ADMIN</div>
+    </div>
+    <div class="admin-form-group">
+      <label for="email">이메일</label>
+      <input type="email" id="email" required autocomplete="username" />
+    </div>
+    <div class="admin-form-group">
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" required autocomplete="current-password" />
+    </div>
+    <div class="admin-form-error" id="loginError"></div>
+    <button type="submit" class="admin-btn">로그인</button>
+    <div class="admin-login-help">
+      관리자 계정만 접근 가능합니다.<br/>
+      <a href="/" style="color:inherit;text-decoration:underline;">콘텐츠 사이트로 돌아가기</a>
+    </div>
+  </form>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  // Toggle logo based on theme
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelector('.logo-light').style.display = dark ? 'none' : 'inline-block';
+    document.querySelector('.logo-dark').style.display = dark ? 'inline-block' : 'none';
+  })();
+
+  // Firebase Auth로 로그인. admin 권한은 firebase.js의 ADMIN_EMAILS로 판단.
+  document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = '';
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '로그인 중…'; }
+    try {
+      const user = await fb.signIn(email, password);
+      if (!fb.isAdmin()) {
+        await fb.signOut();
+        errEl.textContent = '관리자 권한이 없는 계정입니다.';
+        return;
+      }
+      window.location.href = '/admin/';
+    } catch (err) {
+      const code = err.code || '';
+      let msg = '로그인 실패';
+      if (code === 'auth/invalid-email') msg = '올바른 이메일 형식이 아닙니다.';
+      else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') msg = '이메일 또는 비밀번호가 일치하지 않습니다.';
+      else if (code === 'auth/user-not-found') msg = '가입되지 않은 이메일입니다.';
+      else if (code === 'auth/too-many-requests') msg = '잠시 후 다시 시도해주세요.';
+      else msg = err.message || '오류가 발생했습니다.';
+      errEl.textContent = msg;
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '로그인'; }
+    }
+  });
+
+  // 이미 admin으로 로그인되어 있으면 바로 대시보드로
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      window.location.href = '/admin/';
+    }
+  });
+</script>
+</body>
+</html>

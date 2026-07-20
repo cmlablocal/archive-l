@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>임시저장 · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">임시저장</h1>
+        <p class="admin-page-sub">아직 게시하지 않은 임시저장 콘텐츠입니다. 이어서 작성하거나 바로 게시할 수 있어요.</p>
+      </div>
+      <a class="admin-btn" href="/admin/new-article.html">
+        <i class="fa-solid fa-plus"></i> 새 콘텐츠 작성
+      </a>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:80px;"></th>
+            <th>제목</th>
+            <th style="width:140px;">카테고리</th>
+            <th style="width:120px;">최종 수정</th>
+            <th style="width:80px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="draftTable"><tr><td colspan="5" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .admin-table-wrap { overflow: visible; }
+    .admin-table td { position: relative; }
+  `;
+  document.head.appendChild(style);
+
+  let drafts = []; // [{ id, data }]
+
+  function dateMs(d) {
+    const t = d.updatedAt || d.createdAt;
+    if (t && t.toDate) return t.toDate().getTime();
+    if (d.date) {
+      const ms = Date.parse(String(d.date).replace(/\./g, '-'));
+      if (!isNaN(ms)) return ms;
+    }
+    return 0;
+  }
+
+  function fmtDate(d) {
+    const t = d.updatedAt || d.createdAt;
+    if (t && t.toDate) {
+      const dt = t.toDate();
+      return dt.getFullYear() + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + String(dt.getDate()).padStart(2, '0');
+    }
+    return d.date || '—';
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('draftTable');
+    const rows = drafts.slice().sort((a, b) => dateMs(b.data) - dateMs(a.data));
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="admin-empty">임시저장된 콘텐츠가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(item => {
+      const d = item.data;
+      const id = item.id;
+      const title = d.title || '(제목 없음)';
+      const sub = d.sub || '';
+      const cat = d.cat || d.category || '—';
+      const thumb = d.thumb || d.thumbnail || '';
+      const menuItems = `
+        <a href="/admin/new-article.html?id=${id}"><i class="fa-regular fa-pen-to-square"></i> 이어서 작성</a>
+        <button data-action="publish" data-id="${id}"><i class="fa-solid fa-paper-plane"></i> 바로 게시</button>
+        <button data-action="delete" data-id="${id}" class="danger"><i class="fa-regular fa-trash-can"></i> 삭제</button>`;
+      const kebab = `
+        <details class="row-menu">
+          <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+          <div class="row-menu-pop">${menuItems}</div>
+        </details>`;
+      return `
+        <tr>
+          <td>${thumb ? `<img src="${adminEscHTML(thumb)}" alt="" class="admin-thumb" loading="lazy" />` : '<div class="admin-thumb" style="background:var(--admin-row);"></div>'}</td>
+          <td>
+            <a href="/admin/new-article.html?id=${id}" class="title-cell">${adminEscHTML(title)}</a>
+            <span class="title-cell-sub">${adminEscHTML(sub)}</span>
+          </td>
+          <td>${adminEscHTML(cat)}</td>
+          <td>${adminEscHTML(fmtDate(d))}</td>
+          <td>
+            <div class="admin-actions" style="justify-content:flex-end;flex-wrap:wrap;gap:6px;">
+              ${kebab}
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        if (btn.dataset.action === 'publish') publishDraft(id);
+        else if (btn.dataset.action === 'delete') deleteDraft(id);
+      });
+    });
+  }
+
+  async function publishDraft(id) {
+    const item = drafts.find(x => x.id === id);
+    if (!item) return;
+    if (!(await sysConfirm(`'${item.data.title || id}'를 바로 게시할까요?`))) return;
+    try {
+      const payload = { status: 'PUBLISHED', updatedAt: fb.FieldValue.serverTimestamp() };
+      if (!item.data.publishedAt) payload.publishedAt = fb.FieldValue.serverTimestamp();
+      await fb.db.collection('articles').doc(id).update(payload);
+    } catch (err) {
+      sysAlert('게시 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  async function deleteDraft(id) {
+    const item = drafts.find(x => x.id === id);
+    if (!item) return;
+    if (!(await sysConfirm(`'${item.data.title || id}'을 정말 삭제하시겠습니까? 복구할 수 없습니다.`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('articles').doc(id).delete();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  function subscribeDrafts() {
+    fb.db.collection('articles')
+      .where('status', '==', 'DRAFT')
+      .onSnapshot(snap => {
+        drafts = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+        renderTable();
+      }, err => {
+        console.error('[drafts] Firestore 구독 실패:', err);
+        document.getElementById('draftTable').innerHTML =
+          `<tr><td colspan="5" class="admin-empty">불러오기 실패: ${adminEscHTML(err.message)}</td></tr>`;
+      });
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) subscribeDrafts();
+    else document.getElementById('draftTable').innerHTML =
+      `<tr><td colspan="5" class="admin-empty">관리자 권한이 필요합니다.</td></tr>`;
+  });
+</script>
+</body>
+</html>

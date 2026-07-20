@@ -5,28 +5,73 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <!-- SEO:START -->
-<title>About | Local Layers</title>
-<meta name="description" content="Local Layers와 Another Movement가 디자인을 바라보는 방식." />
-<link rel="canonical" href="https://archive-l.web.app/about" />
+<title>오피니언 | Local Layers</title>
+<meta name="description" content="디자인에 대한 다양한 관점과 의견을 나누는 오피니언." />
+<link rel="canonical" href="https://archive-l.web.app/opinion" />
 <meta name="robots" content="index, follow" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Local Layers" />
 <meta property="og:locale" content="ko_KR" />
-<meta property="og:title" content="About · Local Layers" />
-<meta property="og:description" content="Local Layers와 Another Movement가 디자인을 바라보는 방식." />
-<meta property="og:url" content="https://archive-l.web.app/about" />
+<meta property="og:title" content="오피니언 · Local Layers" />
+<meta property="og:description" content="디자인에 대한 다양한 관점과 의견을 나누는 오피니언." />
+<meta property="og:url" content="https://archive-l.web.app/opinion" />
 <meta property="og:image" content="https://archive-l.web.app/assets/img/anothermovement_logo.png" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="About · Local Layers" />
-<meta name="twitter:description" content="Local Layers와 Another Movement가 디자인을 바라보는 방식." />
+<meta name="twitter:title" content="오피니언 · Local Layers" />
+<meta name="twitter:description" content="디자인에 대한 다양한 관점과 의견을 나누는 오피니언." />
 <meta name="twitter:image" content="https://archive-l.web.app/assets/img/anothermovement_logo.png" />
 <!-- SEO:END -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  /* ===== 하단: 다른 오피니언 둘러보기 ===== */
+  .opinion-more { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--border, #e5e7eb); }
+  .opinion-more-block + .opinion-more-block { margin-top: 44px; }
+  .opinion-more-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; gap: 12px; }
+  .opinion-more-title { font-size: 18px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; line-height: 1.3; }
+  .opinion-more-title .om-count { font-size: 13px; font-weight: 500; color: var(--muted, #6b7280); }
+  .om-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fg, #1f2937); animation: omPulse 1.8s ease-out infinite; flex: none; }
+  @keyframes omPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(31, 41, 55, 0.35); }
+    70%  { box-shadow: 0 0 0 7px rgba(31, 41, 55, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(31, 41, 55, 0); }
+  }
+  .opinion-more-all { font-size: 13px; color: var(--muted, #6b7280); text-decoration: none; white-space: nowrap; transition: color .15s; }
+  .opinion-more-all:hover { color: var(--fg, #1f2937); }
+  .opinion-more-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 720px) { .opinion-more-grid { grid-template-columns: 1fr; } }
+
+  .om-card {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: 20px;
+    background: var(--bg, #fff); text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    transition: border-color .15s ease, transform .15s ease, box-shadow .2s ease;
+  }
+  .om-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: transparent; }
+  .om-card--active::before { background: transparent; }
+  .om-card--pending::before { background: #94a3b8; }
+  .om-card:hover { border-color: var(--fg, #1f2937); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.08); }
+  .om-card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .om-badge { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border, #e5e7eb); font-weight: 600; white-space: nowrap; }
+  .om-badge.om-active { color: var(--fg, #1f2937); border-color: var(--fg, #1f2937); }
+  .om-badge.om-expired { color: #64748b; }
+  .om-badge.om-pending { color: #94a3b8; }
+  .om-remain { font-size: 11px; font-weight: 600; color: var(--fg, #1f2937); }
+  .om-period { font-size: 11px; color: var(--muted, #6b7280); }
+  .om-card-title { font-size: 16px; font-weight: 600; margin: 0; line-height: 1.4; }
+  .om-card-desc { font-size: 13px; color: var(--muted, #6b7280); line-height: 1.6; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .om-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border, #e5e7eb); font-size: 12px; color: var(--muted, #6b7280); }
+  .om-card-foot i { margin-right: 4px; }
+  .om-go { transition: transform .15s ease; }
+  .om-card:hover .om-go { transform: translateX(3px); }
+  @media (prefers-reduced-motion: reduce) { .om-dot { animation: none; } }
+</style>
 </head>
-<body data-view="about">
+<body data-view="opinion">
 <script>try{if(localStorage.getItem("pv:auth")==="1")document.body.classList.add("logged-in");}catch(e){}</script>
 <div class="toast" id="toast" aria-live="polite"></div>
 
@@ -97,219 +142,71 @@
   </div>
 </div>
 
-<!-- ============== ABOUT VIEW ============== -->
-<main class="about-view">
-  <section class="about-hero">
-    <div class="container">
-      <span class="meta-label">ABOUT LOCAL LAYERS</span>
-      <h1 class="about-title">관심을 관점으로<br/>전환하는 디자인 인사이트</h1>
-      <p class="about-lead">
-        우리는 디자인이 그 어느 때보다 가까워진 시대에 살고 있습니다.
-        멋진 로고, 감각적인 포스터, 편리한 앱 디자인 등 수많은 디자인 결과물에
-        쉽게 감탄하고 좋아하죠. 하지만 혹시 이렇게 생각해 보신 적 있나요?
-      </p>
-      <p class="about-quote-inline">
-        "이 디자인은 왜 이렇게 만들어졌을까?"<br/>
-        "이 안에는 어떤 이야기가 숨어 있을까?"
-      </p>
-      <p class="about-lead">
-        <strong>Local Layers는 바로 이 질문에서 시작합니다.</strong>
-        디자인을 단순히 '보는 것'을 넘어, 그 이면의 사고와 의도, 그리고 맥락을
-        깊이 읽어내는 '관점'으로 전환시키는 과정을 탐구하는 곳입니다.
-      </p>
-    </div>
-  </section>
-
-  <section class="about-section">
-    <div class="container">
-      <span class="meta-label">WHY LOCAL LAYERS</span>
-      <h2 class="about-h">디자인은 더 이상<br/>기술이 아닙니다.</h2>
-      <div class="about-text">
-        <p>
-          디자인은 더 이상 예쁘게 만드는 기술에만 머물지 않습니다.
-          우리의 생각, 행동, 심지어 사회와 문화를 바꾸는 강력하고 복합적인
-          언어로서 기능하고 있죠.
-        </p>
-        <p>
-          Local Layers 아티클은 바로 이 디자인이라는 언어를 해체하고 재해석하며,
-          모두가 디자인에 대한 기존의 '관심'이라는 틀에서 벗어나 새로운 '시각'으로
-          바라볼 수 있도록 탐구 내용을 제공합니다.
-        </p>
-        <p>
-          디자인을 통해 세상의 변화를 읽고, 숨겨진 가치를 발견하며,
-          더 나은 방향으로 나아가는 방법을 함께 찾아가는 여정인 셈입니다.
-        </p>
+<!-- ============== OPINION VIEW ============== -->
+<main class="opinion-view">
+  <div class="container">
+    <section class="opinion-hero">
+      <span class="meta-label">OPINION</span>
+      <h1 class="opinion-title" id="opinionTitle">불러오는 중...</h1>
+      <p class="opinion-desc" id="opinionDesc"></p>
+      <div class="opinion-meta">
+        <span><i class="fa-regular fa-comments"></i> <span id="opinionCount">0</span>개의 의견</span>
       </div>
-    </div>
-  </section>
+      <div class="opinion-period" id="opinionPeriod" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
+      <div class="opinion-banner" id="opinionBanner" hidden style="margin-top:14px;padding:12px 14px;border:1px solid var(--border, #e5e7eb);border-radius:8px;font-size:13px;background:var(--hover, rgba(0,0,0,0.03));"></div>
 
-  <section class="about-section alt">
-    <div class="container">
-      <span class="meta-label">WHAT WE EXPLORE</span>
-      <h2 class="about-h">우리가 탐구하는<br/>주제들</h2>
-      <div class="about-text">
-        <p>
-          우리는 디자인 트렌드의 흐름, 소비자 행동의 변화, 사회적 이슈의 반영,
-          브랜드 아이덴티티의 구축 등 디자인이 관여하는 다양한 분야를 탐구합니다.
-          이때 단순히 정보를 나열하는 것이 아니라, 각 현상에 대해 <strong>"왜?"</strong>라는 질문을
-          던지고 깊이 있게 분석하며 <strong>'관점의 흐름'</strong>을 만들어냅니다.
-        </p>
-        <p>
-          이러한 탐구를 통해 디자인이 어떻게 사람들의 마음을 움직이고 특정 행동을
-          유도하는지 이해하고, 나아가 디자인적 사유가 사회에 긍정적인 혁신을
-          가져올 가능성을 모색하고 이야기하고자 합니다.
-        </p>
+      <!-- 종료된 오피니언 결과 요약 (박제) -->
+      <div class="opinion-result" id="opinionResult" hidden>
+        <div class="opinion-result-label"><i class="fa-solid fa-thumbtack"></i> 그래서, 독자들은 이렇게 참여했습니다</div>
+        <div class="opinion-result-stats">
+          <div class="opinion-result-stat"><b id="orParticipants">0</b><span>명이 참여</span></div>
+          <div class="opinion-result-stat"><b id="orComments">0</b><span>개의 의견</span></div>
+          <div class="opinion-result-stat"><b id="orPeriod">—</b><span>진행 기간</span></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="about-section">
-    <div class="container">
-      <span class="meta-label">WHO WE ARE</span>
-      <h2 class="about-h">글을 빚어내는<br/>사람들</h2>
-      <div class="about-text">
-        <p>
-          Local Layers 아티클은 한 명의 시선에 국한되지 않습니다.
-          디자인, 브랜딩 등 다양한 배경과 분야에서 활동하는 에디터들이 모여
-          함께 쓰고, 토론하고, 편집합니다.
-        </p>
-        <p>
-          우리는 각기 다른 출발점에서 시작했지만, 디자인을 통해 복잡한 현상을 정리하고,
-          추상적인 사고를 언어화하며, 당연해 보이는 것에 질문을 던진다는
-          공통의 방향성 아래 모였습니다.
-        </p>
-        <p>
-          팀 Local Layers는 이러한 다양한 시선이 충돌하고 융합하는 과정을 거쳐,
-          당신의 관점을 확장시킬 수 있는 풍부하고 입체적인 아티클을 빚어냅니다.
-          Local Layers 아티클은 당신이 디자인을 보는 <strong>'눈'</strong>을 바꾸고,
-          세상을 <strong>'해석'</strong>하는 새로운 도구를 얻도록 돕는 여정의 동반자입니다.
-        </p>
-      </div>
-    </div>
-  </section>
+    <section class="opinion-thread">
+      <!-- Comments list -->
+      <ul class="opinion-comments" id="opinionComments">
+        <li class="opinion-empty">아직 의견이 없습니다. 첫 의견을 남겨보세요.</li>
+      </ul>
 
-  <section class="about-steps">
-    <div class="container">
-      <div class="about-section-head">
-        <span class="meta-label">FIVE STEPS OF SEEING</span>
-        <h2>관점은 다섯 단계로<br/>빚어집니다</h2>
-        <p class="steps-intro">
-          같은 풍경을 다섯 번 다른 각도로 들여다보는 일.<br/>
-          Local Layers의 모든 글은 이 순서를 거칩니다. 어느 행을 눌러도 그 단계를 더 가까이 볼 수 있습니다.
-        </p>
-      </div>
-      <div class="step-timeline">
-
-        <div class="step-row">
-          <span class="step-no">01</span>
-          <div class="step-body">
-            <h3 class="step-kr">관찰 <span class="step-en">Observation</span></h3>
-            <p class="step-desc">무엇이 일어나고 있는가. 판단하기 전에 충분히 본다.</p>
+      <!-- Composer (sticky at bottom while scrolling) -->
+      <div class="opinion-composer" id="opinionComposer">
+        <!-- Comment input (logged in) -->
+        <div class="opinion-input-card" id="opinionInputCard">
+          <textarea id="opinionInput" placeholder="이 주제에 대한 의견을 자유롭게 남겨주세요." maxlength="500" rows="3"></textarea>
+          <div class="opinion-input-foot">
+            <span class="opinion-input-count"><span id="opinionInputCharCount">0</span> / 500</span>
+            <button class="opinion-submit-btn" id="opinionSubmitBtn">의견 남기기</button>
           </div>
         </div>
-
-        <div class="step-row">
-          <span class="step-no">02</span>
-          <div class="step-body">
-            <h3 class="step-kr">의문 <span class="step-en">Question</span></h3>
-            <p class="step-desc">왜 그러한가. 익숙한 것에 다시 묻는다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">03</span>
-          <div class="step-body">
-            <h3 class="step-kr">탐색 <span class="step-en">Investigation</span></h3>
-            <p class="step-desc">어떤 맥락에서 작동하는가. 주변을 함께 살핀다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">04</span>
-          <div class="step-body">
-            <h3 class="step-kr">구조 해석 <span class="step-en">Structural Reading</span></h3>
-            <p class="step-desc">어떤 구조가 발견되는가. 패턴을 엮어 통찰로 바꾼다.</p>
-          </div>
-        </div>
-
-        <div class="step-row">
-          <span class="step-no">05</span>
-          <div class="step-body">
-            <h3 class="step-kr">관점 <span class="step-en">Local Layers</span></h3>
-            <p class="step-desc">이것은 무엇을 의미하는가. 우리의 자리를 밝힌다.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <section class="about-quote-block">
-    <div class="container">
-      <p class="aq-quote">우리의 이야기가 당신의 관점을 만날 때,<br/>디자인을 통해 세상이 더욱 <strong>흥미롭게</strong><br/>보이기 시작할 것입니다.</p>
-      <p class="aq-attr">— LOCAL LAYERS</p>
-    </div>
-  </section>
-
-  <section class="about-services">
-    <div class="container">
-
-      <div class="services-block">
-        <div class="services-head">
-          <h3 class="services-title">explore<br/>perspective</h3>
-          <p>디자인을 향한 다양한 시선과 가능성을 함께 살펴 보고 나눕니다.</p>
-        </div>
-        <div class="services-grid">
-          <a class="service-card" href="#" data-about-movement>
-            <span class="service-name">about : another movement</span>
-          </a>
-          <a class="service-card" href="/notices.html" data-view="notices">
-            <span class="service-name">Local Layers 공지사항</span>
-          </a>
-          <a class="service-card" href="#" data-inquiry="general">
-            <span class="service-name">문의하기</span>
-          </a>
+        <!-- Login prompt (logged out) -->
+        <div class="opinion-login-prompt" id="opinionLoginPrompt" hidden>
+          의견을 남기려면 <a href="#" onclick="openLogin(); return false;">로그인</a>이 필요합니다.
         </div>
       </div>
+    </section>
 
-      <div class="services-block">
-        <div class="services-head">
-          <h3 class="services-title">with<br/>perspective</h3>
-          <p>관점을 공유하고, 생각을 나누고, 디자인을 실천합니다.</p>
+    <!-- 다른 오피니언 둘러보기 (진행 중 / 지난) -->
+    <section class="opinion-more" id="opinionMore" hidden>
+      <div class="opinion-more-block" id="opinionMoreActiveBlock" hidden>
+        <div class="opinion-more-head">
+          <h2 class="opinion-more-title"><span class="om-dot"></span>진행 중인 오피니언 <span class="om-count" id="omActiveCount"></span></h2>
+          <a class="opinion-more-all" href="/opinion-lounge.html">라운지 전체 보기 →</a>
         </div>
-        <div class="services-grid">
-          <a class="service-card" href="#" data-inquiry="b2b">
-            <span class="service-name">B2B 콘텐츠 제작</span>
-            <span class="service-sub">디자인 오리지널 콘텐츠 기획·제작</span>
-          </a>
-          <a class="service-card" href="#" data-inquiry="lecture">
-            <span class="service-name">디자인 강의 제안</span>
-            <span class="service-sub">브랜드·디자인 관련 특강·워크숍</span>
-          </a>
-          <a class="service-card" href="#" data-inquiry="curation">
-            <span class="service-name">디자인 기획·전략 큐레이션</span>
-            <span class="service-sub">아이디어 기반 디자인 전략 컨설팅</span>
-          </a>
+        <div class="opinion-more-grid" id="opinionMoreActive"></div>
+      </div>
+      <div class="opinion-more-block" id="opinionMorePastBlock" hidden>
+        <div class="opinion-more-head">
+          <h2 class="opinion-more-title">지난 오피니언 <span class="om-count" id="omPastCount"></span></h2>
+          <a class="opinion-more-all" href="/opinion-lounge.html">라운지 전체 보기 →</a>
         </div>
+        <div class="opinion-more-grid" id="opinionMorePast"></div>
       </div>
-
-    </div>
-  </section>
-
-  <section class="about-editor">
-    <div class="container">
-      <span class="meta-label">CONTACT</span>
-      <p class="editor-note">
-        Local Layers 아티클의 모든 글은 어나더무브먼트와 Local Layers 팀이 함께 발행합니다.
-        제휴, 강의, 인터뷰, 콘텐츠 제작 문의는 아래로 연락 주세요.
-      </p>
-      <div class="editor-meta">
-        편집 · 어나더무브먼트 <br/>
-        문의 — cmlab.local@gmail.com<br/>
-        <a href="/notice.html" data-view="notice" style="text-decoration:underline">저작권 안내 보기</a>
-      </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </main>
 
 <!-- ============== FOOTER ============== -->

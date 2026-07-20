@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>/*persp-theme-init*/(function(){try{var t=localStorage.getItem("persp_theme");if(!t)t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark");}catch(e){}})();</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Notices · Local Layers Admin</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/assets/css/admin.css">
+<style>
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .field input[type="text"], .field input[type="number"], .field input[type="date"], .field textarea {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px; color: var(--fg); font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--fg); }
+  .field-help { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .field-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+  .field-check input { width: 16px; height: 16px; accent-color: var(--fg); cursor: pointer; }
+  .form-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .form-err { color: #dc2626; font-size: 12px; margin-top: 8px; min-height: 14px; }
+
+  /* 순서 변경 ▲▼ 버튼 (categories.html과 동일) */
+  .order-cell { display: inline-flex; align-items: center; gap: 4px; }
+  .order-num { min-width: 22px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .order-btns { display: inline-flex; flex-direction: column; gap: 1px; }
+  .order-btn {
+    background: transparent; border: 1px solid var(--admin-border);
+    width: 22px; height: 14px; padding: 0; border-radius: 3px;
+    color: var(--fg); cursor: pointer; display: inline-flex;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .order-btn:hover:not(:disabled) { background: var(--hover); }
+  .order-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .order-btn svg { width: 9px; height: 9px; }
+
+  /* 드래그 핸들 + 행 드래그 */
+  .drag-handle {
+    cursor: grab; color: var(--muted); font-size: 13px;
+    padding: 4px 6px; border-radius: 4px; display: inline-flex;
+    align-items: center; justify-content: center; user-select: none;
+    touch-action: none;
+  }
+  .drag-handle:hover { color: var(--fg); background: var(--hover); }
+  .drag-handle:active { cursor: grabbing; }
+  tr.notice-row { transition: background .12s; }
+  tr.notice-row.dragging { opacity: 0.4; }
+  tr.notice-row.drop-before td { box-shadow: inset 0 2px 0 0 var(--fg); }
+  tr.notice-row.drop-after td { box-shadow: inset 0 -2px 0 0 var(--fg); }
+
+  /* row-menu styles live in admin.css */
+  .admin-table-wrap { overflow: visible; }
+  .admin-table td { position: relative; }
+
+  .notice-row.inactive .nr-text,
+  .notice-row.inactive .nr-date { color: var(--muted); }
+  .nr-text { font-size: 13px; }
+  .nr-date { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body class="admin">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="admin-brand">
+      <img src="/assets/img/black_logo.png" alt="LOCAL LAYERS" class="brand-logo-light" />
+      <img src="/assets/img/white_logo.png" alt="LOCAL LAYERS" class="brand-logo-dark" style="display:none" />
+      <span class="admin-brand-label">ADMIN</span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/admin/index.html"><i class="fa-solid fa-gauge"></i> 대시보드</a>
+      <details class="admin-nav-group">
+        <summary>콘텐츠</summary>
+        <a href="/admin/articles.html"><i class="fa-regular fa-newspaper"></i> 콘텐츠 관리</a>
+        <a href="/admin/drafts.html"><i class="fa-regular fa-file-lines"></i> 임시저장</a>
+        <a href="/admin/series.html"><i class="fa-solid fa-layer-group"></i> 시리즈</a>
+        <a href="/admin/categories.html"><i class="fa-solid fa-tags"></i> 카테고리</a>
+        <a href="/admin/instagram.html"><i class="fa-brands fa-instagram"></i> 인스타그램 콘텐츠</a>
+        <a href="/admin/upcoming.html"><i class="fa-regular fa-clock"></i> Up Coming</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>소통</summary>
+        <a href="/admin/opinions.html"><i class="fa-regular fa-comment-dots"></i> 오피니언</a>
+        <a href="/admin/comments.html"><i class="fa-regular fa-comments"></i> 댓글 관리</a>
+        <a href="/admin/polls.html"><i class="fa-solid fa-square-poll-vertical"></i> 설문조사</a>
+        <a href="/admin/notices.html"><i class="fa-regular fa-bell"></i> 노티스</a>
+        <a href="/admin/inquiries.html"><i class="fa-regular fa-envelope"></i> 문의 접수</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>사이트</summary>
+        <a href="/admin/visual.html"><i class="fa-solid fa-image"></i> 비주얼 관리</a>
+        <a href="/admin/hero.html"><i class="fa-solid fa-image-portrait"></i> 히어로 관리</a>
+        <a href="/admin/seo.html"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO·메타</a>
+      </details>
+      <details class="admin-nav-group">
+        <summary>독자</summary>
+        <a href="/admin/users.html"><i class="fa-solid fa-users"></i> 독자 관리</a>
+        <a href="/admin/editors.html"><i class="fa-solid fa-pen-nib"></i> 에디터 관리</a>
+        <a href="/admin/stats.html"><i class="fa-solid fa-chart-line"></i> 통계</a>
+      </details>
+    </nav>
+    <div class="admin-foot">
+      <span id="adminWho"></span>
+      <button onclick="adminLogout()">로그아웃</button>
+      <a href="/" style="font-size:11px;color:inherit;text-decoration:underline;">콘텐츠 사이트 →</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1 class="admin-page-title">노티스 관리</h1>
+        <p class="admin-page-sub">메인 페이지 하단 티커에 노출될 알림을 등록·관리합니다.</p>
+      </div>
+      <button type="button" class="admin-btn" onclick="openCreateModal()">
+        <i class="fa-solid fa-plus"></i> 새 노티스
+      </button>
+    </div>
+
+    <!-- 리스트 풀폭 -->
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:44px;"></th>
+            <th style="width:110px;">날짜</th>
+            <th>내용</th>
+            <th style="width:80px;">상태</th>
+            <th style="width:80px; text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="noticeTable"><tr><td colspan="5" class="admin-empty">불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);">
+      ※ 활성화된 노티스만 메인 페이지 하단에 표시됩니다. 표시 순서는 목록에서 행을 드래그해 조정합니다.
+    </p>
+  </main>
+</div>
+
+<!-- ===== Modal ===== -->
+<div class="admin-modal" id="formModal">
+  <div class="admin-modal-inner">
+    <button type="button" class="admin-modal-close" id="formModalClose" aria-label="닫기">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 class="admin-modal-title" id="formTitle">새 노티스</h2>
+    <p class="admin-modal-sub">메인 페이지 하단 티커에 한 줄로 노출됩니다.</p>
+    <form id="noticeForm">
+      <div class="field">
+        <label for="fDate">날짜 *</label>
+        <input type="date" id="fDate" />
+        <div class="field-help">티커에는 <code>YYYY.MM.DD</code> 형식으로 표시됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="fText">내용(타이틀) *</label>
+        <input type="text" id="fText" placeholder="예: 시리즈 03 발행 예정 · 디자인의 윤리" autocomplete="off" />
+        <div class="field-help">메인 티커와 공지사항 목록에 <b>제목</b>으로 노출됩니다. 한 줄로 짧게 작성하세요.</div>
+      </div>
+      <div class="field">
+        <label for="fDetail">상세 내용</label>
+        <textarea id="fDetail" placeholder="공지사항 목록에서 제목을 누르면 펼쳐지는 상세 내용입니다. (선택)"></textarea>
+        <div class="field-help">비워두면 공지사항 목록에서 제목만 표시되고 펼침 영역이 없습니다.</div>
+      </div>
+      <div class="field">
+        <label class="field-check">
+          <input type="checkbox" id="fActive" checked />
+          <span>활성화 (메인 티커에 노출)</span>
+        </label>
+      </div>
+      <div class="form-err" id="formErr"></div>
+      <div class="form-actions">
+        <button type="submit" class="admin-btn" id="saveBtn"><i class="fa-solid fa-plus"></i> 노티스 생성</button>
+        <button type="button" class="admin-btn ghost" id="cancelBtn">취소</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/assets/js/firebase.js"></script>
+<script src="/admin/assets/js/admin.js"></script>
+<script src="/assets/js/data.js"></script>
+<script>
+  (function syncLogos() {
+    const dark = document.body.classList.contains('dark');
+    document.querySelectorAll('.brand-logo-light').forEach(l => l.style.display = dark ? 'none' : 'inline-block');
+    document.querySelectorAll('.brand-logo-dark').forEach(l => l.style.display = dark ? 'inline-block' : 'none');
+  })();
+  document.getElementById('adminWho').textContent = adminEmail();
+
+  const F = {
+    date: document.getElementById('fDate'),
+    text: document.getElementById('fText'),
+    detail: document.getElementById('fDetail'),
+    active: document.getElementById('fActive'),
+    err: document.getElementById('formErr'),
+    form: document.getElementById('noticeForm'),
+    saveBtn: document.getElementById('saveBtn'),
+    cancelBtn: document.getElementById('cancelBtn'),
+    formTitle: document.getElementById('formTitle')
+  };
+
+  let editingId = null;       // null = create mode
+  let noticeList = [];        // [{id, data}]
+
+  // 'YYYY.MM.DD' 표시 형식 ↔ 'YYYY-MM-DD' (date input) 변환
+  function displayToInput(s) {
+    if (!s) return '';
+    const m = String(s).match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+    return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
+  }
+  function inputToDisplay(s) {
+    if (!s) return '';
+    const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[1]}.${m[2]}.${m[3]}` : '';
+  }
+
+  function resetForm() {
+    editingId = null;
+    F.form.reset();
+    F.active.checked = true;
+    F.err.textContent = '';
+    F.formTitle.textContent = '새 노티스';
+    F.saveBtn.innerHTML = '<i class="fa-solid fa-plus"></i> 노티스 생성';
+  }
+
+  // ===== Modal open/close =====
+  const formModal = document.getElementById('formModal');
+  window.openCreateModal = function() {
+    resetForm();
+    formModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.querySelector('#formModal input,#formModal textarea')?.focus(), 50);
+  };
+  window.closeCreateModal = function() {
+    formModal.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  document.getElementById('formModalClose').addEventListener('click', closeCreateModal);
+  formModal.addEventListener('click', e => { if (e.target === formModal) closeCreateModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && formModal.classList.contains('open')) closeCreateModal(); });
+
+  function startEdit(id) {
+    const item = noticeList.find(n => n.id === id);
+    if (!item) return;
+    const d = item.data;
+    editingId = id;
+    F.date.value = displayToInput(d.date || '');
+    F.text.value = d.text || '';
+    F.detail.value = d.detail || '';
+    F.active.checked = d.active !== false;
+    F.err.textContent = '';
+    F.formTitle.textContent = '노티스 수정';
+    F.saveBtn.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> 변경 저장';
+    formModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => F.text.focus(), 50);
+  }
+
+  F.cancelBtn.addEventListener('click', closeCreateModal);
+
+  F.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    F.err.textContent = '';
+    const dateRaw = (F.date.value || '').trim();
+    const date = inputToDisplay(dateRaw);
+    const text = (F.text.value || '').trim();
+    const detail = (F.detail.value || '').trim();
+    const active = !!F.active.checked;
+
+    if (!date) { F.err.textContent = '날짜를 선택하세요.'; return; }
+    if (!text) { F.err.textContent = '내용을 입력하세요.'; return; }
+
+    const payload = {
+      date,
+      text,
+      detail,
+      active,
+      updatedAt: fb.FieldValue.serverTimestamp()
+    };
+
+    F.saveBtn.disabled = true;
+    try {
+      if (editingId) {
+        await fb.db.collection('notices').doc(editingId).update(payload);
+      } else {
+        payload.order = nextOrder();   // 새 노티스는 맨 뒤로 — 순서는 드래그로 조정
+        payload.createdAt = fb.FieldValue.serverTimestamp();
+        await fb.db.collection('notices').add(payload);
+      }
+      closeCreateModal();
+      resetForm();
+    } catch (err) {
+      F.err.textContent = '저장 실패: ' + err.message;
+    } finally {
+      F.saveBtn.disabled = false;
+    }
+  });
+
+  async function toggleActive(id) {
+    const item = noticeList.find(n => n.id === id);
+    if (!item) return;
+    const cur = item.data.active !== false;
+    try {
+      await fb.db.collection('notices').doc(id).update({
+        active: !cur,
+        updatedAt: fb.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      sysAlert('상태 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  async function deleteNotice(id) {
+    const item = noticeList.find(n => n.id === id);
+    const preview = item ? (item.data.text || '') : '';
+    if (!(await sysConfirm(`노티스 "${preview}"를 삭제하시겠습니까?`, { danger: true, okLabel: '삭제' }))) return;
+    try {
+      await fb.db.collection('notices').doc(id).delete();
+    } catch (err) {
+      sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  function sortedList() {
+    return [...noticeList].sort((a, b) => {
+      const oa = a.data.order != null ? a.data.order : 0;
+      const ob = b.data.order != null ? b.data.order : 0;
+      if (oa !== ob) return oa - ob;
+      // 같은 order면 날짜 내림차순
+      const da = a.data.date || '';
+      const db = b.data.date || '';
+      return db.localeCompare(da);
+    });
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('noticeTable');
+    if (noticeList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="admin-empty">아직 등록된 노티스가 없습니다. 우측 상단 "새 노티스" 버튼으로 추가하세요.</td></tr>`;
+      return;
+    }
+    const sorted = sortedList();
+    tbody.innerHTML = sorted.map((item, idx) => {
+      const d = item.data;
+      const id = item.id;
+      const isFirst = idx === 0;
+      const isLast = idx === sorted.length - 1;
+      const active = d.active !== false;
+      const rowCls = active ? 'notice-row' : 'notice-row inactive';
+      const statusTag = active
+        ? '<span class="admin-tag published">활성</span>'
+        : '<span class="admin-tag hidden">비활성</span>';
+      const toggleLabel = active ? '<i class="fa-regular fa-eye-slash"></i> 비활성화' : '<i class="fa-regular fa-eye"></i> 활성화';
+      return `
+        <tr class="${rowCls}" draggable="true" data-id="${adminEscHTML(id)}">
+          <td style="text-align:center;">
+            <span class="drag-handle" title="끌어서 순서 변경" aria-label="순서 변경 핸들"><i class="fa-solid fa-grip-vertical"></i></span>
+          </td>
+          <td><span class="nr-date">${adminEscHTML(d.date || '')}</span></td>
+          <td><span class="nr-text">${adminEscHTML(d.text || '')}</span></td>
+          <td>${statusTag}</td>
+          <td>
+            <div class="admin-actions" style="justify-content:flex-end;gap:6px;">
+              <details class="row-menu">
+                <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+                <div class="row-menu-pop">
+                  <button data-action="edit" data-id="${adminEscHTML(id)}"><i class="fa-regular fa-pen-to-square"></i> 수정</button>
+                  <button data-action="toggle" data-id="${adminEscHTML(id)}">${toggleLabel}</button>
+                  <button data-action="delete" data-id="${adminEscHTML(id)}" class="danger"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+                </div>
+              </details>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        btn.closest('.row-menu')?.removeAttribute('open');
+        if (action === 'edit') startEdit(id);
+        else if (action === 'delete') deleteNotice(id);
+        else if (action === 'toggle') toggleActive(id);
+      });
+    });
+
+    bindDragAndDrop(tbody);
+  }
+
+  // 새 노티스 정렬값 = 현재 최대 order + 1
+  function nextOrder() {
+    let max = -1;
+    noticeList.forEach(n => { const v = n.data.order != null ? n.data.order : 0; if (v > max) max = v; });
+    return max + 1;
+  }
+
+  // ===== 드래그 앤 드롭 순서 변경 =====
+  let _dragId = null;
+  function bindDragAndDrop(tbody) {
+    tbody.querySelectorAll('tr.notice-row').forEach(row => {
+      row.addEventListener('dragstart', e => {
+        _dragId = row.dataset.id;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', _dragId); } catch (_) {}
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        clearDropMarks(tbody);
+        _dragId = null;
+      });
+      row.addEventListener('dragover', e => {
+        if (_dragId === null || row.dataset.id === _dragId) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        clearDropMarks(tbody);
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        row.classList.add(after ? 'drop-after' : 'drop-before');
+      });
+      row.addEventListener('drop', e => {
+        if (_dragId === null || row.dataset.id === _dragId) { clearDropMarks(tbody); return; }
+        e.preventDefault();
+        const rect = row.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        reorderNotices(_dragId, row.dataset.id, after);
+        clearDropMarks(tbody);
+      });
+    });
+  }
+  function clearDropMarks(tbody) {
+    tbody.querySelectorAll('.drop-before,.drop-after')
+      .forEach(r => r.classList.remove('drop-before', 'drop-after'));
+  }
+
+  async function reorderNotices(dragId, targetId, after) {
+    let list = sortedList();
+    const dragItem = list.find(n => n.id === dragId);
+    if (!dragItem) return;
+    list = list.filter(n => n.id !== dragId);
+    let targetIdx = list.findIndex(n => n.id === targetId);
+    if (targetIdx < 0) return;
+    list.splice(after ? targetIdx + 1 : targetIdx, 0, dragItem);
+    try {
+      const batch = fb.db.batch();
+      list.forEach((n, i) => {
+        if (n.data.order !== i) {
+          batch.update(fb.db.collection('notices').doc(n.id), {
+            order: i, updatedAt: fb.FieldValue.serverTimestamp()
+          });
+        }
+      });
+      await batch.commit();
+    } catch (err) {
+      sysAlert('순서 변경 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+
+  function subscribeNotices() {
+    fb.db.collection('notices').onSnapshot(snap => {
+      noticeList = snap.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+      renderTable();
+    }, err => {
+      console.error('[notices] 구독 실패:', err);
+      document.getElementById('noticeTable').innerHTML =
+        `<tr><td colspan="5" class="admin-empty">로딩 실패: ${adminEscHTML(err.message)}</td></tr>`;
+    });
+  }
+
+  fb.authReady.then(user => {
+    if (user && fb.isAdmin()) {
+      subscribeNotices();
+    } else {
+      document.getElementById('noticeTable').innerHTML =
+        `<tr><td colspan="5" class="admin-empty">관리자 권한이 필요합니다.</td></tr>`;
+    }
+  });
+</script>
+</body>
+</html>
