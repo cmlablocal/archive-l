@@ -238,11 +238,13 @@ service cloud.firestore {
         || (isSignedIn() && resource.data.userId == request.auth.uid);
       // 관리자는 전체 수정 가능. 본인은 마이페이지에서 'hiddenForUser'(목록 숨김) 플래그만 토글 가능.
       // → 사용자가 목록에서 지워도 문서는 보존되어 관리자 기록에는 남는다.
+      // readByUser: 메시지함을 열어 답변을 확인했는지(헤더 알림 점 제어용).
       allow update: if isAdmin()
         || (isSignedIn()
             && resource.data.userId == request.auth.uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenForUser'])
-            && request.resource.data.hiddenForUser is bool);
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenForUser', 'readByUser'])
+            && (!('hiddenForUser' in request.resource.data.keys()) || request.resource.data.hiddenForUser is bool)
+            && (!('readByUser' in request.resource.data.keys()) || request.resource.data.readByUser is bool));
       allow delete: if isAdmin();
     }
 

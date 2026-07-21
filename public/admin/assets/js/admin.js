@@ -521,3 +521,45 @@ window.adminEscHTML = function(s) {
     document.body.style.overflow = 'hidden';
   };
 })();
+
+/* ===== 사이드바 문의 알림 =====
+   미확인(status 미지정 또는 'new') 문의 개수를 '문의 접수' 링크에 배지로 붙이고,
+   '소통' 그룹이 접혀 있어도 알 수 있도록 그룹 제목에 점을 찍는다.
+   사이드바 마크업이 12개 페이지에 복제돼 있어 각 HTML을 고치는 대신
+   공용 스크립트에서 한 번에 처리한다.
+   status 필드가 없는 옛 문서도 미확인으로 세야 해서 where 절 대신 전체를 받아 센다. */
+(function inquiryNavBadge() {
+  function paint(n) {
+    const link = document.querySelector('.admin-nav a[href="/admin/inquiries.html"]');
+    if (!link) return;
+    let badge = link.querySelector('.nav-badge');
+    if (n > 0) {
+      if (!badge) {
+        badge = document.createElement('em');
+        badge.className = 'nav-badge';
+        link.appendChild(badge);
+      }
+      badge.textContent = n > 99 ? '99+' : String(n);
+    } else if (badge) {
+      badge.remove();
+    }
+    const group = link.closest('.admin-nav-group');
+    const summary = group && group.querySelector('summary');
+    if (summary) summary.classList.toggle('has-alert', n > 0);
+  }
+
+  if (!window.fb || !fb.authReady) return;
+  fb.authReady.then(function () {
+    if (!fb.db || !fb.currentUser || !fb.currentUser()) return;
+    fb.db.collection('inquiries').onSnapshot(function (snap) {
+      let n = 0;
+      snap.docs.forEach(function (doc) {
+        const d = doc.data() || {};
+        if ((d.status || 'new') === 'new') n++;
+      });
+      paint(n);
+    }, function (err) {
+      console.warn('[admin] 문의 알림 구독 실패:', err && err.message);
+    });
+  }).catch(function () {});
+})();

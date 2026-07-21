@@ -6063,8 +6063,14 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 .inbox-badge.done { border-color: var(--fg); color: var(--fg); }
 .inbox-date { margin-top: 6px; font-size: 12px; color: var(--muted); }
 .inbox-body { margin-top: 12px; }
-.inbox-f { font-size: 13px; line-height: 1.7; color: var(--fg); margin-bottom: 4px; }
-.inbox-f span { display: inline-block; min-width: 84px; color: var(--muted); }
+/* 라벨 폭을 고정 컬럼으로 잡아 '연락 받으실 휴대전화'처럼 긴 라벨도 값과 붙지 않게 */
+.inbox-f { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; line-height: 1.7; color: var(--fg); margin-bottom: 6px; }
+.inbox-f span { color: var(--muted); word-break: keep-all; }
+.inbox-f b { font-weight: 400; word-break: break-word; }
+@media (max-width: 560px) {
+  .inbox-f { grid-template-columns: 1fr; gap: 0; margin-bottom: 10px; }
+  .inbox-f span { font-size: 11.5px; }
+}
 .inbox-reply { margin-top: 14px; padding: 14px 16px; background: var(--panel, rgba(0,0,0,.04)); font-size: 13.5px; line-height: 1.75; }
 .inbox-reply-h { margin-bottom: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
 
@@ -6288,3 +6294,60 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
   background: none; border: none; cursor: pointer;
 }
 .inbox-menu-pop button:hover { background: rgba(220,38,38,.08); }
+
+/* ===== 메시지함 — 제목 토글 · 페이지 이동 · 미확인 표시 ===== */
+.inbox-item-top { align-items: center; gap: 8px; }
+.inbox-head {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 9px;
+  padding: 0; background: none; border: none; cursor: pointer;
+  color: inherit; text-align: left; font-family: inherit;
+}
+.inbox-chev {
+  flex: 0 0 auto; font-size: 10px; color: var(--muted);
+  transition: transform .22s ease;
+}
+.inbox-item.open .inbox-chev { transform: rotate(180deg); }
+.inbox-head .inbox-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inbox-head .inbox-date { margin-top: 0; flex: 0 0 auto; }
+/* 아직 확인하지 않은 답변 */
+.inbox-dot {
+  display: inline-block; width: 6px; height: 6px; margin-left: 7px;
+  border-radius: 50%; background: #dc2626; vertical-align: middle;
+}
+.inbox-detail {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .25s ease;
+}
+.inbox-item.open .inbox-detail { grid-template-rows: 1fr; }
+.inbox-detail-inner { overflow: hidden; }
+.inbox-wait { margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+.inbox-pager {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 20px 0 4px;
+}
+.inbox-pg {
+  padding: 7px 14px; font-size: 12.5px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: transparent; color: var(--fg); cursor: pointer;
+}
+.inbox-pg:hover:not(:disabled) { border-color: var(--fg); }
+.inbox-pg:disabled { opacity: .35; cursor: default; }
+.inbox-pg-info { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 헤더 계정 아이콘 — 미확인 답변이 있으면 우측 위 빨간 점 */
+.icon-btn.login-btn { position: relative; }
+.icon-btn.login-btn.has-unread::after {
+  content: ''; position: absolute; top: 5px; right: 5px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #dc2626;
+  box-shadow: 0 0 0 2px var(--header-bg, var(--bg));
+}
+/* 계정 메뉴 '메시지함' 옆 개수 */
+.account-menu-item .menu-dot {
+  margin-left: auto; padding: 1px 7px;
+  font-style: normal; font-size: 10.5px; font-weight: 700;
+  line-height: 1.6; color: #fff; background: #dc2626;
+  border-radius: 999px;
+}

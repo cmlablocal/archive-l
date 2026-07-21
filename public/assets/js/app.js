@@ -231,6 +231,8 @@
       } else {
         if (typeof _cloudUnsubscribe === 'function') _cloudUnsubscribe();
       }
+      // 문의 답변 알림(헤더 빨간 점) 구독 — 로그아웃 시에는 해제되며 점도 꺼진다
+      if (typeof watchInboxUnread === 'function') watchInboxUnread();
       // 로그인 직후 마이페이지·아티클 등 뷰별 재렌더 트리거
       const view = document.body.getAttribute('data-view');
       if (view === 'mypage' && typeof renderMyPage === 'function') renderMyPage();
@@ -564,6 +566,8 @@
         closeAccountMenu();
         openInboxModal();
       });
+      // 메뉴는 첫 클릭 때 만들어지므로, 만든 직후 미확인 표시를 한 번 반영한다.
+      if (typeof _refreshInboxBadge === 'function') _refreshInboxBadge();
     }
     const nameEl = menu.querySelector('.account-menu-name');
     if (nameEl) nameEl.textContent = getUserName() + ' 님';
@@ -613,22 +617,39 @@
     return t.getFullYear() + '.' + p(t.getMonth() + 1) + '.' + p(t.getDate());
   }
 
+  const INBOX_PER_PAGE = 10;
+  let _inboxItems = [];
+  let _inboxPage = 1;
+
   function _inboxItemHTML(d) {
     const answered = !!(d.reply && String(d.reply).trim());
     const when = _inboxDate(d.createdAt);
     const rwhen = _inboxDate(d.repliedAt);
+    const isNew = answered && d.readByUser !== true;
     let body = '';
     if (d.fields && typeof d.fields === 'object') {
       body = Object.keys(d.fields).map(function(k) {
         const v = d.fields[k];
         if (v == null || String(v).trim() === '') return '';
-        return '<div class="inbox-f"><span>' + escHTML(k) + '</span>' + escHTML(String(v)) + '</div>';
+        return '<div class="inbox-f"><span>' + escHTML(k) + '</span><b>' + escHTML(String(v)) + '</b></div>';
       }).join('');
     }
+    const detail =
+      (body ? '<div class="inbox-body">' + body + '</div>' : '') +
+      (answered
+        ? '<div class="inbox-reply"><div class="inbox-reply-h">답변' + (rwhen ? ' · ' + rwhen : '') + '</div>' +
+          escHTML(String(d.reply)).replace(/\n/g, '<br/>') + '</div>'
+        : '<div class="inbox-wait">아직 답변이 등록되지 않았습니다.</div>');
+
     return '<article class="inbox-item" data-id="' + escHTML(d.id || '') + '">' +
       '<div class="inbox-item-top">' +
-        '<span class="inbox-type">' + escHTML(d.typeLabel || d.type || '문의') +
-          (d.category ? ' · ' + escHTML(d.category) : '') + '</span>' +
+        '<button type="button" class="inbox-head" aria-expanded="false">' +
+          '<i class="fa-solid fa-chevron-down inbox-chev"></i>' +
+          '<span class="inbox-type">' + escHTML(d.typeLabel || d.type || '문의') +
+            (d.category ? ' · ' + escHTML(d.category) : '') +
+            (isNew ? '<em class="inbox-dot" aria-label="새 답변"></em>' : '') + '</span>' +
+          (when ? '<span class="inbox-date">' + when + '</span>' : '') +
+        '</button>' +
         '<span class="inbox-badge ' + (answered ? 'done' : 'wait') + '">' +
           (answered ? '답변 완료' : '답변 대기') + '</span>' +
         '<details class="inbox-menu">' +
@@ -639,13 +660,33 @@
           '</div>' +
         '</details>' +
       '</div>' +
-      (when ? '<div class="inbox-date">' + when + '</div>' : '') +
-      (body ? '<div class="inbox-body">' + body + '</div>' : '') +
-      (answered
-        ? '<div class="inbox-reply"><div class="inbox-reply-h">답변' + (rwhen ? ' · ' + rwhen : '') + '</div>' +
-            _nlToBr(escHTML(String(d.reply))) + '</div>'
-        : '') +
-      '</article>';
+      '<div class="inbox-detail"><div class="inbox-detail-inner">' + detail + '</div></div>' +
+    '</article>';
+  }
+
+  // 현재 페이지만 그린다. 10건을 넘으면 아래에 페이지 이동을 붙인다.
+  function _renderInbox() {
+    const list = document.getElementById('inboxList');
+    if (!list) return;
+    if (!_inboxItems.length) {
+      list.innerHTML = '<div class="inbox-empty">보내신 문의가 없습니다.</div>';
+      return;
+    }
+    const pages = Math.max(1, Math.ceil(_inboxItems.length / INBOX_PER_PAGE));
+    if (_inboxPage > pages) _inboxPage = pages;
+    const from = (_inboxPage - 1) * INBOX_PER_PAGE;
+    const pageItems = _inboxItems.slice(from, from + INBOX_PER_PAGE);
+
+    let html = pageItems.map(_inboxItemHTML).join('');
+    if (pages > 1) {
+      html += '<div class="inbox-pager">' +
+        '<button type="button" class="inbox-pg" data-pg="prev"' + (_inboxPage === 1 ? ' disabled' : '') + '>이전</button>' +
+        '<span class="inbox-pg-info">' + _inboxPage + ' / ' + pages + '</span>' +
+        '<button type="button" class="inbox-pg" data-pg="next"' + (_inboxPage === pages ? ' disabled' : '') + '>다음</button>' +
+      '</div>';
+    }
+    list.innerHTML = html;
+    _bindInboxUI(list);
   }
 
   async function _loadInbox() {
@@ -656,7 +697,7 @@
     list.innerHTML = '<div class="inbox-empty">불러오는 중…</div>';
     try {
       const snap = await fb.db.collection('inquiries').where('userId', '==', user.uid).get();
-      const items = snap.docs
+      _inboxItems = snap.docs
         .map(function(doc) { return Object.assign({ id: doc.id }, doc.data()); })
         .filter(function(d) { return d.hiddenForUser !== true; })
         .sort(function(a, b) {
@@ -664,53 +705,122 @@
           const tb = (b.createdAt && b.createdAt.toMillis) ? b.createdAt.toMillis() : 0;
           return tb - ta;
         });
-      if (!items.length) {
-        list.innerHTML = '<div class="inbox-empty">보내신 문의가 없습니다.</div>';
-        return;
-      }
-      list.innerHTML = items.map(_inboxItemHTML).join('');
-      _bindInboxMenu(list);
+      _inboxPage = 1;
+      _renderInbox();
+      _markInboxRead();
     } catch (e) {
       list.innerHTML = '<div class="inbox-empty">불러오지 못했습니다.<br/>' + escHTML((e && e.message) || '') + '</div>';
     }
   }
 
-  /* 메시지함 ⋯ 메뉴 — '목록에서 삭제'.
-     문서를 지우지 않고 hiddenForUser 플래그만 세운다(규칙상 본인은 이 필드만 수정 가능).
-     문의 기록은 관리자 쪽에 그대로 남아, 답변 이력이 사라지지 않는다. */
-  let _inboxMenuBound = false;
-  function _bindInboxMenu(list) {
-    // 바깥 클릭 시 열린 메뉴 닫기 (한 번만 등록)
-    if (!_inboxMenuBound) {
-      _inboxMenuBound = true;
+  // 메시지함을 연 시점에 답변을 확인한 것으로 처리 → 헤더 빨간 점 해제.
+  // 보안 규칙상 본인은 readByUser 필드만 바꿀 수 있다.
+  async function _markInboxRead() {
+    if (!window.fb || !fb.db) return;
+    const unread = _inboxItems.filter(function(d) {
+      return d.reply && String(d.reply).trim() && d.readByUser !== true;
+    });
+    if (!unread.length) return;
+    await Promise.all(unread.map(function(d) {
+      return fb.db.collection('inquiries').doc(d.id).update({ readByUser: true })
+        .then(function() { d.readByUser = true; })
+        .catch(function(err) { console.warn('[inbox] 읽음 처리 실패:', err && err.message); });
+    }));
+    _refreshInboxBadge();
+  }
+
+  /* 메시지함 UI 바인딩 — 제목 토글 · ⋯ 삭제 · 페이지 이동 */
+  let _inboxOutsideBound = false;
+  function _bindInboxUI(list) {
+    if (!_inboxOutsideBound) {
+      _inboxOutsideBound = true;
       document.addEventListener('click', function(e) {
         document.querySelectorAll('.inbox-menu[open]').forEach(function(dt) {
           if (!dt.contains(e.target)) dt.removeAttribute('open');
         });
       });
     }
+    // 제목 클릭 → 아코디언 토글
+    list.querySelectorAll('.inbox-head').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const item = btn.closest('.inbox-item');
+        const open = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
+    // 목록에서 삭제 — 문서는 남기고 hiddenForUser 플래그만 세운다
     list.querySelectorAll('.inbox-del').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         const id = btn.dataset.id;
         if (!id) return;
-        const ok = await (window.sysConfirm
-          ? sysConfirm('이 문의를 목록에서 삭제할까요?' + String.fromCharCode(10) + '답변 내용도 함께 사라지며 되돌릴 수 없습니다.')
-          : Promise.resolve(confirm('이 문의를 목록에서 삭제할까요?')));
+        const msg = '이 문의를 목록에서 삭제할까요?' + String.fromCharCode(10) + '답변 내용도 함께 사라지며 되돌릴 수 없습니다.';
+        const ok = await (window.sysConfirm ? sysConfirm(msg) : Promise.resolve(confirm(msg)));
         if (!ok) return;
-        const item = btn.closest('.inbox-item');
         try {
           await fb.db.collection('inquiries').doc(id).update({ hiddenForUser: true });
-          if (item) item.remove();
-          if (!list.querySelector('.inbox-item')) {
-            list.innerHTML = '<div class="inbox-empty">보내신 문의가 없습니다.</div>';
-          }
+          _inboxItems = _inboxItems.filter(function(d) { return d.id !== id; });
+          _renderInbox();
+          _refreshInboxBadge();
           if (typeof showToast === 'function') showToast('목록에서 삭제했어요.');
         } catch (err) {
-          if (typeof showToast === 'function') showToast('삭제하지 못했습니다. ' + (err && err.message || ''), 'error');
+          if (typeof showToast === 'function') showToast('삭제하지 못했습니다. ' + ((err && err.message) || ''), 'error');
+        }
+      });
+    });
+    // 페이지 이동
+    list.querySelectorAll('.inbox-pg').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (btn.disabled) return;
+        _inboxPage += (btn.dataset.pg === 'next' ? 1 : -1);
+        _renderInbox();
+        const modal = document.getElementById('inboxModal');
+        if (modal) {
+          const inner = modal.querySelector('.inbox-modal-inner');
+          if (inner) inner.scrollTop = 0;
         }
       });
     });
   }
+
+  /* 미확인 답변 개수 -> 헤더 계정 아이콘의 빨간 점 + 계정 메뉴 '메시지함' 옆 개수 */
+  let _inboxUnread = 0;
+  let _inboxBadgeUnsub = null;
+  function _refreshInboxBadge() {
+    const btn = document.getElementById('loginBtn');
+    if (btn) btn.classList.toggle('has-unread', _inboxUnread > 0);
+    document.querySelectorAll('.account-menu-inbox').forEach(function(el) {
+      let dot = el.querySelector('.menu-dot');
+      if (_inboxUnread > 0) {
+        if (!dot) {
+          dot = document.createElement('em');
+          dot.className = 'menu-dot';
+          el.appendChild(dot);
+        }
+        dot.textContent = _inboxUnread > 99 ? '99+' : String(_inboxUnread);
+      } else if (dot) {
+        dot.remove();
+      }
+    });
+  }
+  // 답변이 달리면 새로고침 없이 점이 켜지도록 실시간 구독
+  function watchInboxUnread() {
+    if (!window.fb || !fb.db || !fb.auth) return;
+    const user = fb.auth.currentUser;
+    if (_inboxBadgeUnsub) { _inboxBadgeUnsub(); _inboxBadgeUnsub = null; }
+    if (!user) { _inboxUnread = 0; _refreshInboxBadge(); return; }
+    _inboxBadgeUnsub = fb.db.collection('inquiries').where('userId', '==', user.uid)
+      .onSnapshot(function(snap) {
+        _inboxUnread = snap.docs.reduce(function(n, doc) {
+          const d = doc.data() || {};
+          if (d.hiddenForUser === true) return n;
+          if (!d.reply || !String(d.reply).trim()) return n;
+          return d.readByUser === true ? n : n + 1;
+        }, 0);
+        _refreshInboxBadge();
+      }, function(err) { console.warn('[inbox] 알림 구독 실패:', err && err.message); });
+  }
+  window.watchInboxUnread = watchInboxUnread;
+
 
   /* 개인정보 수정 (이름 / 비밀번호) */
   function openProfileModal() {
@@ -7371,7 +7481,11 @@
     const INQUIRY_FORMS = {
       general: {
         title: 'LOCALLAYERS 콘텐츠 이용 문의',
-        intro: 'LOCALLAYERS를 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 메시지함에서 확인하실 수 있으며, 내용에 따라 남겨주신 이메일이나 휴대전화로 직접 연락드릴 수 있습니다. 이름과 이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
+        intro: 'LOCALLAYERS를 이용해 주셔서 감사합니다.\n'
+          + '아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다.\n'
+          + '답변은 메시지함에서 확인하실 수 있으며,\n'
+          + '내용에 따라 남겨주신 이메일이나 휴대전화로 직접 연락드릴 수 있습니다.\n\n'
+          + '이름과 이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
@@ -7577,7 +7691,8 @@
       _inqCurrentKey = key;
       _inqAttachments = [];
       document.getElementById('inqTitle').textContent = cfg.title;
-      document.getElementById('inqIntro').textContent = cfg.intro;
+      // 안내문의 줄바꿈을 살려서 표시 (문구에 넣은 \n → <br>)
+      document.getElementById('inqIntro').innerHTML = escHTML(cfg.intro).replace(/\n/g, '<br/>');
       document.getElementById('inqFields').innerHTML = buildFields(cfg);
       // 전화번호 입력 자동 하이픈 (000-0000-0000)
       document.querySelectorAll('#inqFields input.inq-phone').forEach(inp => {
