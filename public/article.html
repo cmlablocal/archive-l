@@ -335,6 +335,30 @@ function renderPrerelease(id, d) {
 }
 
 // 파일 크기 표시
+/* 장소 지도 그리기 — #articleMap 이 렌더된 뒤에만 카카오 SDK를 불러온다.
+   지도가 없는 글에서는 스크립트 요청 자체가 발생하지 않는다. */
+async function initArticleMap() {
+  const el = document.getElementById('articleMap');
+  if (!el) return;
+  const lat = parseFloat(el.dataset.lat);
+  const lng = parseFloat(el.dataset.lng);
+  if (!isFinite(lat) || !isFinite(lng)) return;
+  let kakao;
+  try {
+    kakao = await window.loadKakaoMaps();
+  } catch (err) {
+    // 지도를 못 불러와도 주소 텍스트와 카카오맵 링크는 남아 있으므로 캔버스만 숨긴다.
+    el.style.display = 'none';
+    console.warn('[article-map]', err.message);
+    return;
+  }
+  const pos = new kakao.maps.LatLng(lat, lng);
+  const map = new kakao.maps.Map(el, { center: pos, level: 3 });
+  new kakao.maps.Marker({ position: pos, map: map });
+  map.setZoomable(false);          // 페이지 스크롤이 지도에 잡아먹히지 않도록
+  window.addEventListener('resize', function () { map.relayout(); map.setCenter(pos); });
+}
+
 function fmtFileSize(bytes) {
   if (!bytes && bytes !== 0) return '';
   if (bytes < 1024) return bytes + ' B';
@@ -788,6 +812,30 @@ function renderArticle(id, d) {
       </section>
     </div>` : '';
 
+  // 장소 지도 — 어드민에서 주소를 고른 글에만 붙는다.
+  // 좌표가 없으면(구버전 글 등) 지도를 그릴 수 없으므로 통째로 생략.
+  const _pl = d.place || null;
+  const place = (_pl && isFinite(parseFloat(_pl.lat)) && isFinite(parseFloat(_pl.lng))) ? _pl : null;
+  const placeLabel = place ? (place.name || place.address) : '';
+  const mapHTML = place ? `
+    <div class="container">
+      <section class="article-map">
+        <span class="meta-label">LOCATION</span>
+        <div class="article-map-head">
+          <div class="article-map-info">
+            ${place.name ? `<h3 class="article-map-name">${escHTML(place.name)}</h3>` : ''}
+            <p class="article-map-addr">${escHTML(place.address)}${place.detail ? ' ' + escHTML(place.detail) : ''}</p>
+          </div>
+          <a class="article-map-link"
+             href="https://map.kakao.com/link/map/${encodeURIComponent(placeLabel)},${place.lat},${place.lng}"
+             target="_blank" rel="noopener">카카오맵에서 보기 →</a>
+        </div>
+        <div class="article-map-canvas" id="articleMap"
+             data-lat="${escHTML(String(place.lat))}"
+             data-lng="${escHTML(String(place.lng))}"></div>
+      </section>
+    </div>` : '';
+
   // 추천 콘텐츠(다음 이야기)는 렌더 후 비동기로 자동 산출 → #recommendSlot에 채움
   const nextHTML = `<div id="recommendSlot"></div>`;
 
@@ -815,11 +863,12 @@ function renderArticle(id, d) {
         ${intentBoxHTML}
         ${leadHTML}
         ${bodyHTML}
-      </section>${gateHTML}${attachHTML}${footerHTML}${nextHTML}
+      </section>${gateHTML}${attachHTML}${mapHTML}${footerHTML}${nextHTML}
     </article>
   `;
 
   document.getElementById('articleMain').innerHTML = articleHTML;
+  initArticleMap();
 
   // After render, kick app.js sync routines (reactions/bookmark/progress)
   if (typeof syncReactionsState === 'function') syncReactionsState();
@@ -1010,6 +1059,7 @@ if (window.fb && fb.db) {
 </div>
 
 <!-- app.js (header/drawer/modals/reactions/bookmarks behavior) -->
+<script src="/assets/js/kakao.js"></script>
 <script src="/assets/js/app.js"></script>
 </body>
 </html>

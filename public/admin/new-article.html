@@ -487,15 +487,15 @@
         <div class="field-group-title">콘텐츠</div>
         <div class="field">
           <label for="fTitle">제목 *</label>
-          <input type="text" id="fTitle" placeholder="예: AI가 도구가 된 시대" />
+          <input type="text" id="fTitle" placeholder="예: 오래 머물게 되는 제주의 작은 서점" />
         </div>
         <div class="field">
           <label for="fSub">부제목</label>
-          <input type="text" id="fSub" placeholder="짧은 한 줄 요약" />
+          <input type="text" id="fSub" placeholder="짧은 한 줄 요약 · 예: 바다를 등지고 앉은 책방의 하루" />
         </div>
         <div class="field">
           <label for="fLead">리드 문장 (상단 큰 글씨)</label>
-          <textarea id="fLead" rows="3" placeholder="기사를 여는 두세 문장. 큰 글씨로 표시됩니다."></textarea>
+          <textarea id="fLead" rows="3" placeholder="글을 여는 두세 문장. 큰 글씨로 표시됩니다."></textarea>
         </div>
         <div class="field" id="bodyFieldWrap">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -508,6 +508,34 @@
             <span id="bodyStats" style="white-space:nowrap;font-variant-numeric:tabular-nums;">0자 · 0분</span>
           </div>
         </div>
+      </div>
+
+      <!-- 장소 · 지도 — 주소를 고르면 콘텐츠 하단에 카카오 지도가 붙는다 -->
+      <div class="field-group" id="placeGroup">
+        <div class="field-group-title">장소 · 지도</div>
+        <div class="field">
+          <label for="fPlaceAddr">주소</label>
+          <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
+            <input type="text" id="fPlaceAddr" placeholder="‘주소 검색’을 눌러 선택하세요" readonly style="flex:1 1 260px;min-width:0;" />
+            <button type="button" class="admin-btn ghost admin-btn-sm" id="btnPlaceSearch" style="flex:0 0 auto;"><i class="fa-solid fa-magnifying-glass-location"></i> 주소 검색</button>
+            <button type="button" class="admin-btn ghost admin-btn-sm" id="btnPlaceClear" hidden style="flex:0 0 auto;"><i class="fa-regular fa-trash-can"></i> 지우기</button>
+          </div>
+          <div class="field-help">주소를 선택하면 콘텐츠 <strong>맨 아래에 지도</strong>가 표시됩니다. 비워두면 지도가 나오지 않습니다.</div>
+        </div>
+        <div class="field">
+          <label for="fPlaceDetail">상세주소 <span style="color:var(--muted)">(선택)</span></label>
+          <input type="text" id="fPlaceDetail" placeholder="예: 2층" />
+        </div>
+        <div class="field">
+          <label for="fPlaceName">장소명 <span style="color:var(--muted)">(선택)</span></label>
+          <input type="text" id="fPlaceName" placeholder="예: 소리소문 — 비워두면 주소만 표시됩니다" />
+        </div>
+        <div class="field" id="placeMapWrap" hidden>
+          <div id="placeMap" style="width:100%;height:260px;border:1px solid var(--admin-border);border-radius:10px;overflow:hidden;"></div>
+          <div class="field-help">핀을 드래그하면 위치를 미세 조정할 수 있습니다.</div>
+        </div>
+        <input type="hidden" id="fPlaceLat" />
+        <input type="hidden" id="fPlaceLng" />
       </div>
 
       <!-- 프리릴리즈 정보 — 프리릴리즈 모드에서만 표시 -->
@@ -676,6 +704,7 @@
 <script>window.__ADMIN_EDITOR_OK = true;</script>
 <script src="/admin/assets/js/admin.js?v=20260531"></script>
 <script src="/assets/js/data.js"></script>
+<script src="/assets/js/kakao.js"></script>
 
 <!-- TinyMCE 7 (자체 호스팅 / API 키 불필요) -->
 <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -2534,6 +2563,139 @@ function escapeHTML(str) {
   return String(str || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
 
+/* ===== 장소 · 지도 =====
+   다음 우편번호로 주소를 고르고, 카카오 Geocoder로 좌표를 얻어 미리보기 지도를 띄운다.
+   좌표는 hidden input에 담아 두고 collectFormData()가 place 객체로 실어 보낸다.
+   주소/좌표가 없으면 place는 null이 되어 공개 페이지에 지도가 나오지 않는다. */
+let _placeMap = null, _placeMarker = null;
+
+function placeEls() {
+  return {
+    addr:     document.getElementById('fPlaceAddr'),
+    detail:   document.getElementById('fPlaceDetail'),
+    name:     document.getElementById('fPlaceName'),
+    lat:      document.getElementById('fPlaceLat'),
+    lng:      document.getElementById('fPlaceLng'),
+    wrap:     document.getElementById('placeMapWrap'),
+    clearBtn: document.getElementById('btnPlaceClear')
+  };
+}
+
+function getPlace() {
+  const e = placeEls();
+  if (!e.addr) return null;
+  const address = e.addr.value.trim();
+  const lat = parseFloat(e.lat.value);
+  const lng = parseFloat(e.lng.value);
+  // 좌표가 없으면 지도를 그릴 수 없으므로 저장하지 않는다.
+  if (!address || !isFinite(lat) || !isFinite(lng)) return null;
+  return {
+    name: e.name.value.trim(),
+    address: address,
+    detail: e.detail.value.trim(),
+    lat: lat,
+    lng: lng
+  };
+}
+
+function setPlace(p) {
+  const e = placeEls();
+  if (!e.addr) return;
+  p = p || {};
+  e.addr.value   = p.address || '';
+  e.detail.value = p.detail || '';
+  e.name.value   = p.name || '';
+  e.lat.value    = (p.lat != null) ? p.lat : '';
+  e.lng.value    = (p.lng != null) ? p.lng : '';
+  const has = !!(p.address && isFinite(parseFloat(p.lat)) && isFinite(parseFloat(p.lng)));
+  if (e.clearBtn) e.clearBtn.hidden = !has;
+  if (has) renderPlacePreview(parseFloat(p.lat), parseFloat(p.lng));
+  else if (e.wrap) e.wrap.hidden = true;
+}
+
+async function renderPlacePreview(lat, lng) {
+  const e = placeEls();
+  if (!e.wrap) return;
+  e.wrap.hidden = false;
+  let kakao;
+  try {
+    kakao = await window.loadKakaoMaps();
+  } catch (err) {
+    e.wrap.hidden = true;
+    showToast('지도를 불러오지 못했습니다. 카카오 개발자 콘솔에 이 도메인이 등록됐는지 확인해 주세요.', 'error');
+    console.warn('[place]', err.message);
+    return;
+  }
+  const pos = new kakao.maps.LatLng(lat, lng);
+  if (!_placeMap) {
+    _placeMap = new kakao.maps.Map(document.getElementById('placeMap'), { center: pos, level: 3 });
+    _placeMarker = new kakao.maps.Marker({ position: pos, draggable: true, map: _placeMap });
+    // 핀을 옮기면 좌표만 갱신 — 주소 문구는 검색으로 고른 값을 유지한다.
+    kakao.maps.event.addListener(_placeMarker, 'dragend', function () {
+      const p = _placeMarker.getPosition();
+      e.lat.value = p.getLat();
+      e.lng.value = p.getLng();
+      schedulePreview();
+    });
+  } else {
+    _placeMap.setCenter(pos);
+    _placeMarker.setPosition(pos);
+  }
+  // hidden 이었다가 보여진 직후에는 지도 크기가 0으로 잡혀 있어 재계산이 필요하다.
+  setTimeout(function () { _placeMap.relayout(); _placeMap.setCenter(pos); }, 0);
+}
+
+async function openPlaceSearch() {
+  try {
+    await window.loadPostcode();
+  } catch (err) {
+    showToast('주소 검색을 불러오지 못했습니다.', 'error');
+    return;
+  }
+  new daum.Postcode({
+    oncomplete: async function (data) {
+      const address = data.roadAddress || data.jibunAddress || data.address || '';
+      const e = placeEls();
+      e.addr.value = address;
+      if (e.clearBtn) e.clearBtn.hidden = false;
+      // 주소 → 좌표
+      let kakao;
+      try {
+        kakao = await window.loadKakaoMaps();
+      } catch (err) {
+        showToast('지도를 불러오지 못해 좌표를 확인할 수 없습니다.', 'error');
+        return;
+      }
+      new kakao.maps.services.Geocoder().addressSearch(address, function (result, status) {
+        if (status !== kakao.maps.services.Status.OK || !result.length) {
+          showToast('이 주소의 좌표를 찾지 못했습니다. 다른 주소로 시도해 주세요.', 'error');
+          return;
+        }
+        e.lat.value = result[0].y;
+        e.lng.value = result[0].x;
+        renderPlacePreview(parseFloat(result[0].y), parseFloat(result[0].x));
+        schedulePreview();
+      });
+    }
+  }).open();
+}
+
+function clearPlace() {
+  setPlace(null);
+  schedulePreview();
+}
+
+(function bindPlaceUI() {
+  const s = document.getElementById('btnPlaceSearch');
+  const c = document.getElementById('btnPlaceClear');
+  if (s) s.addEventListener('click', openPlaceSearch);
+  if (c) c.addEventListener('click', clearPlace);
+  ['fPlaceName', 'fPlaceDetail'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', schedulePreview);
+  });
+})();
+
 function collectFormData() {
   const seriesVal = F.series.value === '__custom' ? (F.seriesCustom.value || '').trim() : F.series.value;
   const bodyHtml = getBodyHtml();
@@ -2571,6 +2733,7 @@ function collectFormData() {
     free: F.free.checked,
     tags: tags.slice(),
     author: F.author.value.trim() || 'LOCALLAYER',
+    place: getPlace(),
     thanks: getThanks(),
     videoUrl: F.videoUrl ? F.videoUrl.value.trim() : '',
     videoId: F.videoUrl ? extractYouTubeId(F.videoUrl.value.trim()) : '',
@@ -3026,6 +3189,7 @@ async function saveArticle(targetStatus, silent) {
     ogImage: ogImageUrl || '',
     tags: data.tags,
     author: data.author || (user && user.displayName) || 'LOCALLAYER',
+    place: data.place || null,
     authorId: user ? user.uid : '',
     authorEmail: user ? user.email : '',
     thanks: data.thanks,
@@ -3261,6 +3425,7 @@ function populateForm(d) {
   F.topTitle.value = d.title || '';
   F.sub.value = d.sub || '';
   F.lead.value = d.lead || '';
+  setPlace(d.place);
   if (F.cat) F.cat.value = d.cat || '';
   // 콘텐츠 유형 판별: 영상 > 팟캐스트 > 시리즈 > 단편
   const loadedType = d.videoMode ? 'video' : (d.podcastMode ? 'podcast' : (d.series ? 'series' : 'standalone'));
