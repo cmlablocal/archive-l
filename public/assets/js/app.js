@@ -625,12 +625,19 @@
         return '<div class="inbox-f"><span>' + escHTML(k) + '</span>' + escHTML(String(v)) + '</div>';
       }).join('');
     }
-    return '<article class="inbox-item">' +
+    return '<article class="inbox-item" data-id="' + escHTML(d.id || '') + '">' +
       '<div class="inbox-item-top">' +
         '<span class="inbox-type">' + escHTML(d.typeLabel || d.type || '문의') +
           (d.category ? ' · ' + escHTML(d.category) : '') + '</span>' +
         '<span class="inbox-badge ' + (answered ? 'done' : 'wait') + '">' +
           (answered ? '답변 완료' : '답변 대기') + '</span>' +
+        '<details class="inbox-menu">' +
+          '<summary aria-label="더보기"><i class="fa-solid fa-ellipsis"></i></summary>' +
+          '<div class="inbox-menu-pop">' +
+            '<button type="button" class="inbox-del" data-id="' + escHTML(d.id || '') + '">' +
+              '<i class="fa-regular fa-trash-can"></i> 목록에서 삭제</button>' +
+          '</div>' +
+        '</details>' +
       '</div>' +
       (when ? '<div class="inbox-date">' + when + '</div>' : '') +
       (body ? '<div class="inbox-body">' + body + '</div>' : '') +
@@ -662,9 +669,47 @@
         return;
       }
       list.innerHTML = items.map(_inboxItemHTML).join('');
+      _bindInboxMenu(list);
     } catch (e) {
       list.innerHTML = '<div class="inbox-empty">불러오지 못했습니다.<br/>' + escHTML((e && e.message) || '') + '</div>';
     }
+  }
+
+  /* 메시지함 ⋯ 메뉴 — '목록에서 삭제'.
+     문서를 지우지 않고 hiddenForUser 플래그만 세운다(규칙상 본인은 이 필드만 수정 가능).
+     문의 기록은 관리자 쪽에 그대로 남아, 답변 이력이 사라지지 않는다. */
+  let _inboxMenuBound = false;
+  function _bindInboxMenu(list) {
+    // 바깥 클릭 시 열린 메뉴 닫기 (한 번만 등록)
+    if (!_inboxMenuBound) {
+      _inboxMenuBound = true;
+      document.addEventListener('click', function(e) {
+        document.querySelectorAll('.inbox-menu[open]').forEach(function(dt) {
+          if (!dt.contains(e.target)) dt.removeAttribute('open');
+        });
+      });
+    }
+    list.querySelectorAll('.inbox-del').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const id = btn.dataset.id;
+        if (!id) return;
+        const ok = await (window.sysConfirm
+          ? sysConfirm('이 문의를 목록에서 삭제할까요?' + String.fromCharCode(10) + '답변 내용도 함께 사라지며 되돌릴 수 없습니다.')
+          : Promise.resolve(confirm('이 문의를 목록에서 삭제할까요?')));
+        if (!ok) return;
+        const item = btn.closest('.inbox-item');
+        try {
+          await fb.db.collection('inquiries').doc(id).update({ hiddenForUser: true });
+          if (item) item.remove();
+          if (!list.querySelector('.inbox-item')) {
+            list.innerHTML = '<div class="inbox-empty">보내신 문의가 없습니다.</div>';
+          }
+          if (typeof showToast === 'function') showToast('목록에서 삭제했어요.');
+        } catch (err) {
+          if (typeof showToast === 'function') showToast('삭제하지 못했습니다. ' + (err && err.message || ''), 'error');
+        }
+      });
+    });
   }
 
   /* 개인정보 수정 (이름 / 비밀번호) */

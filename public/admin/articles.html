@@ -76,10 +76,6 @@
         <span>카테고리</span>
         <select id="catFilter"><option value="all">전체 카테고리</option></select>
       </label>
-      <label class="content-filter">
-        <span>시리즈</span>
-        <select id="seriesFilter"><option value="all">전체 시리즈</option></select>
-      </label>
       <button class="admin-btn ghost admin-btn-sm" id="resetFilters" type="button"><i class="fa-solid fa-rotate-left"></i> 초기화</button>
     </div>
 
@@ -89,13 +85,14 @@
           <tr>
             <th style="width:80px;"></th>
             <th>제목</th>
-            <th style="width:160px;">카테고리 · 시리즈</th>
+            <th style="width:130px;">카테고리</th>
+            <th style="width:96px;">표시</th>
             <th style="width:100px;">발행일</th>
             <th style="width:100px;">상태</th>
             <th style="width:80px; text-align:right;">관리</th>
           </tr>
         </thead>
-        <tbody id="articleTable"><tr><td colspan="6" class="admin-empty">불러오는 중...</td></tr></tbody>
+        <tbody id="articleTable"><tr><td colspan="7" class="admin-empty">불러오는 중...</td></tr></tbody>
       </table>
     </div>
   </main>
@@ -137,6 +134,10 @@
     .admin-tag.draft { color: #94a3b8; }
     .admin-tag.hidden { color: #64748b; }
     .admin-tag.static-tag { color: #94a3b8; }
+    /* 목록 마크 — 영상 / 공개범위 / 지도를 한눈에 */
+    .row-marks { display: inline-flex; align-items: center; gap: 11px; color: var(--muted); }
+    .row-marks i { font-size: 12.5px; line-height: 1; }
+    .row-marks i.is-open { color: #16a34a; }
     /* row-menu styles now live in admin.css */
     .admin-table-wrap { overflow: visible; }
     .admin-table td { position: relative; }
@@ -210,26 +211,19 @@
     document.getElementById('cntSTATIC').textContent = counts.STATIC;
   }
 
-  // 카테고리 / 시리즈 드롭다운 옵션 채우기 (현재 데이터 기준)
+  // 카테고리 드롭다운 옵션 채우기 (현재 데이터 기준)
   function refreshFilterOptions(all) {
     const catSel = document.getElementById('catFilter');
-    const serSel = document.getElementById('seriesFilter');
-    if (!catSel || !serSel) return;
+    if (!catSel) return;
 
     const cats = Array.from(new Set(all.map(catOf).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ko'));
-    const serCodes = Array.from(new Set(all.map(seriesCodeOf).filter(Boolean)))
-      .sort((a, b) => seriesLabel(a).localeCompare(seriesLabel(b), 'ko'));
 
     catSel.innerHTML = '<option value="all">전체 카테고리</option>' +
       cats.map(c => `<option value="${adminEscHTML(c)}">${adminEscHTML(c)}</option>`).join('');
-    serSel.innerHTML = '<option value="all">전체 시리즈</option>' +
-      serCodes.map(c => `<option value="${adminEscHTML(c)}">${adminEscHTML(seriesLabel(c))}</option>`).join('');
 
     // 선택값 복원 (없어졌으면 all)
     catSel.value = cats.includes(currentCat) ? currentCat : 'all';
-    serSel.value = serCodes.includes(currentSeries) ? currentSeries : 'all';
     currentCat = catSel.value;
-    currentSeries = serSel.value;
   }
 
   function renderTable() {
@@ -246,7 +240,7 @@
 
     const tbody = document.getElementById('articleTable');
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="admin-empty">해당 조건의 글이 없습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="admin-empty">해당 조건의 글이 없습니다.</td></tr>`;
       return;
     }
 
@@ -262,6 +256,15 @@
       const thumb = d.thumb || d.thumbnail || '';
       const isFs = item.src === 'firestore';
       const isPub = status === 'PUBLISHED';
+
+      // 한눈에 확인용 마크 — 영상 / 공개범위 / 지도
+      const hasPlace = !!(d.place && isFinite(parseFloat(d.place.lat)) && isFinite(parseFloat(d.place.lng)));
+      const marks =
+        (d.videoMode ? '<i class="fa-solid fa-play" title="영상 콘텐츠"></i>' : '') +
+        (d.free
+          ? '<i class="fa-solid fa-lock-open is-open" title="모두에게 공개"></i>'
+          : '<i class="fa-solid fa-lock" title="독자 전용"></i>') +
+        (hasPlace ? '<i class="fa-solid fa-location-dot" title="지도 있음"></i>' : '');
 
       // 모든 액션을 단일 ⋯ 메뉴로 통합.
       let menuItems = '';
@@ -287,7 +290,8 @@
             <a href="/articles/${id}" target="_blank" class="title-cell">${adminEscHTML(title)}</a>
             <span class="title-cell-sub">${adminEscHTML(sub)}</span>
           </td>
-          <td>${adminEscHTML(cat)}${serName ? `<span class="title-cell-sub"><i class="fa-solid fa-layer-group" style="font-size:9px;margin-right:3px;"></i>${adminEscHTML(serName)}</span>` : ''}</td>
+          <td>${adminEscHTML(cat)}</td>
+          <td><span class="row-marks">${marks}</span></td>
           <td>${adminEscHTML(date)}</td>
           <td>${statusBadge(status)}</td>
           <td>
@@ -353,7 +357,7 @@
       }, err => {
         console.error('[articles] Firestore 구독 실패:', err);
         document.getElementById('articleTable').innerHTML =
-          `<tr><td colspan="6" class="admin-empty">콘텐츠 불러오기 실패: ${adminEscHTML(err.message)}</td></tr>`;
+          `<tr><td colspan="7" class="admin-empty">콘텐츠 불러오기 실패: ${adminEscHTML(err.message)}</td></tr>`;
       });
   }
 
@@ -378,12 +382,9 @@
     });
   });
 
-  // 카테고리 / 시리즈 드롭다운 events
+  // 카테고리 드롭다운 events
   document.getElementById('catFilter').addEventListener('change', e => {
     currentCat = e.target.value; renderTable();
-  });
-  document.getElementById('seriesFilter').addEventListener('change', e => {
-    currentSeries = e.target.value; renderTable();
   });
   document.getElementById('resetFilters').addEventListener('click', () => {
     currentFilter = 'all'; currentCat = 'all'; currentSeries = 'all';
