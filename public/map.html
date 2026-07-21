@@ -273,42 +273,58 @@
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    function collectPlaces() {
-      if (!window.fb || !fb.db) return Promise.resolve([]);
-      return fb.db.collection('articles').where('status', '==', 'PUBLISHED').get().then(function (snap) {
-        var out = [];
-        snap.docs.forEach(function (d) {
-          var a = d.data() || {};
-          var p = a.place;
-          if (!p) return;
-          var lat = parseFloat(p.lat), lng = parseFloat(p.lng);
-          if (!isFinite(lat) || !isFinite(lng)) return;
-          out.push({
-            id: d.id, lat: lat, lng: lng,
-            name: p.name || '', address: p.address || '',
-            title: a.title || '(제목 없음)', cat: a.cat || a.category || '',
-            thumb: a.thumb || a.thumbMobile || '', ms: pubMs(a)
-          });
+    function docsToPlaces(docs) {
+      var out = [];
+      docs.forEach(function (d) {
+        var a = d.data() || {};
+        var p = a.place;
+        if (!p) return;
+        var lat = parseFloat(p.lat), lng = parseFloat(p.lng);
+        if (!isFinite(lat) || !isFinite(lng)) return;
+        out.push({
+          id: d.id, lat: lat, lng: lng,
+          name: p.name || '', address: p.address || '',
+          title: a.title || '(제목 없음)', cat: a.cat || a.category || '',
+          thumb: a.thumb || a.thumbMobile || '', ms: pubMs(a)
         });
-        out.sort(function (a, b) { return b.ms - a.ms; });
-        return out;
       });
+      out.sort(function (a, b) { return b.ms - a.ms; });
+      return out;
     }
 
-    function render(kakao, places) {
+    // 지도는 한 번만 만들고, 발행 글이 바뀔 때마다 마커만 다시 그린다.
+    var _map = null;
+    var _kakao = null;
+    var _markers = [];
+    var _openOverlay = null;
+
+    function drawMarkers(places) {
       if (COUNT) COUNT.innerHTML = '<b>' + places.length + '</b> 곳';
-      if (!places.length) { if (EMPTY) EMPTY.hidden = false; return; }
+      if (EMPTY) EMPTY.hidden = places.length > 0;
 
-      var map = new kakao.maps.Map(GRID, {
-        center: new kakao.maps.LatLng(places[0].lat, places[0].lng), level: 8
-      });
-      var bounds = new kakao.maps.LatLngBounds();
-      var openOverlay = null;
+      // 이전 마커/말풍선 정리
+      if (_openOverlay) { _openOverlay.setMap(null); _openOverlay = null; }
+      _markers.forEach(function (m) { m.setMap(null); });
+      _markers = [];
+      if (!places.length) return;
 
+      // 지도 최초 1회 생성
+      if (!_map) {
+        _map = new _kakao.maps.Map(GRID, {
+          center: new _kakao.maps.LatLng(places[0].lat, places[0].lng), level: 8
+        });
+        _kakao.maps.event.addListener(_map, 'click', function () {
+          if (_openOverlay) { _openOverlay.setMap(null); _openOverlay = null; }
+        });
+        window.addEventListener('resize', function () { _map.relayout(); });
+      }
+
+      var bounds = new _kakao.maps.LatLngBounds();
       places.forEach(function (pl) {
-        var pos = new kakao.maps.LatLng(pl.lat, pl.lng);
+        var pos = new _kakao.maps.LatLng(pl.lat, pl.lng);
         bounds.extend(pos);
-        var marker = new kakao.maps.Marker({ position: pos, map: map, title: pl.title });
+        var marker = new _kakao.maps.Marker({ position: pos, map: _map, title: pl.title });
+        _markers.push(marker);
 
         var html =
           '<a class="map-pop" href="/articles/' + encodeURIComponent(pl.id) + '">' +
@@ -323,37 +339,39 @@
         var el = document.createElement('div');
         el.innerHTML = html;
         var content = el.firstChild;
-        // 닫기 버튼은 이동 막고 오버레이만 닫는다
         content.querySelector('.map-pop-close').addEventListener('click', function (e) {
           e.preventDefault(); e.stopPropagation();
-          if (openOverlay) { openOverlay.setMap(null); openOverlay = null; }
+          if (_openOverlay) { _openOverlay.setMap(null); _openOverlay = null; }
         });
-
-        var overlay = new kakao.maps.CustomOverlay({
+        var overlay = new _kakao.maps.CustomOverlay({
           position: pos, content: content, yAnchor: 1.35, zIndex: 5
         });
-        kakao.maps.event.addListener(marker, 'click', function () {
-          if (openOverlay) openOverlay.setMap(null);
-          overlay.setMap(map);
-          openOverlay = overlay;
-          map.panTo(pos);
+        _kakao.maps.event.addListener(marker, 'click', function () {
+          if (_openOverlay) _openOverlay.setMap(null);
+          overlay.setMap(_map);
+          _openOverlay = overlay;
+          _map.panTo(pos);
         });
       });
 
-      if (places.length > 1) map.setBounds(bounds);
-      // 지도 빈 곳 클릭 시 열린 말풍선 닫기
-      kakao.maps.event.addListener(map, 'click', function () {
-        if (openOverlay) { openOverlay.setMap(null); openOverlay = null; }
-      });
-      window.addEventListener('resize', function () { map.relayout(); });
+      // 첫 렌더에서만 전체가 보이게 맞춘다. 이후 갱신은 보던 위치를 유지.
+      if (!drawMarkers._fitted && places.length > 1) { _map.setBounds(bounds); drawMarkers._fitted = true; }
     }
 
     Promise.all([
       window.loadKakaoMaps(),
       (window.fb && fb.authReady) ? fb.authReady : Promise.resolve()
     ]).then(function (r) {
-      var kakao = r[0];
-      return collectPlaces().then(function (places) { render(kakao, places); });
+      _kakao = r[0];
+      if (!window.fb || !fb.db) { if (EMPTY) EMPTY.hidden = false; return; }
+      // 실시간 구독 — 어드민에서 장소가 있는 글을 발행·수정·삭제하면 새로고침 없이 반영된다.
+      fb.db.collection('articles').where('status', '==', 'PUBLISHED')
+        .onSnapshot(function (snap) {
+          drawMarkers(docsToPlaces(snap.docs));
+        }, function (err) {
+          if (EMPTY) { EMPTY.hidden = false; EMPTY.textContent = '지도를 불러오지 못했습니다.'; }
+          console.warn('[map] 구독 실패:', err && err.message);
+        });
     }).catch(function (err) {
       if (EMPTY) { EMPTY.hidden = false; EMPTY.textContent = '지도를 불러오지 못했습니다.'; }
       console.warn('[map]', err && err.message);
