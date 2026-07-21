@@ -3272,13 +3272,17 @@ async function saveArticle(targetStatus, silent) {
     updatedAt: fb.FieldValue.serverTimestamp()
   };
 
-  if (publishedAtTs) {
-    payload.publishedAt = publishedAtTs;
-  }
-
   const ref = fb.db.collection('articles').doc(currentArticleId);
   try {
     const snap = await ref.get();
+    // publishedAt = '최초 발행 시각'. 공개 목록의 정렬 기준이라 수정할 때마다 갱신하면
+    // 오타 하나 고친 옛 글이 맨 앞으로 올라온다. 이미 값이 있으면 그대로 둔다.
+    // (숨김 → 재게시도 최초 발행일을 유지해 원래 자리로 돌아간다)
+    const alreadyPublishedAt = snap.exists && snap.data() && snap.data().publishedAt;
+    if (publishedAtTs && !alreadyPublishedAt) {
+      payload.publishedAt = publishedAtTs;
+    }
+
     if (!snap.exists) {
       payload.createdAt = fb.FieldValue.serverTimestamp();
       payload.viewCount = 0;
