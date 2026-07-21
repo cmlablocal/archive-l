@@ -140,11 +140,16 @@
        해당되지 않는 항목은 자리만 지키고 흐리게 — 비교가 눈으로 바로 된다. */
     .row-marks { display: inline-grid; grid-template-columns: repeat(3, 15px); align-items: center; gap: 12px; }
     .row-marks i {
-      font-size: 12.5px; line-height: 1; text-align: center;
+      line-height: 1; text-align: center;
       /* 비활성 — 자리는 지키되 존재감만 남기는 정도. 테두리색(8%)은 너무 옅어 안 보인다. */
       color: var(--muted); opacity: .28;
       transition: color .15s, opacity .15s;
     }
+    /* 글리프 비율이 달라 같은 font-size여도 크기가 달라 보인다 → 개별 보정 */
+    .row-marks .fa-lock,
+    .row-marks .fa-lock-open { font-size: 12px; }
+    .row-marks .fa-location-dot { font-size: 13px; }
+    .row-marks .fa-youtube { font-size: 11.5px; }
     .row-marks i.on { color: var(--fg); opacity: 1; }
     /* row-menu styles now live in admin.css */
     .admin-table-wrap { overflow: visible; }
