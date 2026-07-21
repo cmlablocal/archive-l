@@ -343,10 +343,17 @@
     transition: transform 1s cubic-bezier(.2,.7,.2,1);
   }
   .featured:hover .featured-thumb img { transform: scale(1.04); }
+  /* 히어로도 카드와 같은 기준. 제목이 크고 아래쪽 컨트롤(재생·인디케이터)까지
+     겹치므로 카드보다 조금 더 위까지 깔아준다. */
   .featured-overlay {
     position: absolute; inset: 0;
     background:
-      linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 38%, rgba(0,0,0,0) 68%);
+      linear-gradient(to top,
+        rgba(0,0,0,0.90) 0%,
+        rgba(0,0,0,0.74) 26%,
+        rgba(0,0,0,0.44) 52%,
+        rgba(0,0,0,0.14) 74%,
+        rgba(0,0,0,0) 90%);
   }
   .featured-top {
     position: absolute; top: 36px; left: 40px; right: 40px;
@@ -758,9 +765,16 @@
     pointer-events: none;
     user-select: none;
   }
+  /* 하단 제목·부제·날짜가 밝은 썸네일에서도 읽히도록 아래쪽을 충분히 깔아준다.
+     중간 구간을 함께 올려야 그라데이션 경계가 띠처럼 보이지 않는다. */
   .card-overlay {
     position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 75%);
+    background: linear-gradient(to top,
+      rgba(0,0,0,0.90) 0%,
+      rgba(0,0,0,0.72) 22%,
+      rgba(0,0,0,0.38) 50%,
+      rgba(0,0,0,0.10) 72%,
+      rgba(0,0,0,0) 88%);
   }
   .card-top {
     position: absolute; top: 18px; left: 20px; right: 20px;
