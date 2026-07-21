@@ -1171,6 +1171,15 @@
     return { minutes: minutes, depth: depth };
   }
   // 카드용 읽기 시간 배지. 영상/팟캐스트 등 본문이 없는 글은 빈 문자열.
+  // 지도가 붙은 글임을 카드 우측 상단에 작은 핀으로 알린다.
+  // 좌표가 없으면 아티클에서도 지도가 안 나오므로 배지도 달지 않는다.
+  function _cardPlaceBadge(a) {
+    const p = a && a.place;
+    if (!p) return '';
+    if (!isFinite(parseFloat(p.lat)) || !isFinite(parseFloat(p.lng))) return '';
+    return '<div class="card-place-badge" aria-label="지도 있음" title="지도 있음"><i class="fa-solid fa-location-dot"></i></div>';
+  }
+
   // 카드 메타 우측에 붙는 작성자명. 값이 없으면 아무것도 그리지 않아
   // 날짜만 있는 카드의 레이아웃이 흔들리지 않는다.
   function _cardAuthor(a) {
@@ -1276,7 +1285,7 @@
         <article class="card dyn-card" data-cat="${escHTML(top)}" onclick="openCardVideo('${escHTML(a.id)}')">
           <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" loading="lazy" /></div>
           <div class="card-overlay"></div>
-          ${videoBadge}
+          ${videoBadge}${_cardPlaceBadge(a)}
           <div class="card-top"><span class="card-cat">${catHTML}</span>${freeMark}</div>
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
@@ -1315,7 +1324,7 @@
             <span class="card-hot-badge" aria-label="인기 콘텐츠"><i class="fa-solid fa-fire"></i></span>
           </div>
           <div class="card-overlay"></div>
-          ${videoBadge}
+          ${videoBadge}${_cardPlaceBadge(a)}
           <div class="card-top"><span class="card-cat">${catHTML}</span>${freeMark}</div>
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
@@ -1668,7 +1677,7 @@
         <article class="card${dim}" data-cat="${escHTML(top)}" onclick="${click}">
           <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" loading="lazy" /></div>
           <div class="card-overlay"></div>
-          ${videoBadge}
+          ${videoBadge}${_cardPlaceBadge(a)}
           <div class="card-top"><span class="card-cat">${catHTML}</span>${freeMark}</div>
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
