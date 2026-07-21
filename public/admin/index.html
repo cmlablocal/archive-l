@@ -133,8 +133,7 @@
     { label: '신규 가입 · 7일', value: '—', delta: '최근 7일 가입한 독자', id: 'statNewUsers7', href: '/admin/users.html' },
     { label: '총 발행 글', value: '—', delta: '발행 콘텐츠 합계', id: 'statPubArticles' },
     { label: '총 독자', value: '—', delta: '가입한 독자 수', id: 'statReaders' },
-    { label: '총 책갈피', value: '—', delta: '독자들이 저장한 글', id: 'statBookmarks' },
-    { label: 'Up Coming', value: '—', delta: '프리릴리즈 콘텐츠', id: 'statUpcoming' }
+    { label: '총 책갈피', value: '—', delta: '독자들이 저장한 글', id: 'statBookmarks' }
   ];
   document.getElementById('dashboardStats').innerHTML = stats.map(s => {
     const inner = `
@@ -237,12 +236,6 @@
       if (cell) cell.textContent = fmtNum(total);
       renderPopular(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, err => console.warn('[dashboard] bookmarks:', err.message));
-
-    // Up Coming (PRERELEASE)
-    fb.db.collection('articles').where('status', '==', 'PRERELEASE').onSnapshot(snap => {
-      const cell = document.querySelector('#statUpcoming .admin-stat-value');
-      if (cell) cell.textContent = fmtNum(snap.size);
-    }, err => console.warn('[dashboard] PRERELEASE:', err.message));
 
     // 최근 발행 — Firestore PUBLISHED + 정적 글 병합, 날짜 내림차순 Top 5
     try {
