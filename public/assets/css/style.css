@@ -6097,10 +6097,26 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 }
 .drawer.open .drawer-inner { transform: none; }
 
-/* 로고·닫기 버튼은 상단에 고정하고, 메뉴는 화면 정중앙에 */
+/* 로고·닫기 버튼은 상단에 고정하고, 메뉴는 화면 정중앙에.
+   메뉴를 열어도 로고가 제자리에 그대로 있는 것처럼 보이도록
+   컨테이너 폭(--maxw) · 좌우 여백(32px) · 바 높이(68px) · 로고 크기(26px)를
+   헤더(.container + .header-inner + .logo img)와 정확히 동일하게 맞춘다.
+   좌우 여백은 .drawer-inner가 아니라 .drawer-top이 직접 갖는다 —
+   절대 위치 자식의 left/right:0 은 부모의 패딩 박스를 기준으로 하므로
+   .drawer-inner에 패딩을 주면 무시되어 로고가 화면 끝으로 밀린다. */
+.drawer-inner {
+  max-width: var(--maxw);
+  padding: 0;
+}
 .drawer-top {
   position: absolute; top: 0; left: 0; right: 0;
-  height: 60px;
+  height: 68px;
+  padding: 0 32px;
+}
+.drawer-top .logo img { height: 26px; }
+@media (max-width: 900px) {
+  .drawer-top { height: 56px; padding: 0 35px; }
+  .drawer-top .logo img { height: 21px; }
 }
 .drawer-top .logo .logo-black { display: none; }
 .drawer-top .logo .logo-white { display: block; }
