@@ -174,7 +174,7 @@
     }
   })();
 
-  /* ===== LOCALLAYER 브랜드 스토리 모달 (푸터 archive-l.web.app 클릭) ===== */
+  /* ===== LOCALLAYER 브랜드 스토리 모달 (푸터 locallayers.kr 클릭) ===== */
 
   // initial theme
   (function() {
@@ -1887,7 +1887,7 @@
     ctx.fillText('LOCALLAYER', padX, H - 96);
     ctx.fillStyle = muted;
     ctx.font = '400 24px Pretendard, sans-serif';
-    ctx.fillText('LOCALLAYER · archive-l.web.app', padX, H - 60);
+    ctx.fillText('LOCALLAYER · locallayers.kr', padX, H - 60);
 
     return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
   }
@@ -2210,7 +2210,7 @@
       if (a) html += '    <p class="recap-quote-src">— ' + escHTML(a.title || '') + '</p>';
       html += '  </div>';
     }
-    html += '  <div class="recap-foot">LOCALLAYER · archive-l.web.app</div>';
+    html += '  <div class="recap-foot">LOCALLAYER · locallayers.kr</div>';
     html += '</div>';
     html += '<p class="recap-note">올해 ' + YEAR + '년 동안 쌓아온 나의 기록을 모았어요.</p>';
 
@@ -7422,7 +7422,7 @@
      - 로그인 사용자만 접수 가능 → inquiries 컬렉션에 저장 → 어드민 수신
      - 트리거: [data-inquiry="general"],
               푸터 'Contact' 링크(전체 페이지), [data-about-movement],
-              푸터 'archive-l.web.app' 주소
+              푸터 'locallayers.kr' 주소
      =========================================================== */
   (function setupInquiry() {
     // ---- 폼 구성 정의 ----
@@ -7819,7 +7819,7 @@
           a.addEventListener('click', e => { e.preventDefault(); openInquiry('general'); });
         }
       });
-      // 푸터 하단 주소(archive-l.web.app) 클릭 → LOCALLAYER 브랜드 스토리 모달
+      // 푸터 하단 주소(locallayers.kr) 클릭 → LOCALLAYER 브랜드 스토리 모달
       // (openBrandModal 캐러셀 하나만 사용 — aboutMovementModal 중복 트리거 제거)
     }
 
