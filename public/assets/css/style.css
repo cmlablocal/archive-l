@@ -378,13 +378,18 @@
     font-size: clamp(30px, 4.2vw, 60px);
     font-weight: 500; letter-spacing: -0.035em; line-height: 1.05;
     margin-bottom: 20px;
-    max-width: 760px;
+    /* 760px 고정이면 큰 화면에서 글자가 커진 만큼 폭이 모자라 제목이 일찍 접혔다.
+       화면에 비례해 넓히되 슬라이드를 넘지 않도록 상한을 둔다. */
+    max-width: min(100%, 1000px);
+    /* 한국어를 어절 단위로 끊어 '인터뷰영 / 상' 같은 낱글자 낙오를 막는다. */
+    word-break: keep-all;
   }
   .featured-excerpt {
     font-size: 15px; line-height: 1.7;
     color: rgba(255,255,255,0.82);
     max-width: 560px;
     margin-bottom: 28px;
+    word-break: keep-all;
   }
   .featured-cta {
     display: inline-flex; align-items: center; gap: 10px;
@@ -703,21 +708,23 @@
   }
   .card:hover .card-thumb img { transform: scale(1.05); }
   /* 영상 콘텐츠 표시 — 썸네일 우측 상단 픽토그램 */
-  .card-video-badge {
-    position: absolute;
-    top: 14px; right: 14px;
-    z-index: 3;
-    width: 34px; height: 34px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(255,255,255,0.4);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    color: #fff; font-size: 12px;
+  /* ===== 썸네일 마크 규칙 =====
+     카드 우측 상단 한 줄에 [모두에게 칩] · [영상/오디오 픽토] · [장소 픽토] 순으로 배치.
+     플렉스 한 줄에 묶여 있으므로 어떤 조합이 와도 겹치지 않는다.
+     칩(테두리 있는 라벨)은 '모두에게' 하나뿐이고, 나머지는 모두 아이콘만 쓴다. */
+  .card-marks {
+    display: inline-flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .card-video-badge,
+  .card-audio-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.85);
+    line-height: 1;
     pointer-events: none;
   }
-  .card-video-badge i { font-size: 13px; }
+  .card-video-badge i,
+  .card-audio-badge i { font-size: 14px; }
   /* 인기 콘텐츠 표시 — 썸네일 우측 하단 불꽃 픽토그램 (조회수 앞 아이콘 대체) */
   .card-hot-badge {
     position: absolute;
@@ -5169,8 +5176,6 @@ body.pod-playing .pod-dock-btn .fa-pause { display:inline; }
 .pod-chap-panel .pod-chap { padding:10px 12px; }
 
 /* 카드 오디오 픽토 (영상 픽토와 동일 룩) */
-.card-audio-badge { position:absolute; top:14px; right:14px; z-index:3; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.4); backdrop-filter:blur(6px); color:#fff; font-size:12px; pointer-events:none; }
-.card-audio-badge i { font-size:13px; }
 
 /* =====================================================================
  * 오프라인 주소 박스 (본문 템플릿) — 클릭 시 구글맵 (app.js에서 처리)
@@ -6194,24 +6199,13 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 }
 
 /* ===== 카드 지도 배지 — 하단에 지도가 붙은 글임을 우측 상단에 작게 표시 ===== */
-/* 핀 아이콘만. 그림자 없이 카드 카테고리 라벨(.card-top)과 동일한 흰색 처리를 따른다. */
+/* 장소 핀 — 위 .card-marks 줄에 함께 놓이는 픽토그램 */
 .card-place-badge {
-  position: absolute;
-  top: 16px; right: 18px;
-  z-index: 3;
-  display: flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center;
   color: rgba(255,255,255,0.85);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
   pointer-events: none;
-}
-/* 영상 배지(34px 원형)가 이미 우측 상단을 쓰는 카드에서는 그 왼쪽으로 비켜 앉는다. */
-.card-video-badge + .card-place-badge,
-.card-audio-badge + .card-place-badge { right: 58px; top: 19px; }
-@media (max-width: 760px) {
-  .card-place-badge { top: 12px; right: 14px; font-size: 13.5px; }
-  .card-video-badge + .card-place-badge,
-  .card-audio-badge + .card-place-badge { right: 54px; }
 }
 
 /* ===== 브랜드 명의 작성자 표기 — 로고와 같은 결(LOCAL 얇게 · LAYERS 굵게) ===== */

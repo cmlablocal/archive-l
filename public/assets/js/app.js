@@ -1295,8 +1295,7 @@
         <article class="card dyn-card" data-cat="${escHTML(top)}" onclick="openCardVideo('${escHTML(a.id)}')">
           <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" loading="lazy" /></div>
           <div class="card-overlay"></div>
-          ${videoBadge}${_cardPlaceBadge(a)}
-          <div class="card-top"><span class="card-cat">${catHTML}</span>${freeMark}</div>
+          <div class="card-top"><span class="card-cat">${catHTML}</span><span class="card-marks">${freeMark}${videoBadge}${_cardPlaceBadge(a)}</span></div>
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
             <p class="card-sub">${escHTML(a.sub || '')}</p>
@@ -1334,8 +1333,7 @@
             <span class="card-hot-badge" aria-label="인기 콘텐츠"><i class="fa-solid fa-fire"></i></span>
           </div>
           <div class="card-overlay"></div>
-          ${videoBadge}${_cardPlaceBadge(a)}
-          <div class="card-top"><span class="card-cat">${catHTML}</span>${freeMark}</div>
+          <div class="card-top"><span class="card-cat">${catHTML}</span><span class="card-marks">${freeMark}${videoBadge}${_cardPlaceBadge(a)}</span></div>
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
             <p class="card-sub">${escHTML(a.sub || '')}</p>
@@ -1687,8 +1685,7 @@
         <article class="card${dim}" data-cat="${escHTML(top)}" onclick="${click}">
           <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" loading="lazy" /></div>
           <div class="card-overlay"></div>
-          ${videoBadge}${_cardPlaceBadge(a)}
-          <div class="card-top"><span class="card-cat">${catHTML}</span>${freeMark}</div>
+          <div class="card-top"><span class="card-cat">${catHTML}</span><span class="card-marks">${freeMark}${videoBadge}${_cardPlaceBadge(a)}</span></div>
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
             <p class="card-sub">${escHTML(a.sub || '')}</p>
