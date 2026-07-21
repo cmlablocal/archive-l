@@ -1469,10 +1469,10 @@
   }
   .card-lock i { font-size: 13.5px; line-height: 1; }
 
-  /* 히어로도 카드와 같은 규칙 — 우측에 포맷 라벨 + 픽토그램만 나란히 */
+  /* 픽토그램은 하단 카테고리 아이브로우 바로 위에 한 줄로 놓는다. */
   .featured-marks {
-    display: inline-flex; align-items: center; gap: 14px;
-    flex-shrink: 0;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
   }
   .featured-format { letter-spacing: inherit; }
   .featured-lock,
@@ -2756,7 +2756,7 @@
     }
     .carousel { margin-bottom: 48px; }
     .featured-top { top: 20px; left: 20px; right: 20px; font-size: 10px; letter-spacing: 0.18em; }
-    .featured-marks { gap: 10px; }
+    .featured-marks { gap: 10px; margin-bottom: 9px; }
     .featured-lock i, .featured-place i { font-size: 12.5px; }
     .featured-bottom { bottom: 70px; left: 20px; right: 20px; }
     .featured-meta { gap: 10px; margin-bottom: 14px; font-size: 10px; }

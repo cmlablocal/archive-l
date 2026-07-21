@@ -6319,8 +6319,11 @@
     const heroPlace = (_hp && isFinite(parseFloat(_hp.lat)) && isFinite(parseFloat(_hp.lng)))
       ? '<span class="featured-place" aria-label="지도 있음" title="지도 있음"><i class="fa-solid fa-location-dot"></i></span>'
       : '';
-    const heroMarks = '<span class="featured-marks"><span class="featured-format">'
-      + escHTML(_heroFormatLabel(a)) + '</span>' + heroFree + heroPlace + '</span>';
+    // 포맷 라벨은 상단 우측에 그대로 두고, 픽토그램만 하단 카테고리 아이브로우 위로 올린다.
+    const heroFormat = '<span class="featured-format">' + escHTML(_heroFormatLabel(a)) + '</span>';
+    const heroMarks = (heroFree || heroPlace)
+      ? '<div class="featured-marks">' + heroFree + heroPlace + '</div>'
+      : '';
     // 영상 콘텐츠 — 전체화면 비디오 모달로 재생
     if (a.videoMode && a.videoId) {
       _heroVideoMap[a.id] = {
@@ -6340,9 +6343,10 @@
         <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
         <div class="featured-top">
           <span class="badge">VIDEO</span>
-          ${heroMarks}
+          ${heroFormat}
         </div>
         <div class="featured-bottom">
+          ${heroMarks}
           <div class="featured-meta">
             <span>${escHTML(a.cat || '')}</span>
             <span class="divider"></span>
@@ -6364,9 +6368,10 @@
         <div class="featured-overlay"></div>
         <div class="featured-top">
           <span class="badge">FEATURED</span>
-          ${heroMarks}
+          ${heroFormat}
         </div>
         <div class="featured-bottom">
+          ${heroMarks}
           <div class="featured-meta">
             <span>${escHTML(a.cat || '')}</span>
             <span class="divider"></span>
