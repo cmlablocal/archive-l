@@ -282,12 +282,51 @@
           <td><div class="iq-name">${adminEscHTML(d.name || '')}</div><div class="iq-email">${adminEscHTML(d.email || d.userEmail || '')}</div></td>
           <td><span class="iq-date">${fmtDateShort(d.createdAt)}</span></td>
           <td style="text-align:right;">
-            <button class="admin-btn ghost admin-btn-sm" data-action="open" data-id="${adminEscHTML(item.id)}"><i class="fa-solid fa-eye"></i></button>
+            <details class="row-menu">
+              <summary class="admin-btn ghost admin-btn-sm" role="button" aria-label="관리"><i class="fa-solid fa-ellipsis"></i></summary>
+              <div class="row-menu-pop">
+                <button type="button" data-act="open" data-id="${adminEscHTML(item.id)}"><i class="fa-regular fa-eye"></i> 상세 보기</button>
+                <button type="button" data-act="status" data-id="${adminEscHTML(item.id)}">
+                  ${unread ? '<i class="fa-regular fa-circle-check"></i> 확인함으로 표시' : '<i class="fa-regular fa-circle"></i> 미확인으로 표시'}
+                </button>
+                <button type="button" data-act="delete" data-id="${adminEscHTML(item.id)}" class="danger"><i class="fa-regular fa-trash-can"></i> 삭제</button>
+              </div>
+            </details>
           </td>
         </tr>`;
     }).join('');
+    // 행 클릭 = 상세 열기. 단 ⋯ 메뉴 영역의 클릭은 행으로 전파되지 않게 막는다.
     tbody.querySelectorAll('.inq-row').forEach(row => {
-      row.addEventListener('click', () => openDetail(row.dataset.id));
+      row.addEventListener('click', e => {
+        if (e.target.closest('.row-menu')) return;
+        openDetail(row.dataset.id);
+      });
+    });
+    tbody.querySelectorAll('.row-menu').forEach(menu => {
+      menu.addEventListener('click', e => e.stopPropagation());
+    });
+    tbody.querySelectorAll('.row-menu-pop button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const act = btn.dataset.act;
+        btn.closest('.row-menu').removeAttribute('open');
+        if (!id) return;
+        if (act === 'open') { openDetail(id); return; }
+        if (act === 'status') {
+          const it = inqList.find(x => x.id === id);
+          const unread = it ? (it.data.status || 'new') === 'new' : true;
+          setStatus(id, unread ? 'read' : 'new');
+          return;
+        }
+        if (act === 'delete') {
+          if (!(await sysConfirm('이 문의를 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.', { danger: true, okLabel: '삭제' }))) return;
+          try {
+            await fb.db.collection('inquiries').doc(id).delete();
+          } catch (err) {
+            sysAlert('삭제 실패: ' + err.message, { icon: 'danger' });
+          }
+        }
+      });
     });
   }
 
