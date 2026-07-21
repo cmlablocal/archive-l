@@ -2795,18 +2795,17 @@
   .page-hero { padding: 80px 0 56px; }
   .page-hero .meta-label { display: block; margin-bottom: 18px; }
   .page-title {
-    font-size: clamp(36px, 6vw, 72px);
+    font-size: clamp(28px, 4vw, 44px);
     font-weight: 500;
     letter-spacing: -0.035em;
     line-height: 1.05;
     margin-bottom: 22px;
   }
+  /* 페이지 서브타이틀 — 전 페이지(아티클/카테고리/공지) 통일 */
   .page-lead {
-    font-size: 16px; color: var(--muted);
+    font-size: 15px; color: var(--muted);
     line-height: 1.7; max-width: 720px;
   }
-  /* 리스트/카테고리 페이지 서브타이틀은 메인 페이지 느낌에 맞춰 작게(14px) */
-  .list-view .page-lead { font-size: 14px; line-height: 1.6; }
 
   /* ========== Series view ========== */
   .series-stats {
