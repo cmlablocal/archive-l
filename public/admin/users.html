@@ -110,27 +110,6 @@
       </div>
     </div>
 
-    <!-- ===== 독자 기능 설정 ===== -->
-    <section class="admin-feature-flags" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;">
-      <label class="feature-toggle" style="display:inline-flex;align-items:center;gap:12px;cursor:pointer;padding:14px 18px;border:1px solid var(--admin-border);border-radius:12px;background:var(--bg);">
-        <span style="display:flex;flex-direction:column;gap:2px;">
-          <span style="font-size:13px;font-weight:600;color:var(--fg);">마이 아카이브 결산</span>
-          <span style="font-size:11px;color:var(--muted);">독자의 마이 아카이브에 ‘결산’ 탭을 노출합니다.</span>
-        </span>
-        <input type="checkbox" id="recapEnabledToggle" style="width:38px;height:22px;appearance:none;background:var(--admin-row);border:1px solid var(--admin-border);border-radius:999px;position:relative;cursor:pointer;outline:none;transition:background .2s;" />
-        <span id="recapEnabledLabel" style="font-size:13px;font-weight:600;color:var(--fg);min-width:32px;">OFF</span>
-      </label>
-    </section>
-    <style>
-      #recapEnabledToggle::before {
-        content:''; position:absolute; top:2px; left:2px;
-        width:16px; height:16px; border-radius:50%;
-        background: var(--muted); transition: transform .2s, background .2s;
-      }
-      #recapEnabledToggle:checked { background: var(--admin-accent); border-color: var(--admin-accent); }
-      #recapEnabledToggle:checked::before { background: var(--bg); transform: translateX(16px); }
-    </style>
-
     <!-- ===== Stats ===== -->
     <div class="users-stats">
       <div class="stat-card">
@@ -479,30 +458,6 @@
     if (user && fb.isAdmin()) {
       subscribeUsers();
 
-      // 기능 설정 — 마이 아카이브 결산 ON/OFF (site/settings.recapEnabled)
-      const recapToggle = document.getElementById('recapEnabledToggle');
-      const recapLabel = document.getElementById('recapEnabledLabel');
-      if (recapToggle) {
-        fb.db.collection('site').doc('settings').onSnapshot(snap => {
-          const enabled = snap.exists ? (snap.data().recapEnabled !== false) : true;
-          recapToggle.checked = enabled;
-          if (recapLabel) recapLabel.textContent = enabled ? 'ON' : 'OFF';
-        }, err => console.warn('[users] recap setting:', err.message));
-        recapToggle.addEventListener('change', async () => {
-          const enabled = recapToggle.checked;
-          if (recapLabel) recapLabel.textContent = enabled ? 'ON' : 'OFF';
-          try {
-            await fb.db.collection('site').doc('settings').set({
-              recapEnabled: enabled,
-              updatedAt: fb.FieldValue.serverTimestamp()
-            }, { merge: true });
-          } catch (err) {
-            (window.sysAlert ? sysAlert('저장 실패: ' + err.message, { icon: 'danger' }) : alert('저장 실패: ' + err.message));
-            recapToggle.checked = !enabled;
-            if (recapLabel) recapLabel.textContent = !enabled ? 'ON' : 'OFF';
-          }
-        });
-      }
     }
   });
 </script>
