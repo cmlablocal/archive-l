@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <link rel="stylesheet" href="/assets/css/style.css">
+<script src="/assets/js/analytics.js"></script>
 </head>
 <body data-view="privacy">
 <script>try{if(localStorage.getItem("pv:auth")==="1")document.body.classList.add("logged-in");}catch(e){}</script>
@@ -125,6 +126,21 @@
       </div>
 
       <div class="notice-section">
+        <h2 class="notice-h">1-1. 웹 분석 도구 사용</h2>
+        <p>
+          회사는 서비스 개선을 위해 Google LLC의 웹 분석 도구인 <strong>Google Analytics</strong>를 사용합니다.
+          이 도구는 쿠키를 통해 방문 페이지, 체류 시간, 유입 경로, 접속 기기 등 <strong>비식별 이용 통계</strong>를 수집하며,
+          회원의 이름·이메일 등 개인을 특정할 수 있는 정보는 수집하지 않습니다. IP 주소는 익명 처리됩니다.
+        </p>
+        <ul class="notice-list">
+          <li><strong>수집 목적:</strong> 어떤 콘텐츠가 읽히는지 파악해 발행 방향과 사용성을 개선</li>
+          <li><strong>거부 방법:</strong> 브라우저 설정에서 쿠키를 차단하거나,
+            <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener" style="text-decoration:underline">Google Analytics 차단 부가기능</a>을 설치하면 수집을 거부할 수 있습니다.
+            거부하더라도 서비스 이용에는 제한이 없습니다.</li>
+        </ul>
+      </div>
+
+      <div class="notice-section">
         <h2 class="notice-h">2. 개인정보의 수집 및 이용 목적</h2>
         <p>수집된 개인정보는 다음의 목적을 위해서만 활용됩니다.</p>
         <ul class="notice-list">
@@ -151,7 +167,11 @@
 
       <div class="notice-section">
         <h2 class="notice-h">5. 개인정보의 제3자 제공 및 위탁</h2>
-        <p>회사는 원칙적으로 회원의 개인정보를 외부에 제공하거나 위탁하지 않습니다. 단, 시스템 인프라 제공을 위해 Firebase 서버를 이용하며, 해당 서버에는 정보가 암호화되어 안전하게 보관됩니다.</p>
+        <p>회사는 원칙적으로 회원의 개인정보를 외부에 제공하거나 위탁하지 않습니다. 단, 아래의 경우 서비스 운영에 필요한 범위에서 처리를 위탁합니다.</p>
+        <ul class="notice-list">
+          <li><strong>Google LLC (Firebase):</strong> 회원 인증, 데이터베이스, 파일 저장 등 시스템 인프라 제공. 정보는 암호화되어 보관됩니다.</li>
+          <li><strong>Google LLC (Google Analytics):</strong> 웹 이용 통계 분석. 개인을 특정할 수 있는 정보는 전달되지 않습니다. (위 1-1 참조)</li>
+        </ul>
       </div>
 
       <div class="notice-section">
