@@ -359,7 +359,7 @@
     if (unread) setStatus(id, 'read', true);
   }
 
-  // ===== 답변 등록 (독자 마이페이지로 전달) =====
+  // ===== 답변 등록 (독자 메시지함으로 전달) =====
   document.getElementById('detailReplySaveBtn').addEventListener('click', async () => {
     if (!currentDetailId) return;
     const text = (document.getElementById('detailReplyInput').value || '').trim();
@@ -374,7 +374,7 @@
         status: 'answered',
         updatedAt: fb.FieldValue.serverTimestamp()
       });
-      sysAlert('답변을 등록했습니다. 독자의 마이페이지에 표시됩니다.');
+      sysAlert('답변을 등록했습니다. 독자의 메시지함에 표시됩니다.');
       closeDetail();
     } catch (err) {
       sysAlert('답변 등록 실패: ' + err.message, { icon: 'danger' });

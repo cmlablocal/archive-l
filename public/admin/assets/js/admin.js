@@ -276,7 +276,7 @@ window.adminEscHTML = function(s) {
 // 독자/에디터에게 메시지 보내기 — 공용 모달 (어드민 전용)
 //   window.openAdminMsgModal(uid, { name, email, kind:'reader'|'editor' })
 //   · 메시지 작성: inquiries 컬렉션에 category:'admin-message'로 저장 → 수신자의
-//     마이 아카이브 '메시지' 탭에 노출.
+//     메시지함에 노출.
 //   · 발송 이력: 해당 사용자에게 운영팀이 보낸 모든 메시지/답변 기록.
 //   · 배정 이력(에디터): editorAssignmentLogs 컬렉션의 배정 스냅샷 기록.
 // ============================================================
@@ -304,7 +304,7 @@ window.adminEscHTML = function(s) {
               <label class="amsg-label">제목 <span class="amsg-opt">(선택)</span></label>
               <input type="text" id="amsgSubject" class="amsg-input" placeholder="예) 활동 안내 · 일정 변경 안내" maxlength="80" />
               <label class="amsg-label">내용</label>
-              <textarea id="amsgBody" class="amsg-textarea" rows="7" placeholder="회원에게 전달할 메시지를 입력하세요. 작성한 메시지는 회원의 ‘마이 아카이브 › 메시지’에 도착합니다."></textarea>
+              <textarea id="amsgBody" class="amsg-textarea" rows="7" placeholder="회원에게 전달할 메시지를 입력하세요. 작성한 메시지는 회원의 ‘메시지함’에 도착합니다."></textarea>
               <div class="amsg-actions">
                 <button type="button" class="amsg-send" id="amsgSendBtn"><i class="fa-regular fa-paper-plane"></i> 메시지 보내기</button>
               </div>
@@ -414,7 +414,7 @@ window.adminEscHTML = function(s) {
     const body = (bodyEl.value || '').trim();
     const subject = (subjectEl.value || '').trim();
     if (!body) { sysAlert('메시지 내용을 입력하세요.', { icon: 'danger' }); return; }
-    if (!(await sysConfirm(`${_ctx.name || '이 회원'}님에게 메시지를 보낼까요?\n\n회원의 ‘마이 아카이브 › 메시지’에 도착합니다.`, { okLabel: '메시지 보내기' }))) return;
+    if (!(await sysConfirm(`${_ctx.name || '이 회원'}님에게 메시지를 보낼까요?\n\n회원의 ‘메시지함’에 도착합니다.`, { okLabel: '메시지 보내기' }))) return;
     const btn = document.getElementById('amsgSendBtn');
     btn.disabled = true;
     try {

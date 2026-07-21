@@ -7437,7 +7437,7 @@
     const INQUIRY_FORMS = {
       general: {
         title: 'LOCALLAYER 콘텐츠 이용 문의',
-        intro: '어나더무브먼트 · LOCALLAYER 아티클을 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있습니다.',
+        intro: 'LOCALLAYER를 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
@@ -7450,7 +7450,7 @@
       },
       b2b: {
         title: 'B2B 콘텐츠 제작 문의',
-        intro: '브랜드의 철학과 스토리를 콘텐츠 전략·기획·제작으로 함께 설계합니다. 아래 내용을 남겨주시면 검토 후 답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있습니다.',
+        intro: '브랜드의 철학과 스토리를 콘텐츠 전략·기획·제작으로 함께 설계합니다. 아래 내용을 남겨주시면 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
@@ -7463,7 +7463,7 @@
       },
       lecture: {
         title: '브랜드 · 디자인 강의 / 워크숍 제안',
-        intro: '디자인과 브랜드를 ‘생각하는 방식’으로 전하는 강의·워크숍을 설계합니다. 대상과 목적에 맞춰 맞춤 커리큘럼도 가능합니다. 검토 후 답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있습니다.',
+        intro: '디자인과 브랜드를 ‘생각하는 방식’으로 전하는 강의·워크숍을 설계합니다. 대상과 목적에 맞춰 맞춤 커리큘럼도 가능합니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '제안 보내기',
         fields: [
           { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
@@ -7477,7 +7477,7 @@
       },
       curation: {
         title: '디자인 기획 · 전략 큐레이션 문의',
-        intro: '브랜드 고유의 맥락을 분석해 시각 언어로 풀어내는 전략을 함께 큐레이션합니다. ‘실행’ 전 ‘방향’을 정리하고 싶은 브랜드를 위한 전략적 시각을 제안합니다. 검토 후 답변은 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있습니다.',
+        intro: '브랜드 고유의 맥락을 분석해 시각 언어로 풀어내는 전략을 함께 큐레이션합니다. ‘실행’ 전 ‘방향’을 정리하고 싶은 브랜드를 위한 전략적 시각을 제안합니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
@@ -7492,10 +7492,10 @@
       },
       editor: {
         title: 'LOCALLAYER 에디터 지원',
-        intro: '당신의 관점을 LOCALLAYER에서 직접 발행해보세요. 아래 양식을 남겨주시면 검토 후 결과를 마이페이지(나의 서재)의 메시지함에서 안내드립니다. 이름·이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
+        intro: '당신의 관점을 LOCALLAYER에서 직접 발행해보세요. 아래 양식을 남겨주시면 검토 후 결과를 메시지함에서 안내드립니다. 이름·이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
         submit: '에디터 지원하기',
         collection: 'editorApplications',
-        successMsg: '에디터 지원이 접수되었어요.<br/>검토 후 결과는 마이페이지(나의 서재)의 메시지함에서 확인하실 수 있어요.',
+        successMsg: '에디터 지원이 접수되었어요.<br/>검토 후 결과는 메시지함에서 확인하실 수 있어요.',
         fields: [
           { id: 'name', label: '이름', type: 'text', required: true, isName: true },
           { id: 'email', label: '이메일', type: 'email', required: true, isEmail: true },
@@ -7565,7 +7565,7 @@
             <span class="meta-label">ABOUT</span>
             <h2 class="inq-title" id="amvTitle">another movement</h2>
             <div class="amv-body">
-              <p>LOCALLAYER 아티클은 <strong>어나더무브먼트(Another Movement)</strong>가 발행하는 디자인 인사이트 채널입니다.</p>
+              <p>LOCALLAYER 아티클은 <strong>(주)시엔플레이스(Another Movement)</strong>가 발행하는 디자인 인사이트 채널입니다.</p>
               <p>우리는 디자인을 단순한 결과물이 아니라 ‘생각하는 방식’과 ‘문제를 푸는 프레임’으로 바라봅니다. 브랜드의 철학과 맥락을 읽어내고, 이를 시각 언어와 콘텐츠로 풀어내는 일을 합니다.</p>
               <p>관점을 함께 나누고, 디자인으로 한 걸음 더 나아가고자 하는 모든 분들과 연결되기를 바랍니다.</p>
               <div class="amv-meta">
