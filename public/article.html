@@ -80,6 +80,7 @@
       <a href="/" data-view="home">Home</a>
       <a href="/about.html" data-view="about">About</a>
       <a href="/list.html" data-view="list">Articles</a>
+      <a href="/map.html" data-view="map">Map</a>
       <a href="/notices.html" data-view="notices">Notice</a>
     </nav>
     <div class="drawer-foot">
@@ -539,7 +540,7 @@ function renderPodcast(id, d) {
     </section>`;
 
   const tagsList = Array.isArray(d.tags) ? d.tags : [];
-  const tagsHTML = tagsList.length ? tagsList.map(t => `<a class="tag">${escHTML(t)}</a>`).join('') : '';
+  const tagsHTML = tagsList.length ? tagsList.map(t => `<a class="tag" href="/list.html?tag=${encodeURIComponent(t)}">${escHTML(t)}</a>`).join('') : '';
   const podLikeCount = Math.max(0, parseInt(d.rcNew, 10) || 0);
   const footerHTML = `
     <div class="container">
@@ -799,7 +800,7 @@ function renderArticle(id, d) {
 
   const tagsList = Array.isArray(d.tags) ? d.tags : [];
   const tagsHTML = tagsList.length > 0
-    ? tagsList.map(t => `<a class="tag">${escHTML(t)}</a>`).join('')
+    ? tagsList.map(t => `<a class="tag" href="/list.html?tag=${encodeURIComponent(t)}">${escHTML(t)}</a>`).join('')
     : '';
 
   // 좋아요 — 기존 반응 인프라(persp_reactions + articles.rcNew ±1)를 그대로 재사용한다.

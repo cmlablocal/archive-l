@@ -37,7 +37,7 @@
         ]
       },
       {
-        "source": "/@(about|article|list|notices|privacy|terms)",
+        "source": "/@(about|article|list|map|notices|privacy|terms)",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" }
         ]

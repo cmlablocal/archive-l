@@ -3987,6 +3987,13 @@
     transition: color .2s, opacity .2s;
   }
   .suggest:hover { color: var(--muted); }
+  /* 인기 태그 — 누르면 태그 모아보기로 이동하는 링크형 칩 */
+  a.suggest-tag {
+    padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px;
+    font-size: 13px; line-height: 1; text-decoration: none;
+    transition: border-color .2s, color .2s;
+  }
+  a.suggest-tag:hover { color: var(--fg); border-color: var(--fg); }
 
   .search-result {
     display: grid;

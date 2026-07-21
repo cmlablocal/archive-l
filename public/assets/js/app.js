@@ -1115,6 +1115,7 @@
   let listCategories = [];       // [{name, order}] — Firestore categories
   let listActiveCategory = '';   // '' = 전체
   let listPageCategory = '';     // ?cat= 로 진입한 1차 카테고리 랜딩 모드 (빈값 = 전체보기)
+  let listTagFilter = '';        // ?tag= 로 진입한 태그 모아보기 모드 (빈값 = 태그 모드 아님)
 
   // 최신순 정렬 키: 실제 발행 시각(publishedAt) → 생성(createdAt) → 날짜 문자열 순으로 폴백.
   // (날짜 문자열만 쓰면 같은 날 글끼리 동점이 되어 순서가 뒤섞임)
@@ -1137,6 +1138,12 @@
     Object.entries(ARTICLES).forEach(([id, a]) => { map[id] = { id, ...a }; });
     _fsListArticles.forEach(a => { map[a.id] = a; });
     let all = Object.values(map);
+    // 태그 모아보기(?tag=) — 카테고리 필터보다 우선. 해당 태그가 달린 글만.
+    if (listTagFilter) {
+      const key = listTagFilter.toLowerCase();
+      return all.filter(a => Array.isArray(a.tags) && a.tags.some(t => String(t).toLowerCase() === key))
+                .sort((a, b) => _pubMs(b) - _pubMs(a));
+    }
     if (listActiveCategory) {
       // 1차 선택 시 그 하위 2차 카테고리 글도 함께 매칭
       const children = listCategories
@@ -1295,12 +1302,33 @@
     document.title = listPageCategory + ' · LOCALLAYERS';
   }
 
+  // 태그 모아보기 히어로
+  function applyTagHero() {
+    const titleEl = document.getElementById('listHeroTitle');
+    const leadEl = document.getElementById('listHeroLead');
+    const labelEl = document.getElementById('listHeroLabel');
+    if (!listTagFilter) return;
+    if (labelEl) labelEl.textContent = 'TAG';
+    if (titleEl) titleEl.textContent = '#' + listTagFilter;
+    if (leadEl) {
+      leadEl.textContent = "'" + listTagFilter + "' 태그가 달린 글을 모았습니다.";
+      leadEl.style.display = '';
+    }
+    document.title = '#' + listTagFilter + ' · LOCALLAYERS';
+  }
+
   // 목록 페이지 진입 시: 카테고리 + 발행 글을 불러와 필터/목록 갱신
   async function initListData() {
     await Promise.all([loadListCategories(), loadPublishedArticles()]);
-    // 홈 메뉴에서 넘어온 ?cat= 파라미터로 1차 카테고리 랜딩 모드 진입
-    const _catParam = new URLSearchParams(location.search).get('cat');
-    if (_catParam && listCategories.some(c => (c.name || '') === _catParam)) {
+    const _params = new URLSearchParams(location.search);
+    const _tagParam = (_params.get('tag') || '').trim();
+    const _catParam = _params.get('cat');
+    // 태그 모아보기가 우선 — 카테고리 필터바는 태그 모드에서 뜨지 않는다.
+    if (_tagParam) {
+      listTagFilter = _tagParam;
+      listCurrentPage = 1;
+      applyTagHero();
+    } else if (_catParam && listCategories.some(c => (c.name || '') === _catParam)) {
       // 2차로 들어와도 최상위 1차를 페이지 카테고리로 삼는다
       listPageCategory = _topCat(_catParam);
       listActiveCategory = _catParam;
@@ -4169,6 +4197,15 @@
     renderSearchEmpty();
   }
 
+  // 자주 쓰인 태그 상위 N개 (빈도 내림차순).
+  function _popularTags(n) {
+    const tagCount = {};
+    (_fsListArticles || []).forEach(a => {
+      (a.tags || []).forEach(t => { t = (t || '').trim(); if (t) tagCount[t] = (tagCount[t] || 0) + 1; });
+    });
+    return Object.keys(tagCount).sort((a, b) => tagCount[b] - tagCount[a]).slice(0, n || 10);
+  }
+
   // 추천 키워드: 1차 카테고리 + 자주 쓰인 태그 (데이터 없으면 정적 폴백)
   function _searchSuggestions() {
     const out = [];
@@ -4202,6 +4239,14 @@
       '<div class="search-suggestions">' +
       sugg.map(q => '<button type="button" class="suggest" data-q="' + escHTML(q) + '">' + escHTML(q) + '</button>').join('') +
       '</div></div>';
+    // 인기 태그 — 누르면 그 태그의 모아보기 페이지로 이동 (검색이 아니라 이동)
+    const popTags = _popularTags(10);
+    if (popTags.length) {
+      html += '<div class="search-sec"><div class="search-sec-head"><span class="meta-label">POPULAR TAGS</span></div>' +
+        '<div class="search-suggestions">' +
+        popTags.map(t => '<a class="suggest suggest-tag" href="/list.html?tag=' + encodeURIComponent(t) + '">#' + escHTML(t) + '</a>').join('') +
+        '</div></div>';
+    }
     empty.innerHTML = html;
     empty.querySelectorAll('.suggest[data-q]').forEach(b => {
       b.addEventListener('click', () => {
