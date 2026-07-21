@@ -1470,7 +1470,7 @@
       const top = _topCat(cat);
       const catHTML = _cardCatHTML(a);
       const freeMark = a.free ? '' : '<span class="card-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
-      const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
+      const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-brands fa-youtube"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       return `
         <article class="card dyn-card" data-cat="${escHTML(top)}" onclick="openCardVideo('${escHTML(a.id)}')">
           <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" loading="lazy" /></div>
@@ -1504,7 +1504,7 @@
     grid.innerHTML = top.map((a, idx) => {
       const catHTML = _cardCatHTML(a);
       const freeMark = a.free ? '' : '<span class="card-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
-      const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
+      const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-brands fa-youtube"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       const views = (a.viewCount || 0).toLocaleString('ko-KR');
       return `
         <article class="card" onclick="openCardVideo('${escHTML(a.id)}')">
@@ -1860,7 +1860,7 @@
       const top = _topCat(cat);
       const catHTML = _cardCatHTML(a);
       const freeMark = a.free ? '' : '<span class="card-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
-      const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
+      const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-brands fa-youtube"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       return `
         <article class="card${dim}" data-cat="${escHTML(top)}" onclick="${click}">
           <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" loading="lazy" /></div>
@@ -2191,7 +2191,7 @@
           <article class="card" onclick="openCardVideo('${id}')">
             <div class="card-thumb"><img src="${escHTML(a.thumb || '')}" alt="${escHTML(a.title || '')}" /></div>
             <div class="card-overlay"></div>
-            ${a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '')}
+            ${a.videoMode ? '<div class="card-video-badge"><i class="fa-brands fa-youtube"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '')}
             <div class="card-top"><span class="card-cat">${escHTML(_catLabel(a.cat || a.category || ''))}</span></div>
             <div class="card-bottom">
               <h3 class="card-title">${escHTML(a.title || '')}</h3>
@@ -3234,7 +3234,7 @@
 
   function _epArticleCard(a) {
     const cat = _catLabel(a.cat || a.category || '');
-    const badge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>'
+    const badge = a.videoMode ? '<div class="card-video-badge"><i class="fa-brands fa-youtube"></i></div>'
       : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
     return `
       <article class="card" onclick="openCardVideo('${a.id}')">

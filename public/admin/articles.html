@@ -301,7 +301,7 @@
       // 세 자리를 항상 같은 순서로 채워 행끼리 세로로 맞고, 해당되는 것만 색이 들어간다.
       const hasPlace = !!(d.place && isFinite(parseFloat(d.place.lat)) && isFinite(parseFloat(d.place.lng)));
       const marks =
-        `<i class="fa-solid fa-play${d.videoMode ? ' on' : ''}" title="${d.videoMode ? '영상 콘텐츠' : '영상 아님'}"></i>` +
+        `<i class="fa-brands fa-youtube${d.videoMode ? ' on' : ''}" title="${d.videoMode ? '영상 콘텐츠' : '영상 아님'}"></i>` +
         // 공개 사이트 썸네일과 같은 규칙 — 잠긴 글에만 불이 켜진다.
         (d.free
           ? '<i class="fa-solid fa-lock-open" title="모두에게 공개"></i>'
