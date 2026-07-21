@@ -145,7 +145,6 @@
       transition: color .15s, opacity .15s;
     }
     .row-marks i.on { color: var(--fg); opacity: 1; }
-    .row-marks i.is-open { color: #16a34a; }
     /* row-menu styles now live in admin.css */
     .admin-table-wrap { overflow: visible; }
     .admin-table td { position: relative; }
@@ -270,9 +269,10 @@
       const hasPlace = !!(d.place && isFinite(parseFloat(d.place.lat)) && isFinite(parseFloat(d.place.lng)));
       const marks =
         `<i class="fa-solid fa-play${d.videoMode ? ' on' : ''}" title="${d.videoMode ? '영상 콘텐츠' : '영상 아님'}"></i>` +
+        // 공개 사이트 썸네일과 같은 규칙 — 잠긴 글에만 불이 켜진다.
         (d.free
-          ? '<i class="fa-solid fa-lock-open on is-open" title="모두에게 공개"></i>'
-          : '<i class="fa-solid fa-lock" title="독자 전용"></i>') +
+          ? '<i class="fa-solid fa-lock-open" title="모두에게 공개"></i>'
+          : '<i class="fa-solid fa-lock on" title="독자 전용"></i>') +
         `<i class="fa-solid fa-location-dot${hasPlace ? ' on' : ''}" title="${hasPlace ? '지도 있음' : '지도 없음'}"></i>`;
 
       // 모든 액션을 단일 ⋯ 메뉴로 통합.
