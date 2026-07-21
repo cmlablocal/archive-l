@@ -6151,8 +6151,13 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 }
 .drawer-foot button:hover { background: rgba(255,255,255,.2); }
 
-/* ===== 아티클 하단 장소 지도 ===== */
-.article-map { padding: 44px 0 8px; border-top: 1px solid var(--line); }
+/* ===== 아티클 하단 장소 지도 =====
+   본문(.article-body)·첨부파일(.article-attachments)과 동일한 720px 단으로 맞춘다. */
+.article-map {
+  max-width: 720px; margin: 0 auto;
+  padding: 44px 0 8px;
+  border-top: 1px solid var(--line);
+}
 .article-map .meta-label { display: block; margin-bottom: 16px; }
 .article-map-head {
   display: flex; align-items: flex-end; justify-content: space-between;
