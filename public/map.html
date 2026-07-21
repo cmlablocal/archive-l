@@ -359,8 +359,10 @@
           e.preventDefault(); e.stopPropagation();
           if (_openOverlay) { _openOverlay.setMap(null); _openOverlay = null; }
         });
+        // clickable:true 가 없으면 클릭이 카드를 통과해 지도로 가버려
+        // 링크 이동이 안 되고 오히려 말풍선이 닫힌다.
         var overlay = new _kakao.maps.CustomOverlay({
-          position: pos, content: content, yAnchor: 1.35, zIndex: 5
+          position: pos, content: content, yAnchor: 1.35, zIndex: 5, clickable: true
         });
         _kakao.maps.event.addListener(marker, 'click', function () {
           if (_openOverlay) _openOverlay.setMap(null);
