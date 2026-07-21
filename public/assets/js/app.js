@@ -7496,11 +7496,16 @@
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
-            options: ['저작권 침해 신고', '콘텐츠 활용 문의', '콘텐츠 제작 협업 문의', '기타 저작권 문의', '오류 리포트 (오타·잘못된 정보 등)', '콘텐츠 제안', '서비스 개선 아이디어'] },
+            options: ['비즈니스 협업 문의', '저작권 침해 신고', '콘텐츠 활용 문의', '콘텐츠 제작 협업 문의', '기타 저작권 문의', '오류 리포트 (오타·잘못된 정보 등)', '콘텐츠 제안', '서비스 개선 아이디어'] },
           { id: 'name', label: '이름', type: 'text', required: true, isName: true },
           { id: 'email', label: '이메일', type: 'email', required: true, isEmail: true },
+          // 협업 계열 문의(비즈니스/콘텐츠 제작)를 고르면 나타나는 필수 항목.
+          // showWhen: category 값이 목록에 있을 때만 노출되고, 그때만 필수가 된다.
+          { id: 'orgName', label: '기업 및 단체명', type: 'text', requiredWhen: true,
+            placeholder: '예: (주)시엔플레이스',
+            showWhen: { field: 'category', values: ['비즈니스 협업 문의', '콘텐츠 제작 협업 문의'] } },
           { id: 'phone', label: '연락 받으실 휴대전화', type: 'text', required: false, placeholder: '010-0000-0000', format: 'phone' },
-          { id: 'contentTitle', label: '관련 콘텐츠 제목', type: 'text', required: false, placeholder: '특정 아티클 관련 문의라면 제목을 적어주세요 (선택)' },
+          { id: 'contentTitle', label: '관련 콘텐츠', type: 'articlePicker', required: false, placeholder: '제목·태그로 검색해서 선택하세요 (선택)' },
           { id: 'message', label: '문의 내용', type: 'textarea', required: true }
         ]
       },
@@ -7645,7 +7650,9 @@
 
     function buildFields(cfg) {
       return cfg.fields.map(f => {
-        const req = f.required ? '<em class="inq-req">*</em>' : '<em class="inq-opt">(선택)</em>';
+        // 조건부 필수(requiredWhen)는 처음엔 선택처럼 표시하고, 조건 충족 시 JS가 * 로 바꾼다.
+        const isReq = f.required || f.requiredWhen;
+        const req = isReq ? '<em class="inq-req">*</em>' : '<em class="inq-opt">(선택)</em>';
         const lab = `<span class="inq-label">${escHTML(f.label)} ${req}</span>`;
         let control = '';
         if (f.type === 'select') {
@@ -7653,6 +7660,18 @@
             <option value="">선택해주세요</option>
             ${f.options.map(o => `<option value="${escHTML(o)}">${escHTML(o)}</option>`).join('')}
           </select>`;
+        } else if (f.type === 'articlePicker') {
+          // 검색어를 입력하면 발행 글 목록에서 골라 넣는 콤보박스.
+          // 선택 결과는 hidden input(#inq_<id>)에 제목 문자열로 저장돼 기존 수집 로직과 호환된다.
+          control =
+            `<div class="inq-ap" data-fid="${f.id}">` +
+              `<input type="text" class="inq-ap-search" id="inq_${f.id}_q" ` +
+                `placeholder="${escHTML(f.placeholder || '')}" autocomplete="off" />` +
+              `<input type="hidden" id="inq_${f.id}" data-fid="${f.id}" />` +
+              `<div class="inq-ap-list" hidden></div>` +
+              `<div class="inq-ap-picked" hidden><span class="inq-ap-picked-t"></span>` +
+                `<button type="button" class="inq-ap-clear" aria-label="선택 해제">&times;</button></div>` +
+            `</div>`;
         } else if (f.type === 'textarea') {
           control = `<textarea id="inq_${f.id}" data-fid="${f.id}" rows="3" placeholder="${escHTML(f.placeholder || '')}"></textarea>`;
         } else if (f.type === 'checkboxes') {
@@ -7665,8 +7684,90 @@
           const extra = f.format === 'phone' ? ' inputmode="numeric" maxlength="13"' : '';
           control = `<input type="${f.type === 'email' ? 'email' : 'text'}" id="inq_${f.id}" data-fid="${f.id}" class="${cls}" placeholder="${escHTML(f.placeholder || '')}" autocomplete="off"${ro}${extra} />`;
         }
-        return `<label class="inq-field">${lab}${control}</label>`;
+        // showWhen 필드는 조건 전에는 숨긴다. 표시 토글은 아래 _inqWireConditional 이 담당.
+        const hiddenAttr = f.showWhen ? ' hidden' : '';
+        const swAttr = f.showWhen ? ` data-showwhen-field="${escHTML(f.showWhen.field)}" data-showwhen-vals="${escHTML((f.showWhen.values || []).join('|'))}"` : '';
+        return `<label class="inq-field" data-field="${escHTML(f.id)}"${hiddenAttr}${swAttr}>${lab}${control}</label>`;
       }).join('');
+    }
+
+    // 조건부 필드(showWhen) 표시/숨김 + 관련 콘텐츠 검색 콤보박스 배선.
+    function _inqWireConditional(cfg) {
+      // ① showWhen — 지정한 select 값에 따라 필드를 나타냈다 감춘다.
+      const conds = Array.from(document.querySelectorAll('#inqFields .inq-field[data-showwhen-field]'));
+      conds.forEach(box => {
+        const src = document.getElementById('inq_' + box.dataset.showwhenField);
+        if (!src) return;
+        const vals = (box.dataset.showwhenVals || '').split('|').filter(Boolean);
+        const apply = () => {
+          const on = vals.indexOf(src.value) !== -1;
+          box.hidden = !on;
+          const input = box.querySelector('[data-fid]');
+          if (input && !on) input.value = '';   // 숨길 때 값 비움 (안 보이는데 제출되면 혼란)
+        };
+        src.addEventListener('change', apply);
+        apply();
+      });
+
+      // ② 관련 콘텐츠 검색 콤보박스
+      // 약관·개인정보 등 발행글이 아직 로드되지 않은 페이지에서도 검색이 되도록 미리 채워둔다.
+      if ((!_fsListArticles || !_fsListArticles.length) && typeof loadPublishedArticles === 'function') {
+        try { loadPublishedArticles(); } catch (_) {}
+      }
+      document.querySelectorAll('#inqFields .inq-ap').forEach(box => {
+        const fid = box.dataset.fid;
+        const q = document.getElementById('inq_' + fid + '_q');
+        const hidden = document.getElementById('inq_' + fid);
+        const list = box.querySelector('.inq-ap-list');
+        const picked = box.querySelector('.inq-ap-picked');
+        const pickedT = box.querySelector('.inq-ap-picked-t');
+        const clearBtn = box.querySelector('.inq-ap-clear');
+
+        const setPicked = (title) => {
+          hidden.value = title || '';
+          if (title) {
+            pickedT.textContent = title;
+            picked.hidden = false;
+            q.hidden = true;
+            list.hidden = true;
+          } else {
+            picked.hidden = true;
+            q.hidden = false;
+            q.value = '';
+          }
+        };
+        clearBtn.addEventListener('click', () => { setPicked(''); q.focus(); });
+
+        const render = (items) => {
+          if (!items.length) { list.hidden = true; list.innerHTML = ''; return; }
+          list.innerHTML = items.slice(0, 8).map(a =>
+            `<button type="button" class="inq-ap-item" data-title="${escHTML(a.title || '')}">` +
+              `<span class="inq-ap-item-t">${escHTML(a.title || '(제목 없음)')}</span>` +
+              (a.cat || a.category ? `<span class="inq-ap-item-c">${escHTML(a.cat || a.category)}</span>` : '') +
+            `</button>`).join('');
+          list.hidden = false;
+          list.querySelectorAll('.inq-ap-item').forEach(btn => {
+            btn.addEventListener('click', () => setPicked(btn.dataset.title));
+          });
+        };
+
+        q.addEventListener('input', () => {
+          const kw = q.value.trim().toLowerCase();
+          if (kw.length < 1) { list.hidden = true; return; }
+          const src = (typeof getListItems === 'function') ? getListItems()
+                    : (Array.isArray(_fsListArticles) ? _fsListArticles : []);
+          const hit = src.filter(a => {
+            if (!a) return false;
+            const t = (a.title || '').toLowerCase();
+            const tags = Array.isArray(a.tags) ? a.tags.join(' ').toLowerCase() : '';
+            return t.indexOf(kw) !== -1 || tags.indexOf(kw) !== -1;
+          });
+          render(hit);
+        });
+        q.addEventListener('focus', () => { if (q.value.trim()) q.dispatchEvent(new Event('input')); });
+        // 바깥 클릭 시 목록 닫기
+        document.addEventListener('click', (e) => { if (!box.contains(e.target)) list.hidden = true; });
+      });
     }
 
     function showInquiryNotice(title, msg) {
@@ -7701,6 +7802,7 @@
       // 안내문의 줄바꿈을 살려서 표시 (문구에 넣은 \n → <br>)
       document.getElementById('inqIntro').innerHTML = escHTML(cfg.intro).replace(/\n/g, '<br/>');
       document.getElementById('inqFields').innerHTML = buildFields(cfg);
+      _inqWireConditional(cfg);
       // 전화번호 입력 자동 하이픈 (000-0000-0000)
       document.querySelectorAll('#inqFields input.inq-phone').forEach(inp => {
         const fmtPhone = v => {
@@ -7760,9 +7862,14 @@
           structured[f.id] = vals;
           continue;
         }
+        // 조건부로 숨겨진 필드는 검증·수집에서 제외한다.
+        const wrap = document.querySelector(`#inqFields .inq-field[data-field="${f.id}"]`);
+        if (wrap && wrap.hidden) { structured[f.id] = ''; continue; }
         const el = document.getElementById('inq_' + f.id);
         const val = (el && el.value || '').trim();
-        if (f.required && !val) { errEl.textContent = `‘${f.label}’ 항목을 입력해주세요.`; el?.focus(); return; }
+        // requiredWhen: 노출된(위에서 걸러지지 않은) 상태면 필수로 취급한다.
+        const mustFill = f.required || (f.requiredWhen && wrap && !wrap.hidden);
+        if (mustFill && !val) { errEl.textContent = `‘${f.label}’ 항목을 입력해주세요.`; el?.focus(); return; }
         if (f.isEmail && val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { errEl.textContent = '이메일 형식을 확인해주세요.'; el?.focus(); return; }
         if (f.format === 'phone' && val && !/^01[016789]-\d{3,4}-\d{4}$/.test(val)) { errEl.textContent = '휴대전화 번호를 확인해주세요. (예: 010-0000-0000)'; el?.focus(); return; }
         if (val) fieldsMap[f.label] = val;
