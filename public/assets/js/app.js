@@ -505,7 +505,7 @@
   function _logout() {
     openConfirm({
       title: '로그아웃',
-      msg: '정말 로그아웃하시겠어요?<br/>저장한 글과 수집한 문장은 그대로 남아 있어요.',
+      msg: '정말 로그아웃하시겠어요?',
       confirmText: '로그아웃',
       onConfirm: async () => {
         try { await fb.signOut(); } catch(e) {}
@@ -5264,7 +5264,7 @@
     // skip pre-release buttons — they have their own onclick handlers
     if (!btn.dataset.key) return;
     if (!isLoggedIn()) {
-      showToast('로그인 후 반응을 남길 수 있어요.');
+      showToast('로그인 후 좋아요를 남길 수 있어요.');
       setTimeout(() => openLogin(), 500);
       return;
     }

@@ -484,34 +484,15 @@ function renderPodcast(id, d) {
       </div>
     </section>`;
 
-  // 참고자료/도움주신 분
-  const thanks = Array.isArray(d.thanks) ? d.thanks.filter(t => t && (t.role || t.name)) : [];
-  const thanksSection = thanks.length ? `
-    <section class="article-thanks pod-section">
-      <ul class="thanks-list">${thanks.map(t =>
-        `<li><span class="thanks-role">${escHTML(t.role)}</span><span class="thanks-name">${escHTML(t.name)}</span></li>`
-      ).join('')}</ul>
-    </section>` : '';
-
   const tagsList = Array.isArray(d.tags) ? d.tags : [];
   const tagsHTML = tagsList.length ? tagsList.map(t => `<a class="tag">${escHTML(t)}</a>`).join('') : '';
-  const reactionsHTML = `
-    <section class="article-reactions">
-      <div class="container">
-        <span class="meta-label">이 에피소드가 어떠셨나요</span>
-        <div class="reactions-row">
-          <button class="reaction" data-key="${escHTML(id)}-new"><span>이 관점이 새로웠어요</span><span class="r-count">0</span></button>
-          <button class="reaction" data-key="${escHTML(id)}-deep"><span>더 깊이 듣고 싶어요</span><span class="r-count">0</span></button>
-          <button class="reaction" data-key="${escHTML(id)}-pass"><span>친구에게 들려주고 싶어요</span><span class="r-count">0</span></button>
-        </div>
-      </div>
-    </section>`;
+  const podLikeCount = Math.max(0, parseInt(d.rcNew, 10) || 0);
   const footerHTML = `
     <div class="container">
       <div class="article-footer">
         <div class="article-tags"><span class="meta-label">TAGS</span><span class="tag-sep">|</span>${tagsHTML}</div>
         <div class="article-actions">
-          <button class="action-btn bookmark-btn" data-article-id="${escHTML(id)}" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="action-btn like-btn reaction" data-key="${escHTML(id)}-new" aria-label="좋아요"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="r-count">${podLikeCount}</span></button>
           <button class="action-btn" aria-label="Copy link" onclick="copyLink && copyLink('${escHTML(id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         </div>
       </div>
@@ -525,8 +506,8 @@ function renderPodcast(id, d) {
           <div class="gate-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
-          <h3 class="gate-title">이 에피소드는<br/>독자에게 공개됩니다</h3>
-          <p class="gate-sub">LOCALLAYER에 가입하고 모든 에피소드를 끝까지 들어보세요.<br/>3분이면 충분합니다.</p>
+          <h3 class="gate-title">이 기록의 다음 레이어는<br/>독자에게 열립니다</h3>
+          <p class="gate-sub">LOCALLAYER에 가입하고 이 공간의 마지막 층까지 머물러보세요.<br/>가입은 3분이면 충분합니다.</p>
           <div class="gate-actions">
             <button class="gate-btn primary" onclick="openLogin()">로그인 / 가입</button>
             <a class="gate-btn ghost" href="/">홈으로 돌아가기</a>
@@ -586,9 +567,7 @@ function renderPodcast(id, d) {
         ${chaptersSection}
         ${scriptSection}
         ${audioSrc ? downloadSection : ''}
-        ${thanksSection}
       </div>
-      ${reactionsHTML}
       ${footerHTML}`}
       <div id="recommendSlot"></div>
     </article>
@@ -753,8 +732,8 @@ function renderArticle(id, d) {
           <div class="gate-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
-          <h3 class="gate-title">이 글의 나머지는<br/>독자에게 공개됩니다</h3>
-          <p class="gate-sub">LOCALLAYER에 가입하고 모든 아티클을 끝까지 읽어보세요.<br/>3분이면 충분합니다.</p>
+          <h3 class="gate-title">이 글의 다음 레이어는<br/>독자에게 열립니다</h3>
+          <p class="gate-sub">LOCALLAYER에 가입하고 이 공간의 마지막 층까지 머물러보세요.<br/>가입은 3분이면 충분합니다.</p>
           <div class="gate-actions">
             <button class="gate-btn primary" onclick="openLogin()">로그인 / 가입</button>
             <a class="gate-btn ghost" href="/">홈으로 돌아가기</a>
@@ -763,32 +742,18 @@ function renderArticle(id, d) {
       </div>
     </section>` : '';
 
-  const thanks = Array.isArray(d.thanks) ? d.thanks : [];
-  const thanksHTML = thanks.length > 0 ? `
-    <section class="article-thanks">
-      <div class="container">
-        <ul class="thanks-list">${thanks.map(t =>
-          `<li><span class="thanks-role">${escHTML(t.role)}</span><span class="thanks-name">${escHTML(t.name)}</span></li>`
-        ).join('')}</ul>
-      </div>
-    </section>` : '';
-
   const tagsList = Array.isArray(d.tags) ? d.tags : [];
   const tagsHTML = tagsList.length > 0
     ? tagsList.map(t => `<a class="tag">${escHTML(t)}</a>`).join('')
     : '';
 
-  const reactionsHTML = `
-    <section class="article-reactions">
-      <div class="container">
-        <span class="meta-label">이 글이 어떠셨나요</span>
-        <div class="reactions-row">
-          <button class="reaction" data-key="${escHTML(id)}-new"><span>이 관점이 새로웠어요</span><span class="r-count">0</span></button>
-          <button class="reaction" data-key="${escHTML(id)}-deep"><span>더 깊이 알고 싶어요</span><span class="r-count">0</span></button>
-          <button class="reaction" data-key="${escHTML(id)}-pass"><span>친구에게 보내고 싶어요</span><span class="r-count">0</span></button>
-        </div>
-      </div>
-    </section>`;
+  // 좋아요 — 기존 반응 인프라(persp_reactions + articles.rcNew ±1)를 그대로 재사용한다.
+  const likeCount = Math.max(0, parseInt(d.rcNew, 10) || 0);
+  const likeHTML = `
+    <button class="action-btn like-btn reaction" data-key="${escHTML(id)}-new" aria-label="좋아요">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+      <span class="r-count">${likeCount}</span>
+    </button>`;
 
   const footerHTML = `
     <div class="container">
@@ -799,7 +764,7 @@ function renderArticle(id, d) {
           ${tagsHTML}
         </div>
         <div class="article-actions">
-          <button class="action-btn bookmark-btn" data-article-id="${escHTML(id)}" aria-label="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          ${likeHTML}
           <button class="action-btn" aria-label="Instagram" onclick="shareTo && shareTo('instagram','${escHTML(id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/></svg></button>
           <button class="action-btn" aria-label="Copy link" onclick="copyLink && copyLink('${escHTML(id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
         </div>
@@ -851,7 +816,7 @@ function renderArticle(id, d) {
         ${intentBoxHTML}
         ${leadHTML}
         ${bodyHTML}
-      </section>${gateHTML}${attachHTML}${thanksHTML}${reactionsHTML}${footerHTML}${nextHTML}
+      </section>${gateHTML}${attachHTML}${footerHTML}${nextHTML}
     </article>
   `;
 

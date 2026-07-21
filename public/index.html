@@ -137,26 +137,16 @@
       </span>
     </div>
 
-    <!-- Popular (조회수 기반, 데이터 부족 시 숨김) -->
-    <section class="grid-section popular-section" id="popularSection" hidden>
-      <div class="grid-head">
-        <h2>POPULAR6</h2>
-        <span class="grid-head-meta">지금 많이 읽는 글</span>
-      </div>
-      <div class="article-grid" id="popularGrid"></div>
-    </section>
-
-    <!-- Latest -->
+    <!-- 최신 아티클 — 섹션 라벨 없이 그리드만 노출 (최신순 고정) -->
     <section class="grid-section">
-      <div class="grid-head">
-        <h2>LATEST ARTICLES</h2>
-        <a href="/list.html" data-view="list">전체보기 →</a>
-      </div>
       <div class="article-grid" id="latestGrid">
 
       </div>
       <div class="home-loadmore" id="homeLoadMoreWrap" hidden>
         <button type="button" class="home-loadmore-btn" id="homeLoadMoreBtn">더보기</button>
+      </div>
+      <div class="grid-more">
+        <a href="/list.html" data-view="list">전체보기 →</a>
       </div>
     </section>
 
@@ -195,7 +185,7 @@
   <div class="search-modal-inner">
     <div class="search-bar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
-      <input type="text" id="searchInput" placeholder="제목, 시리즈명, 태그로 검색" autocomplete="off" />
+      <input type="text" id="searchInput" placeholder="제목, 태그로 검색" autocomplete="off" />
       <button class="search-close" onclick="closeSearch()" aria-label="Close">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
