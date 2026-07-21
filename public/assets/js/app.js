@@ -7502,7 +7502,7 @@
           // 협업 계열 문의(비즈니스/콘텐츠 제작)를 고르면 나타나는 필수 항목.
           // showWhen: category 값이 목록에 있을 때만 노출되고, 그때만 필수가 된다.
           { id: 'orgName', label: '기업 및 단체명', type: 'text', requiredWhen: true,
-            placeholder: '예: (주)시엔플레이스',
+            placeholder: '소속된 기업 또는 단체의 이름을 입력해 주세요',
             showWhen: { field: 'category', values: ['비즈니스 협업 문의', '콘텐츠 제작 협업 문의'] } },
           { id: 'phone', label: '연락 받으실 휴대전화', type: 'text', required: false, placeholder: '010-0000-0000', format: 'phone' },
           { id: 'contentTitle', label: '관련 콘텐츠', type: 'articlePicker', required: false, placeholder: '제목·태그로 검색해서 선택하세요 (선택)' },
