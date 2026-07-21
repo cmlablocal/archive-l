@@ -55,7 +55,7 @@
     <div class="admin-page-head">
       <div>
         <h1 class="admin-page-title">콘텐츠 관리</h1>
-        <p class="admin-page-sub">발행된 콘텐츠와 기존 콘텐츠를 함께 관리합니다.</p>
+        <p class="admin-page-sub">발행된 콘텐츠를 관리합니다.</p>
       </div>
       <a class="admin-btn" href="/admin/new-article.html">
         <i class="fa-solid fa-plus"></i> 새 콘텐츠 작성
@@ -67,7 +67,6 @@
       <button class="admin-btn ghost admin-btn-sm filter-btn active" data-filter="all">전체 <span class="cnt-badge" id="cntAll">0</span></button>
       <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="PUBLISHED">게시중 <span class="cnt-badge" id="cntPUBLISHED">0</span></button>
       <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="HIDDEN">숨김 <span class="cnt-badge" id="cntHIDDEN">0</span></button>
-      <button class="admin-btn ghost admin-btn-sm filter-btn" data-filter="STATIC">기존 <span class="cnt-badge" id="cntSTATIC">0</span></button>
     </div>
 
     <!-- 카테고리별 / 시리즈별 보기 -->
@@ -104,7 +103,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="/assets/js/firebase.js"></script>
 <script src="/admin/assets/js/admin.js"></script>
-<script src="/assets/js/data.js"></script>
 <script>
   (function syncLogos() {
     const dark = document.body.classList.contains('dark');
@@ -119,9 +117,6 @@
   let seriesMap = {}; // code -> name
   let catList = []; // 카테고리 컬렉션 원본 (1차/2차 전체)
   let firestoreArticles = []; // [{ id, src:'firestore', data }]
-  const STATIC_ARTICLES = Object.entries(window.ARTICLES || {}).map(([id, a]) => ({
-    id, src: 'static', data: a
-  }));
 
   // Active filter style
   const style = document.createElement('style');
@@ -189,7 +184,6 @@
   }
 
   function statusOf(item) {
-    if (item.src === 'static') return 'STATIC';
     return item.data.status || 'DRAFT';
   }
 
@@ -198,15 +192,14 @@
       PUBLISHED: '<span class="admin-tag published">게시중</span>',
       SCHEDULED: '<span class="admin-tag scheduled">예약</span>',
       DRAFT: '<span class="admin-tag draft">임시저장</span>',
-      HIDDEN: '<span class="admin-tag hidden">숨김</span>',
-      STATIC: '<span class="admin-tag static-tag">기존</span>'
+      HIDDEN: '<span class="admin-tag hidden">숨김</span>'
     };
     return map[status] || `<span class="admin-tag">${status}</span>`;
   }
 
   // 임시저장(DRAFT)은 별도 메뉴(drafts.html)에서 관리 → 콘텐츠 관리 목록에서는 제외
   function combinedList() {
-    return [...firestoreArticles, ...STATIC_ARTICLES]
+    return [...firestoreArticles]
       .filter(item => statusOf(item) !== 'DRAFT')
       .sort((a, b) => dateMs(b) - dateMs(a));
   }
@@ -257,7 +250,7 @@
   }
 
   function updateCounts(all) {
-    const counts = { all: all.length, PUBLISHED:0, HIDDEN:0, STATIC:0 };
+    const counts = { all: all.length, PUBLISHED:0, HIDDEN:0 };
     all.forEach(item => {
       const s = statusOf(item);
       if (counts[s] != null) counts[s]++;
@@ -265,7 +258,6 @@
     document.getElementById('cntAll').textContent = counts.all;
     document.getElementById('cntPUBLISHED').textContent = counts.PUBLISHED;
     document.getElementById('cntHIDDEN').textContent = counts.HIDDEN;
-    document.getElementById('cntSTATIC').textContent = counts.STATIC;
   }
 
   // 카테고리 드롭다운 옵션 채우기.
