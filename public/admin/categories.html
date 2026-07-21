@@ -72,6 +72,39 @@
   .admin-table-wrap { overflow: visible; }
   .admin-table td { position: relative; }
   .admin-hint { margin-top:12px; font-size:12px; color:var(--muted); }
+
+  /* ===== 삭제 전 개별 이동 모달 ===== */
+  .reassign-bulk {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 12px; margin: 4px 0 14px;
+    background: var(--hover); border: 1px solid var(--admin-border); border-radius: 8px;
+  }
+  .reassign-bulk-label { font-size: 12px; color: var(--muted); flex: 0 0 auto; }
+  .reassign-bulk select {
+    flex: 1 1 160px; min-width: 0; padding: 7px 10px; font-size: 13px; font-family: inherit;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--admin-border); border-radius: 6px;
+  }
+  .reassign-list {
+    max-height: 46vh; overflow-y: auto;
+    border: 1px solid var(--admin-border); border-radius: 8px;
+  }
+  .reassign-loading { padding: 24px; text-align: center; font-size: 13px; color: var(--muted); }
+  .reassign-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-top: 1px solid var(--admin-border);
+  }
+  .reassign-row:first-child { border-top: none; }
+  .reassign-row-title {
+    flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--fg);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .reassign-row-sel {
+    flex: 0 0 auto; max-width: 200px; padding: 6px 9px; font-size: 12.5px; font-family: inherit;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--admin-border); border-radius: 6px; cursor: pointer;
+  }
+  .reassign-row-sel:focus { outline: none; border-color: var(--fg); }
 </style>
 </head>
 <body class="admin">
@@ -120,9 +153,14 @@
         <h1 class="admin-page-title">카테고리 관리</h1>
         <p class="admin-page-sub">1차 카테고리를 만들고, 각 1차 행의 <b>“+ 2차 추가”</b>로 하위 분류를 만드세요. 순서는 <b>핸들(⠿)을 끌어</b> 바꿉니다.</p>
       </div>
-      <button type="button" class="admin-btn" onclick="openCreateTop()">
-        <i class="fa-solid fa-plus"></i> 새 1차 카테고리
-      </button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="admin-btn ghost" onclick="resetCategories()">
+          <i class="fa-solid fa-rotate-left"></i> 초기화
+        </button>
+        <button type="button" class="admin-btn" onclick="openCreateTop()">
+          <i class="fa-solid fa-plus"></i> 새 1차 카테고리
+        </button>
+      </div>
     </div>
 
     <!-- 리스트 풀폭 -->
@@ -185,11 +223,15 @@
     </button>
     <h2 class="admin-modal-title">카테고리 삭제 전 콘텐츠 이동</h2>
     <p class="admin-modal-sub" id="reassignSub"></p>
-    <div class="field">
-      <label for="reassignTarget">옮길 카테고리 *</label>
-      <select id="reassignTarget"></select>
-      <div class="field-help">이 카테고리의 모든 글을 선택한 카테고리로 옮긴 뒤 삭제합니다. 글이 사라지지 않습니다.</div>
+
+    <div class="reassign-bulk">
+      <span class="reassign-bulk-label">전체 한 번에</span>
+      <select id="reassignBulk"></select>
+      <button type="button" class="admin-btn ghost admin-btn-sm" id="reassignApplyAll">모두 적용</button>
     </div>
+
+    <div class="reassign-list" id="reassignList"></div>
+
     <div class="form-err" id="reassignErr"></div>
     <div class="form-actions">
       <button type="button" class="admin-btn" id="reassignConfirm"><i class="fa-solid fa-arrow-right-arrow-left"></i> 이동 후 삭제</button>
@@ -351,6 +393,48 @@
     }
   });
 
+  /* ===== 전체 초기화 =====
+     모든 카테고리를 지우고 '로컬' 1차 하나만 남긴다.
+     기존 글은 전부 '로컬'로 귀속시켜 미분류 콘텐츠가 생기지 않게 한다. */
+  async function resetCategories() {
+    const ok = await sysConfirm(
+      '카테고리를 전부 삭제하고 초기화할까요?' + String.fromCharCode(10) +
+      "'로컬' 1차 카테고리 하나만 남고, 모든 콘텐츠가 '로컬'로 옮겨집니다." + String.fromCharCode(10) +
+      '이 작업은 되돌릴 수 없습니다.',
+      { danger: true, okLabel: '초기화' });
+    if (!ok) return;
+
+    try {
+      // 1) 모든 발행/비발행 글을 '로컬'로 귀속 (category + 표시 라벨 cat)
+      //    시리즈 글은 cat이 '시리즈명 · 01' 형태라 건드리지 않고 category만 바꾼다.
+      const artSnap = await fb.db.collection('articles').get();
+      let batch = fb.db.batch(), ops = 0;
+      const flush = async () => { if (ops) { await batch.commit(); batch = fb.db.batch(); ops = 0; } };
+      for (const doc of artSnap.docs) {
+        const d = doc.data() || {};
+        const upd = { category: '로컬' };
+        if ((d.cat || '') === (d.category || '')) upd.cat = '로컬';   // 시리즈가 아닌 글만 라벨 동기화
+        batch.update(doc.ref, upd); ops++;
+        if (ops >= 450) await flush();
+      }
+      // 2) 기존 카테고리 전부 삭제
+      for (const c of catList) { batch.delete(fb.db.collection('categories').doc(c.id)); ops++; if (ops >= 450) await flush(); }
+      await flush();
+      // 3) '로컬' 1차 생성 (이미 있으면 만들지 않음)
+      if (!catList.some(c => (c.data.name || '').trim() === '로컬' && !(c.data.parent || '').trim())) {
+        await fb.db.collection('categories').add({
+          name: '로컬', parent: '', order: 0,
+          createdAt: fb.FieldValue.serverTimestamp()
+        });
+      }
+      sysAlert(`초기화 완료. 콘텐츠 ${artSnap.size}개를 '로컬'로 옮겼습니다.`, { icon: 'success' });
+      loadArticleCounts();
+    } catch (err) {
+      sysAlert('초기화 실패: ' + err.message, { icon: 'danger' });
+    }
+  }
+  window.resetCategories = resetCategories;
+
   async function deleteCategory(id) {
     const item = catList.find(c => c.id === id);
     if (!item) return;
@@ -376,21 +460,22 @@
     }
   }
 
-  // ===== 삭제 전 콘텐츠 이동 =====
+  // ===== 삭제 전 콘텐츠 개별 이동 =====
+  // 이 카테고리에 속한 글을 목록으로 보여주고, 각 글을 어느 카테고리로 옮길지
+  // 하나씩 고르게 한다. 상단 '전체 한 번에'로 일괄 선택도 가능하지만,
+  // 최종 확정 시에는 모든 글에 목적지가 지정돼 있어야 한다.
   const reassignModal = document.getElementById('reassignModal');
-  const reassignSel   = document.getElementById('reassignTarget');
   const reassignErr   = document.getElementById('reassignErr');
   const reassignSub   = document.getElementById('reassignSub');
+  const reassignListEl = document.getElementById('reassignList');
+  const reassignBulk  = document.getElementById('reassignBulk');
   const reassignConfirmBtn = document.getElementById('reassignConfirm');
   let _reassignId = null;
   let _reassignName = '';
+  let _reassignDocs = [];   // [{ id, title, cat, category }]
 
-  function openReassign(id, name, used) {
-    _reassignId = id;
-    _reassignName = name;
-    reassignErr.textContent = '';
-    reassignSub.textContent = `'${name}' 카테고리에 분류된 글이 ${used}개 있습니다. 삭제하려면 먼저 다른 카테고리로 옮겨야 합니다.`;
-    // 자기 자신을 제외한 모든 카테고리를 옵션으로 (계층 라벨)
+  // 자기 자신을 제외한 카테고리 옵션(계층 라벨)
+  function reassignOptions(excludeName) {
     const byOrder = (a, b) => {
       const oa = a.data.order != null ? a.data.order : 0;
       const ob = b.data.order != null ? b.data.order : 0;
@@ -402,50 +487,103 @@
     const opts = [];
     tops.forEach(t => {
       const tn = (t.data.name || '');
-      if (tn && tn !== name) opts.push({ value: tn, label: tn });
+      if (tn && tn !== excludeName) opts.push({ value: tn, label: tn });
       childrenOf(tn).forEach(ch => {
         const cn = (ch.data.name || '');
-        if (cn && cn !== name) opts.push({ value: cn, label: `${tn} › ${cn}` });
+        if (cn && cn !== excludeName) opts.push({ value: cn, label: tn + ' › ' + cn });
       });
     });
-    reassignSel.innerHTML = '<option value="">선택해주세요</option>' +
-      opts.map(o => `<option value="${adminEscHTML(o.value)}">${adminEscHTML(o.label)}</option>`).join('');
-    reassignModal.classList.add('open');
+    return opts;
   }
+
+  async function openReassign(id, name, used) {
+    _reassignId = id;
+    _reassignName = name;
+    reassignErr.textContent = '';
+    reassignSub.textContent = "'" + name + "' 카테고리에 분류된 글 " + used + "개를 각각 다른 카테고리로 옮긴 뒤 삭제합니다. 글이 사라지지 않습니다.";
+
+    const opts = reassignOptions(name);
+    const optHTML = opts.map(o => '<option value="' + adminEscHTML(o.value) + '">' + adminEscHTML(o.label) + '</option>').join('');
+    reassignBulk.innerHTML = '<option value="">전체를 옮길 곳…</option>' + optHTML;
+    reassignListEl.innerHTML = '<div class="reassign-loading">불러오는 중…</div>';
+    reassignModal.classList.add('open');
+
+    if (!opts.length) {
+      reassignListEl.innerHTML = '<div class="reassign-loading">옮길 다른 카테고리가 없습니다. 먼저 카테고리를 하나 이상 만들어 주세요.</div>';
+      _reassignDocs = [];
+      return;
+    }
+
+    try {
+      const snap = await fb.db.collection('articles').where('category', '==', name).get();
+      _reassignDocs = snap.docs.map(d => {
+        const data = d.data() || {};
+        return { id: d.id, title: data.title || '(제목 없음)', cat: data.cat || '', category: data.category || '' };
+      });
+      if (!_reassignDocs.length) {
+        reassignListEl.innerHTML = '<div class="reassign-loading">이동할 글이 없습니다.</div>';
+        return;
+      }
+      reassignListEl.innerHTML = _reassignDocs.map(function (a) {
+        return '<div class="reassign-row" data-id="' + adminEscHTML(a.id) + '">' +
+          '<span class="reassign-row-title">' + adminEscHTML(a.title) + '</span>' +
+          '<select class="reassign-row-sel"><option value="">선택…</option>' + optHTML + '</select>' +
+        '</div>';
+      }).join('');
+    } catch (err) {
+      reassignListEl.innerHTML = '<div class="reassign-loading">불러오기 실패: ' + adminEscHTML(err.message) + '</div>';
+    }
+  }
+
   function closeReassign() {
     reassignModal.classList.remove('open');
-    _reassignId = null; _reassignName = '';
+    _reassignId = null; _reassignName = ''; _reassignDocs = [];
   }
   document.getElementById('reassignClose').addEventListener('click', closeReassign);
   document.getElementById('reassignCancel').addEventListener('click', closeReassign);
   reassignModal.addEventListener('click', e => { if (e.target === reassignModal) closeReassign(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && reassignModal.classList.contains('open')) closeReassign(); });
 
+  // 전체 한 번에 — 비어 있는 행만 채운다(이미 개별 지정한 것은 존중)
+  document.getElementById('reassignApplyAll').addEventListener('click', () => {
+    const v = reassignBulk.value;
+    if (!v) { reassignErr.textContent = '전체로 적용할 카테고리를 먼저 고르세요.'; return; }
+    reassignErr.textContent = '';
+    reassignListEl.querySelectorAll('.reassign-row-sel').forEach(sel => { sel.value = v; });
+  });
+
   reassignConfirmBtn.addEventListener('click', async () => {
-    const target = reassignSel.value;
-    if (!target) { reassignErr.textContent = '옮길 카테고리를 선택해 주세요.'; return; }
     if (!_reassignId || !_reassignName) return;
+    const rows = Array.from(reassignListEl.querySelectorAll('.reassign-row'));
+    // 목적지 누락 검사
+    const missing = rows.filter(r => !r.querySelector('.reassign-row-sel').value);
+    if (missing.length) {
+      reassignErr.textContent = missing.length + '개 글의 이동할 카테고리가 지정되지 않았습니다.';
+      missing[0].scrollIntoView({ block: 'center' });
+      missing[0].querySelector('.reassign-row-sel').focus();
+      return;
+    }
     const fromName = _reassignName;
     const catId = _reassignId;
     reassignConfirmBtn.disabled = true;
     reassignErr.textContent = '이동 중…';
     try {
-      const snap = await fb.db.collection('articles').where('category', '==', fromName).get();
-      let batch = fb.db.batch();
-      let ops = 0;
-      for (const doc of snap.docs) {
-        const upd = { category: target };
-        // 표시 라벨(cat)이 카테고리명과 같던(시리즈가 아닌) 글은 라벨도 함께 갱신
-        if ((doc.data().cat || '') === fromName) upd.cat = target;
-        batch.update(doc.ref, upd);
-        ops++;
-        if (ops >= 450) { await batch.commit(); batch = fb.db.batch(); ops = 0; }
+      let batch = fb.db.batch(), ops = 0;
+      const flush = async () => { if (ops) { await batch.commit(); batch = fb.db.batch(); ops = 0; } };
+      for (const r of rows) {
+        const id = r.dataset.id;
+        const to = r.querySelector('.reassign-row-sel').value;
+        const src = _reassignDocs.find(x => x.id === id) || {};
+        const upd = { category: to };
+        if ((src.cat || '') === fromName) upd.cat = to;   // 시리즈가 아닌 글만 라벨 동기화
+        batch.update(fb.db.collection('articles').doc(id), upd); ops++;
+        if (ops >= 450) await flush();
       }
-      if (ops > 0) await batch.commit();
-      // 글 이동 완료 후 카테고리 삭제
-      await fb.db.collection('categories').doc(catId).delete();
+      // 이동 완료 후 카테고리 삭제
+      batch.delete(fb.db.collection('categories').doc(catId)); ops++;
+      await flush();
       closeReassign();
-      sysAlert(`'${fromName}'의 글 ${snap.size}개를 '${target}'(으)로 옮기고 카테고리를 삭제했습니다.`, { icon: 'success' });
+      sysAlert("'" + fromName + "'의 글 " + rows.length + "개를 각 카테고리로 옮기고 카테고리를 삭제했습니다.", { icon: 'success' });
       loadArticleCounts();
     } catch (err) {
       reassignErr.textContent = '처리 실패: ' + err.message;
