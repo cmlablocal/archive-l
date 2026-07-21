@@ -631,7 +631,9 @@
       body = Object.keys(d.fields).map(function(k) {
         const v = d.fields[k];
         if (v == null || String(v).trim() === '') return '';
-        return '<div class="inbox-f"><span>' + escHTML(k) + '</span><b>' + escHTML(String(v)) + '</b></div>';
+        // 문의 내용처럼 여러 줄로 쓴 값의 줄바꿈을 살린다.
+        return '<div class="inbox-f"><span>' + escHTML(k) + '</span><b>' +
+          escHTML(String(v)).replace(/\n/g, '<br/>') + '</b></div>';
       }).join('');
     }
     const detail =
