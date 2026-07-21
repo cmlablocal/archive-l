@@ -504,7 +504,7 @@
           </div>
           <textarea id="editor"></textarea>
           <div class="field-help" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <span>툴바의 <strong>포맷</strong> 메뉴로 6종 레이아웃을 삽입하면 <strong>실제 디자인 그대로</strong> 편집됩니다. <strong>스타일</strong> 메뉴로 제목·인용 등 단락 서식, <strong>미디어</strong>로 유튜브·영상 임베드, <strong>목차</strong>로 자동 목차를 넣을 수 있어요.</span>
+            <span><strong>스타일</strong> 메뉴로 제목·인용 등 단락 서식, <strong>요소</strong> 메뉴로 구분선·콜아웃·<strong>장소 카드</strong>, <strong>미디어</strong>로 유튜브·영상 임베드, <strong>목차</strong>로 자동 목차를 넣을 수 있어요.</span>
             <span id="bodyStats" style="white-space:nowrap;font-variant-numeric:tabular-nums;">0자 · 0분</span>
           </div>
         </div>
@@ -832,7 +832,7 @@ function initEditor() {
     branding: false,
     promotion: false,
     plugins: 'lists link image media table code autoresize quickbars wordcount toc charmap',
-    toolbar: 'undo redo | styles blocks fontfamily fontsizeinput lineheight | bold italic underline strikethrough forecolor backcolor | bullist numlist | alignleft aligncenter alignright | link image media table toc | pformat pelem | removeformat charmap code',
+    toolbar: 'undo redo | styles blocks fontfamily fontsizeinput lineheight | bold italic underline strikethrough forecolor backcolor | bullist numlist | alignleft aligncenter alignright | link image media table toc | pelem | removeformat charmap code',
     toolbar_mode: 'wrap',
     font_size_input_default_unit: 'px',
     font_size_formats: '12px 14px 15px 16px 18px 20px 24px 28px 32px 40px',
@@ -921,21 +921,6 @@ function initEditor() {
     },
     setup: function(ed) {
       editor = ed;
-      // "포맷" 메뉴 — 6종 콘텐츠 레이아웃
-      ed.ui.registry.addMenuButton('pformat', {
-        text: '포맷',
-        tooltip: '콘텐츠 포맷 삽입',
-        fetch: function(commit) {
-          commit([
-            { type: 'menuitem', text: '인터뷰 · 대담', onAction: () => insertFormat('interview') },
-            { type: 'menuitem', text: '케이스 스터디', onAction: () => insertFormat('case') },
-            { type: 'menuitem', text: '비주얼 에세이', onAction: () => insertFormat('visual') },
-            { type: 'menuitem', text: '큐레이션 · 리스트', onAction: () => insertFormat('curation') },
-            { type: 'menuitem', text: '위클리 다이제스트', onAction: () => insertFormat('digest') },
-            { type: 'menuitem', text: '용어 사전 · 레퍼런스', onAction: () => insertFormat('reference') }
-          ]);
-        }
-      });
       // "요소" 메뉴 — 간단 편집 요소
       ed.ui.registry.addMenuButton('pelem', {
         text: '요소',
@@ -946,7 +931,7 @@ function initEditor() {
             { type: 'menuitem', text: '풀쿼트(인용)', onAction: () => insertTemplate('<blockquote class="pull-quote"><p>인용문</p><cite>출처</cite></blockquote><p><br/></p>') },
             { type: 'menuitem', text: '콜아웃(강조 박스)', onAction: () => insertTemplate('<aside class="callout"><strong>핵심</strong><p>내용</p></aside><p><br/></p>') },
             { type: 'menuitem', text: '2단 비교', onAction: () => insertTemplate('<div class="two-col"><div><p>좌</p></div><div><p>우</p></div></div><p><br/></p>') },
-            { type: 'menuitem', text: '오프라인 주소(지도)', onAction: () => insertTemplate('<div class="map-box" contenteditable="false"><span class="map-box-pin"><i class="fa-solid fa-location-dot"></i></span><span class="map-box-body"><span class="map-box-name" contenteditable="true">장소 이름</span><span class="map-box-addr" contenteditable="true">주소를 입력하세요</span></span><span class="map-box-cta">지도 열기 <i class="fa-solid fa-arrow-up-right-from-square"></i></span></div><p><br/></p>') }
+            { type: 'menuitem', text: '장소 카드 (주소 · 지도 링크)', onAction: () => openPlaceCardDialog(ed) }
           ]);
         }
       });
@@ -961,6 +946,67 @@ function initEditor() {
           else { schedulePreview(); updateBodyStats(); }
         });
       });
+    }
+  });
+}
+
+/* ===== 본문 중간에 넣는 '장소 카드' =====
+   본문이 흘러가다가 특정 장소를 짚고 싶을 때 쓰는 카드.
+   좌표 없이 주소 문자열만으로 카카오맵 검색 링크를 만들기 때문에
+   지오코딩이 필요 없다(글 하단의 '장소 · 지도'와는 별개 기능).
+   삽입 결과는 <a>라서 발행된 글에서 누르면 새 탭으로 카카오맵이 열린다. */
+function placeCardHTML(name, address) {
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const href = 'https://map.kakao.com/link/search/' + encodeURIComponent(address);
+  return '<a class="map-box mceNonEditable" href="' + esc(href) + '" target="_blank" rel="noopener">' +
+    '<span class="map-box-pin"><i class="fa-solid fa-location-dot"></i></span>' +
+    '<span class="map-box-body">' +
+      '<span class="map-box-name">' + esc(name) + '</span>' +
+      '<span class="map-box-addr">' + esc(address) + '</span>' +
+    '</span>' +
+    '<span class="map-box-cta">지도 열기 <i class="fa-solid fa-arrow-up-right-from-square"></i></span>' +
+  '</a>';
+}
+
+function openPlaceCardDialog(ed) {
+  ed.windowManager.open({
+    title: '장소 카드 삽입',
+    body: {
+      type: 'panel',
+      items: [
+        { type: 'input', name: 'name', label: '지역명 · 장소명', placeholder: '예: 제주 서귀포 · 소리소문' },
+        { type: 'input', name: 'address', label: '주소', placeholder: '주소를 직접 입력하거나 아래 버튼으로 검색' },
+        { type: 'button', name: 'search', text: '주소 검색', buttonType: 'secondary' },
+        { type: 'htmlpanel', html: '<p style="margin:6px 0 0;font-size:12px;opacity:.7;">카드를 누르면 카카오맵에서 이 주소가 열립니다. 수정하려면 카드를 지우고 다시 넣어주세요.</p>' }
+      ]
+    },
+    buttons: [
+      { type: 'cancel', text: '취소' },
+      { type: 'submit', text: '삽입', primary: true }
+    ],
+    onAction: function (api, details) {
+      if (details.name !== 'search') return;
+      window.loadPostcode().then(function () {
+        new daum.Postcode({
+          oncomplete: function (data) {
+            const addr = data.roadAddress || data.jibunAddress || data.address || '';
+            api.setData({ address: addr });
+          }
+        }).open();
+      }).catch(function () {
+        showToast('주소 검색을 불러오지 못했습니다. 주소를 직접 입력해 주세요.', 'error');
+      });
+    },
+    onSubmit: function (api) {
+      const d = api.getData();
+      const name = (d.name || '').trim();
+      const address = (d.address || '').trim();
+      if (!address) { showToast('주소를 입력해 주세요.', 'error'); return; }
+      ed.insertContent(placeCardHTML(name || address, address) + '<p><br/></p>');
+      api.close();
+      schedulePreview();
+      showToast('장소 카드가 삽입되었습니다.', 'success');
     }
   });
 }
@@ -1073,98 +1119,6 @@ function showEditorPopupOverlay() {
 function hideEditorPopupOverlay() {
   const ov = document.getElementById('editorPopupOverlay');
   if (ov) ov.remove();
-}
-
-// 6개 콘텐츠 포맷 템플릿 (편집 가능한 HTML 골격)
-const FORMAT_TEMPLATES = {
-  interview: `<div class="pf pf-interview">
-  <p class="pf-label">INTERVIEW</p>
-  <div class="pf-person">
-    <img class="pf-avatar" src="" alt="인물 사진" />
-    <div class="pf-who"><b>인물 이름</b><span>소속 / 직함</span></div>
-  </div>
-  <div class="pf-qa">
-    <p class="pf-q">첫 번째 질문을 입력하세요.</p>
-    <p class="pf-a">답변을 입력하세요.</p>
-  </div>
-  <div class="pf-qa">
-    <p class="pf-q">두 번째 질문을 입력하세요.</p>
-    <p class="pf-a">답변을 입력하세요.</p>
-  </div>
-  <blockquote class="pf-pullquote">핵심이 되는 발언을 큰 글씨로 강조하세요.</blockquote>
-  <div class="pf-qa">
-    <p class="pf-q">마지막 질문을 입력하세요.</p>
-    <p class="pf-a">답변을 입력하세요.</p>
-  </div>
-</div>`,
-  case: `<div class="pf pf-case">
-  <p class="pf-label">CASE STUDY</p>
-  <div class="pf-chips"><span>클라이언트 · OOO</span><span>분야 · 브랜드</span><span>2026</span></div>
-  <div class="pf-metrics">
-    <div class="pf-metric"><b>+38%</b><span>지표 설명</span></div>
-    <div class="pf-metric"><b>2.4×</b><span>지표 설명</span></div>
-    <div class="pf-metric"><b>4개</b><span>지표 설명</span></div>
-  </div>
-  <div class="pf-section"><h3><span class="pf-step">01</span>배경</h3><p>내용을 입력하세요.</p></div>
-  <div class="pf-section"><h3><span class="pf-step">02</span>문제</h3><p>내용을 입력하세요.</p></div>
-  <div class="pf-section"><h3><span class="pf-step">03</span>접근</h3><p>내용을 입력하세요.</p></div>
-  <div class="pf-section"><h3><span class="pf-step">04</span>결과</h3><p>내용을 입력하세요.</p></div>
-</div>`,
-  visual: `<div class="pf pf-visual">
-  <p class="pf-label">VISUAL ESSAY</p>
-  <figure class="pf-vfull"><img src="" alt="이미지" /><figcaption>이미지를 설명하는 캡션.</figcaption></figure>
-  <div class="pf-vduo">
-    <figure><img src="" alt="이미지" /></figure>
-    <figure><img src="" alt="이미지" /></figure>
-  </div>
-  <p class="pf-vcap">두 이미지를 잇는 캡션.</p>
-  <figure class="pf-vfull"><img src="" alt="이미지" /><figcaption>마지막 이미지 캡션.</figcaption></figure>
-</div>`,
-  curation: `<div class="pf pf-curation">
-  <p class="pf-label">CURATION</p>
-  <div class="pf-cur"><div class="pf-rank">01</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
-  <div class="pf-cur"><div class="pf-rank">02</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
-  <div class="pf-cur"><div class="pf-rank">03</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
-  <div class="pf-cur"><div class="pf-rank">04</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
-  <div class="pf-cur"><div class="pf-rank">05</div><img class="pf-curimg" src="" alt="" /><div class="pf-curtxt"><h4>항목 제목</h4><p>한 줄 설명.</p></div></div>
-</div>`,
-  digest: `<div class="pf pf-digest">
-  <p class="pf-label">WEEKLY</p>
-  <div class="pf-group">
-    <div class="pf-ghead">아티클</div>
-    <div class="pf-ditem"><div class="pf-k">05.26</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
-    <div class="pf-ditem"><div class="pf-k">05.28</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
-  </div>
-  <div class="pf-group">
-    <div class="pf-ghead">영상</div>
-    <div class="pf-ditem"><div class="pf-k">05.27</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
-  </div>
-  <div class="pf-group">
-    <div class="pf-ghead">오피니언</div>
-    <div class="pf-ditem"><div class="pf-k">진행중</div><div class="pf-dt"><b>제목을 입력하세요</b><span>한 줄 설명</span></div></div>
-  </div>
-</div>`,
-  reference: `<div class="pf pf-ref">
-  <p class="pf-label">REFERENCE</p>
-  <div class="pf-term">
-    <div class="pf-word">용어<span class="pf-pron">English</span></div>
-    <p class="pf-def">정의를 입력하세요.</p>
-    <div class="pf-rel">
-      <div class="pf-rellbl">연관 용어 · 글</div>
-      <a href="#"><i class="fa-solid fa-link"></i> 연관 항목</a>
-      <a href="#"><i class="fa-solid fa-link"></i> 연관 항목</a>
-    </div>
-  </div>
-</div>`
-};
-
-// 포맷 삽입 — TinyMCE가 HTML을 보존하므로 그대로 삽입, 에디터에서 바로 편집
-function insertFormat(key) {
-  const tpl = FORMAT_TEMPLATES[key];
-  if (!tpl || !editor) return;
-  editor.insertContent(tpl + '<p><br/></p>');
-  schedulePreview();
-  showToast('포맷이 삽입되었습니다. 에디터에서 바로 편집하세요.', 'success');
 }
 
 // ====== Series UX — Firestore 실시간 구독 ======
