@@ -11,7 +11,7 @@
    지도가 없는 아티클에서 카카오 스크립트를 받지 않게 하기 위함.
    ========================================================= */
 (function () {
-  // 카카오 개발자 콘솔 > 플랫폼 키 > JavaScript 키 > 'locallayers' (LOCALLAYER 전용 키)
+  // 카카오 개발자 콘솔 > 플랫폼 키 > JavaScript 키 > 'locallayers' (LOCALLAYERS 전용 키)
   var KAKAO_JS_KEY = '298bab0b7890837479a8c582e2252d31';
 
   var mapsPromise = null;

@@ -174,7 +174,7 @@
     }
   })();
 
-  /* ===== LOCALLAYER 브랜드 스토리 모달 (푸터 locallayers.kr 클릭) ===== */
+  /* ===== LOCALLAYERS 브랜드 스토리 모달 (푸터 locallayers.kr 클릭) ===== */
 
   // initial theme
   (function() {
@@ -446,7 +446,7 @@
       if (submitBtn) submitBtn.textContent = '회원가입';
       if (toggleLink) { toggleLink.textContent = '← 로그인'; toggleLink.setAttribute('onclick', 'toggleLoginMode(); return false;'); }
       if (title) title.textContent = '회원가입';
-      if (sub) sub.innerHTML = '이메일·비밀번호·이름으로 가입하세요.<br/>독자가 되면 LOCALLAYER 콘텐츠를 모두 이용하실 수 있습니다.';
+      if (sub) sub.innerHTML = '이메일·비밀번호·이름으로 가입하세요.<br/>독자가 되면 LOCALLAYERS 콘텐츠를 모두 이용하실 수 있습니다.';
       _setAgreeVisible(true);
       _setSignupPwVisible(true);
       _setEmailCheckVisible(true);
@@ -469,7 +469,7 @@
       if (submitBtn) submitBtn.textContent = '로그인';
       if (toggleLink) { toggleLink.textContent = '회원가입 →'; toggleLink.setAttribute('onclick', 'toggleLoginMode(); return false;'); }
       if (title) title.textContent = '로그인';
-      if (sub) sub.innerHTML = 'LOCALLAYER 독자가 되면<br/>모든 아티클을 끝까지 읽을 수 있어요.';
+      if (sub) sub.innerHTML = 'LOCALLAYERS 독자가 되면<br/>모든 아티클을 끝까지 읽을 수 있어요.';
       _setAgreeVisible(false);
       _setSignupPwVisible(false);
       _setEmailCheckVisible(false);
@@ -1110,7 +1110,7 @@
       if (desc) { leadEl.textContent = desc; leadEl.style.display = ''; }
       else { leadEl.textContent = ''; leadEl.style.display = 'none'; }
     }
-    document.title = listPageCategory + ' · LOCALLAYER';
+    document.title = listPageCategory + ' · LOCALLAYERS';
   }
 
   // 목록 페이지 진입 시: 카테고리 + 발행 글을 불러와 필터/목록 갱신
@@ -1180,12 +1180,22 @@
     return '<div class="card-place-badge" aria-label="지도 있음" title="지도 있음"><i class="fa-solid fa-location-dot"></i></div>';
   }
 
+  /* 작성자명 표기.
+     브랜드 명의로 발행한 글은 로고와 같은 결로 읽히도록 LAYERS를 굵게 쓴다.
+     예전 글에는 'LOCALLAYER'(S 없음)로 저장돼 있으므로 표시할 때 함께 흡수한다 —
+     Firestore 값은 건드리지 않는다. */
+  function _authorHTML(name) {
+    const n = String(name || '').trim();
+    if (/^LOCALLAYERS?$/i.test(n)) return 'LOCAL<strong>LAYERS</strong>';
+    return escHTML(n);
+  }
+
   // 카드 메타 우측에 붙는 작성자명. 값이 없으면 아무것도 그리지 않아
   // 날짜만 있는 카드의 레이아웃이 흔들리지 않는다.
   function _cardAuthor(a) {
     const name = (a && a.author ? String(a.author) : '').trim();
     if (!name) return '';
-    return '<span class="card-author">' + escHTML(name) + '</span>';
+    return '<span class="card-author">' + _authorHTML(name) + '</span>';
   }
 
   // 홈 탭 선택에 따라 카드 표시/숨김. 선택된 1차 카테고리에 속한 카드만 노출.
@@ -1893,10 +1903,10 @@
     // 브랜드 푸터
     ctx.fillStyle = fg;
     ctx.font = '700 30px Pretendard, sans-serif';
-    ctx.fillText('LOCALLAYER', padX, H - 96);
+    ctx.fillText('LOCALLAYERS', padX, H - 96);
     ctx.fillStyle = muted;
     ctx.font = '400 24px Pretendard, sans-serif';
-    ctx.fillText('LOCALLAYER · locallayers.kr', padX, H - 60);
+    ctx.fillText('LOCALLAYERS · locallayers.kr', padX, H - 60);
 
     return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
   }
@@ -1911,7 +1921,7 @@
       if (!blob) throw new Error('blob 생성 실패');
       const file = new File([blob], 'perspective-sentence.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'LOCALLAYER 문장' });
+        await navigator.share({ files: [file], title: 'LOCALLAYERS 문장' });
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -2194,7 +2204,7 @@
     let html = '';
     html += '<div class="recap-card" id="recapCard">';
     html += '  <div class="recap-head">';
-    html += '    <span class="recap-kicker">' + YEAR + ' LOCALLAYER</span>';
+    html += '    <span class="recap-kicker">' + YEAR + ' LOCALLAYERS</span>';
     html += '    <h2 class="recap-title">' + (userName ? escHTML(userName) + ' 님의<br/>' : '') + '올해의 생각 정리</h2>';
     html += '  </div>';
     html += '  <div class="recap-stats">';
@@ -2219,7 +2229,7 @@
       if (a) html += '    <p class="recap-quote-src">— ' + escHTML(a.title || '') + '</p>';
       html += '  </div>';
     }
-    html += '  <div class="recap-foot">LOCALLAYER · locallayers.kr</div>';
+    html += '  <div class="recap-foot">LOCALLAYERS · locallayers.kr</div>';
     html += '</div>';
     html += '<p class="recap-note">올해 ' + YEAR + '년 동안 쌓아온 나의 기록을 모았어요.</p>';
 
@@ -2950,9 +2960,9 @@
 
     let html = '<div class="library-card">';
 
-    // 헤더 — LOCALLAYER 에디토리얼 스타일 (박스/그라데이션 제거, 타이포 중심)
+    // 헤더 — LOCALLAYERS 에디토리얼 스타일 (박스/그라데이션 제거, 타이포 중심)
     html += '<header class="library-head">';
-    html += '<div class="library-eyebrow">LOCALLAYER · READER LIBRARY</div>';
+    html += '<div class="library-eyebrow">LOCALLAYERS · READER LIBRARY</div>';
     html += '<h1 class="library-name">' + escHTML(p.handle || '독자') + '</h1>';
     if (p.bio) html += '<p class="library-bio">' + escHTML(p.bio) + '</p>';
     // 통계 — 인라인 스트립(구분선)
@@ -3025,12 +3035,12 @@
         '<a href="/mypage.html">나의 서재</a> 상단의 책갈피 아이콘에서 업데이트하거나 공개를 중지할 수 있어요.</div>';
     }
 
-    html += '<div class="library-foot"><a class="library-cta" href="/">LOCALLAYER에서 더 많은 글 만나기 →</a></div>';
+    html += '<div class="library-foot"><a class="library-cta" href="/">LOCALLAYERS에서 더 많은 글 만나기 →</a></div>';
     html += '</div>';
     root.innerHTML = html;
 
     // 페이지 제목 갱신
-    try { document.title = (p.handle || '독자') + '님의 공개 서재 | LOCALLAYER'; } catch (e) {}
+    try { document.title = (p.handle || '독자') + '님의 공개 서재 | LOCALLAYERS'; } catch (e) {}
   }
   window.renderPublicLibrary = renderPublicLibrary;
 
@@ -3160,7 +3170,7 @@
 
     // 헤더 — 타이포 중심 에디토리얼 (설정 버튼 제거 — 내용 영역 클릭으로 편집)
     html += '<header class="editor-head">';
-    html += '<div class="editor-eyebrow">LOCALLAYER EDITOR</div>';
+    html += '<div class="editor-eyebrow">LOCALLAYERS EDITOR</div>';
     html += '<div class="editor-name-row">';
     html += '<h1 class="editor-name">' + escHTML(name) + '</h1>';
     html += '</div>';
@@ -3211,7 +3221,7 @@
 
     _epRenderSections();
 
-    try { document.title = name + ' · 에디터 | LOCALLAYER'; } catch (e) {}
+    try { document.title = name + ' · 에디터 | LOCALLAYERS'; } catch (e) {}
   }
   window.renderEditorProfile = renderEditorProfile;
 
@@ -4999,7 +5009,7 @@
   /* ===== Share / Copy link ===== */
   function shareTo(platform, articleId) {
     const url = window.location.href.split('#')[0] + '#' + articleId;
-    const text = 'LOCALLAYER — ' + (document.querySelector('#article-' + articleId + ' .article-title')?.textContent || '');
+    const text = 'LOCALLAYERS — ' + (document.querySelector('#article-' + articleId + ' .article-title')?.textContent || '');
     if (platform === 'x') {
       window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
     } else if (platform === 'instagram') {
@@ -7274,8 +7284,8 @@
     // ---- 폼 구성 정의 ----
     const INQUIRY_FORMS = {
       general: {
-        title: 'LOCALLAYER 콘텐츠 이용 문의',
-        intro: 'LOCALLAYER를 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 메시지함에서 확인하실 수 있습니다.',
+        title: 'LOCALLAYERS 콘텐츠 이용 문의',
+        intro: 'LOCALLAYERS를 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
@@ -7287,8 +7297,8 @@
         ]
       },
       editor: {
-        title: 'LOCALLAYER 에디터 지원',
-        intro: '당신의 관점을 LOCALLAYER에서 직접 발행해보세요. 아래 양식을 남겨주시면 검토 후 결과를 메시지함에서 안내드립니다. 이름·이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
+        title: 'LOCALLAYERS 에디터 지원',
+        intro: '당신의 관점을 LOCALLAYERS에서 직접 발행해보세요. 아래 양식을 남겨주시면 검토 후 결과를 메시지함에서 안내드립니다. 이름·이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
         submit: '에디터 지원하기',
         collection: 'editorApplications',
         successMsg: '에디터 지원이 접수되었어요.<br/>검토 후 결과는 메시지함에서 확인하실 수 있어요.',
@@ -7665,7 +7675,7 @@
           a.addEventListener('click', e => { e.preventDefault(); openInquiry('general'); });
         }
       });
-      // 푸터 하단 주소(locallayers.kr) 클릭 → LOCALLAYER 브랜드 스토리 모달
+      // 푸터 하단 주소(locallayers.kr) 클릭 → LOCALLAYERS 브랜드 스토리 모달
       // (openBrandModal 캐러셀 하나만 사용 — aboutMovementModal 중복 트리거 제거)
     }
 

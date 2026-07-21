@@ -1,5 +1,5 @@
 /* ===========================================================
-   LOCALLAYER — Firebase 초기화 & 헬퍼
+   LOCALLAYERS — Firebase 초기화 & 헬퍼
    - Firebase Auth (이메일/비번)
    - Firestore (사용자별 데이터, 글 카탈로그)
    compat SDK 사용 (기존 비-모듈 app.js와 호환)

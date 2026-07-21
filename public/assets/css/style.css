@@ -6217,3 +6217,7 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
   .card-video-badge + .card-place-badge,
   .card-audio-badge + .card-place-badge { right: 52px; }
 }
+
+/* ===== 브랜드 명의 작성자 표기 — 로고와 같은 결(LOCAL 얇게 · LAYERS 굵게) ===== */
+.article-author strong { font-weight: 800; }
+.card-author strong { font-weight: 700; color: #fff; }

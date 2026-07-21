@@ -1,5 +1,5 @@
 /* =====================================================================
- * pod-player.js — LOCALLAYER 팟캐스트 플레이어 (재사용 모듈)
+ * pod-player.js — LOCALLAYERS 팟캐스트 플레이어 (재사용 모듈)
  *
  * 사용법:
  *   window.initPodcastPlayer({
