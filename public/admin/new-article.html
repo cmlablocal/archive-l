@@ -301,13 +301,7 @@
       <!-- ① 콘텐츠 유형 -->
       <div class="field-group">
         <div class="field-group-title">① 콘텐츠 유형</div>
-        <div class="choice-grid cols-4" id="typeChoice">
-          <label class="choice-opt">
-            <input type="radio" name="ctype" value="series" />
-            <span class="opt-ico"><i class="fa-solid fa-layer-group"></i></span>
-            <span class="opt-name">시리즈</span>
-            <span class="opt-desc">연재 콘텐츠. 편수·순번이 자동 계산돼요.</span>
-          </label>
+        <div class="choice-grid cols-2" id="typeChoice">
           <label class="choice-opt">
             <input type="radio" name="ctype" value="standalone" checked />
             <span class="opt-ico"><i class="fa-regular fa-newspaper"></i></span>
@@ -319,12 +313,6 @@
             <span class="opt-ico"><i class="fa-solid fa-film"></i></span>
             <span class="opt-name">영상</span>
             <span class="opt-desc">영상 우선 콘텐츠. 카테고리로 분류해요.</span>
-          </label>
-          <label class="choice-opt">
-            <input type="radio" name="ctype" value="podcast" />
-            <span class="opt-ico"><i class="fa-solid fa-headphones"></i></span>
-            <span class="opt-name">팟캐스트</span>
-            <span class="opt-desc">유튜브·웹 오디오로 듣는 콘텐츠. 카테고리로 분류해요.</span>
           </label>
         </div>
       </div>
@@ -591,23 +579,23 @@
       </div>
 
       <!-- 참고 자료 -->
-      <div class="field-group" id="thanksGroup">
+      <div class="field-group" id="thanksGroup" hidden>
         <div class="field-group-title">참고 자료 · 도움 주신 분</div>
         <div id="thanksList"></div>
         <button type="button" class="dynlist-add" onclick="addThanks('', '')"><i class="fa-solid fa-plus"></i> 항목 추가</button>
       </div>
 
-      <!-- 첨부파일 (PDF) -->
+      <!-- 첨부파일 -->
       <div class="field-group" id="attachmentsGroup">
-        <div class="field-group-title">첨부파일 (PDF)</div>
+        <div class="field-group-title">첨부파일</div>
         <div class="field">
-          <label>PDF 문서 첨부 (여러 개 가능)</label>
+          <label>파일 첨부 (여러 개 가능)</label>
           <div class="attach-upload" id="attachUpload">
-            <input type="file" id="attachInput" accept="application/pdf" multiple hidden />
+            <input type="file" id="attachInput" multiple hidden />
             <div class="attach-upload-empty" id="attachEmpty">
-              <i class="fa-solid fa-file-pdf"></i>
-              <p>PDF 드래그 또는 클릭</p>
-              <div class="field-help">PDF만 · 파일당 최대 20MB</div>
+              <i class="fa-solid fa-paperclip"></i>
+              <p>파일 드래그 또는 클릭</p>
+              <div class="field-help">파일당 최대 20MB</div>
             </div>
           </div>
           <div id="attachList" class="attach-list"></div>
@@ -729,7 +717,7 @@ let tags = [];
 let currentArticleId = null;        // null = new article, set = edit/already-saved
 let isExistingDoc = false;          // tracks whether Firestore doc already exists
 let _legacyStaticData = null;       // if editing a legacy id, keep reference
-let attachments = [];               // [{ name, size, url, file?(미업로드) }] — PDF 첨부
+let attachments = [];               // [{ name, size, url, file?(미업로드) }] — 첨부파일
 
 // ====== Field references ======
 const F = {
@@ -2262,7 +2250,7 @@ async function saveThumbPreset() {
   }
 }
 
-// ====== 첨부파일 (PDF) ======
+// ====== 첨부파일 ======
 function formatFileSize(bytes) {
   if (!bytes && bytes !== 0) return '';
   if (bytes < 1024) return bytes + ' B';
@@ -2290,8 +2278,6 @@ function setupAttachments() {
 function handleAttachFiles(fileList) {
   const files = Array.from(fileList || []);
   files.forEach(file => {
-    const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-    if (!isPdf) { showToast('PDF 파일만 첨부할 수 있습니다.', 'error'); return; }
     if (file.size > 20 * 1024 * 1024) { showToast(`'${file.name}'은(는) 20MB를 초과합니다.`, 'error'); return; }
     attachments.push({ name: file.name, size: file.size, url: null, file });
   });
@@ -2306,7 +2292,7 @@ function renderAttachments() {
     item.className = 'attach-item';
     const status = att.url ? '' : '<span class="attach-status">업로드 대기</span>';
     item.innerHTML = `
-      <i class="fa-solid fa-file-pdf"></i>
+      <i class="fa-solid fa-paperclip"></i>
       <span class="attach-name">${escapeHTML(att.name)}</span>
       <span class="attach-size">${formatFileSize(att.size)}</span>
       ${status}
@@ -2712,7 +2698,7 @@ function buildArticleHTML(s) {
   // 추천 콘텐츠(다음 이야기)는 발행된 글의 article.html에서 자동 산출됩니다. (미리보기에서는 생략)
   const nextHTML = '';
 
-  // 첨부파일(PDF) — 전역 attachments 상태 사용
+  // 첨부파일 — 전역 attachments 상태 사용
   const attachItems = (typeof attachments !== 'undefined' ? attachments : []).filter(a => a && a.name);
   const attachHTML = attachItems.length ? `
     <div class="container">
@@ -2721,7 +2707,7 @@ function buildArticleHTML(s) {
         <div class="attach-download-list">
           ${attachItems.map(a => `
             <a class="attach-download" ${a.url ? `href="${escapeHTML(a.url)}" target="_blank" rel="noopener"` : ''} download>
-              <i class="fa-solid fa-file-pdf"></i>
+              <i class="fa-solid fa-paperclip"></i>
               <span class="attach-dl-name">${escapeHTML(a.name)}</span>
               ${a.size ? `<span class="attach-dl-size">${formatFileSize(a.size)}</span>` : ''}
             </a>`).join('')}
@@ -2968,7 +2954,7 @@ async function saveArticle(targetStatus, silent) {
     }
   }
 
-  // Upload pending PDF attachments
+  // Upload pending attachments
   const pendingAttach = attachments.filter(a => a.file && !a.url);
   if (pendingAttach.length) {
     try {
@@ -3289,7 +3275,7 @@ function populateForm(d) {
   // 다음 글(추천)은 자동 산출이므로 수동 필드 복원 없음
   _pendingNextId = '';
   if (F.next) F.next.value = '';
-  // 첨부파일(PDF) 복원
+  // 첨부파일 복원
   attachments = Array.isArray(d.attachments)
     ? d.attachments.map(a => ({ name: a.name || '', size: a.size || 0, url: a.url || '', file: null }))
     : [];
