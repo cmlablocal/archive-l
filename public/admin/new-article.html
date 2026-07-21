@@ -570,9 +570,11 @@
           <label for="fSub">부제목</label>
           <input type="text" id="fSub" placeholder="짧은 한 줄 요약 · 예: 바다를 등지고 앉은 책방의 하루" />
         </div>
-        <div class="field">
-          <label for="fLead">리드 문장 (상단 큰 글씨)</label>
-          <textarea id="fLead" rows="3" placeholder="글을 여는 두세 문장. 큰 글씨로 표시됩니다."></textarea>
+        <!-- 리드 문장 — 입력란은 없앴지만 요소는 남긴다.
+             이미 리드가 들어간 기존 글을 다시 저장할 때 값이 지워지지 않도록
+             (로드 → 보관 → 저장 경로가 이 요소를 그대로 통과한다) -->
+        <div class="field" hidden>
+          <textarea id="fLead" rows="3"></textarea>
         </div>
         <div class="field" id="bodyFieldWrap">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -718,7 +720,7 @@
         </div>
         <div class="field">
           <label for="fOgDesc">공유 설명 (og:description)</label>
-          <textarea id="fOgDesc" rows="2" placeholder="비우면 부제목/리드 문장을 사용합니다"></textarea>
+          <textarea id="fOgDesc" rows="2" placeholder="비우면 부제목을 사용합니다"></textarea>
         </div>
         <div class="field">
           <label>공유 이미지 (og:image)</label>
