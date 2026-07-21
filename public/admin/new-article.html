@@ -2835,7 +2835,8 @@ function buildArticleHTML(s) {
   const eyebrowHTML = `<div class="article-eyebrow">${_eyebrowInner}</div>`;
   const subHTML = s.sub ? `<p class="article-sub">${escapeHTML(s.sub).replace(/\n/g, '<br/>')}</p>` : '';
 
-  const leadHTML = s.lead ? `<p class="article-lead">${escapeHTML(s.lead).replace(/\n/g, '<br/>')}</p>` : '';
+  // 리드 문장은 폐지한 기능 — 공개 페이지와 동일하게 미리보기에서도 노출하지 않는다.
+  const leadHTML = '';
   const videoHTML = s.videoId ? `
     <div class="article-video-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:-18px 0 100px;">
       <iframe
@@ -2937,7 +2938,7 @@ function buildArticleHTML(s) {
       <section class="pod-section"><h2 class="pod-h2">다운로드</h2>
         <div class="pod-download"><div class="pod-dl-info"><span class="pod-dl-ic"><i class="fa-solid fa-file-audio"></i></span><div class="pod-dl-txt"><span class="pod-dl-name">${escapeHTML(s.title||'에피소드')}</span><span class="pod-dl-meta">오디오 음원</span></div></div><a class="pod-dl-btn" href="#"><i class="fa-solid fa-arrow-down-to-line"></i> 음원 다운로드</a></div>
       </section>` : '';
-    const podSub = (s.sub || s.lead) ? `<p class="pod-sub">${escapeHTML(s.sub || s.lead).replace(/\n/g,'<br/>')}</p>` : '';
+    const podSub = s.sub ? `<p class="pod-sub">${escapeHTML(s.sub).replace(/\n/g,'<br/>')}</p>` : '';
     return `<article id="article-${previewId}" class="article-content"${s.free ? ' data-free="true"' : ''}>
       <section class="pod-hero"><div class="pod-wrap">
         <div class="pod-eyebrow">${escapeHTML(s.cat || s.category || '')}${(s.cat||s.category)?' · ':''}LOCALLAYER Audio</div>
@@ -2994,7 +2995,7 @@ function buildPrereleaseHTML(s) {
   const dateLabel = s.publishDateLabel
     ? s.publishDateLabel
     : (s.date ? `${s.date} 발행 예정` : '발행 예정');
-  const subText = s.sub || s.lead || '';
+  const subText = s.sub || '';
   const leadHTML = subText ? `<p class="article-lead">${escapeHTML(subText).replace(/\n/g, '<br/>')}</p>` : '';
 
   const outline = Array.isArray(s.outline) ? s.outline : [];

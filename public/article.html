@@ -253,9 +253,10 @@ function renderPrerelease(id, d) {
     ? d.publishDateLabel
     : (d.date ? `${d.date} 발행 예정` : '발행 예정');
 
+  // 부제목만 사용 — 폐지한 리드 문장은 예전 값이 남아 있어도 노출하지 않는다.
   const leadHTML = d.sub
     ? `<p class="article-lead">${escHTML(d.sub).replace(/\n/g, '<br/>')}</p>`
-    : (d.lead ? `<p class="article-lead">${escHTML(d.lead).replace(/\n/g, '<br/>')}</p>` : '');
+    : '';
 
   // Outline (시리즈) — array of { num, title, description }
   const outline = Array.isArray(d.outline) ? d.outline : [];
@@ -376,7 +377,7 @@ async function renderRecommendation(id, d) {
   const _mk = (a, isNext) => ({
     id: a.id,
     title: a.title || '',
-    sub: a.sub || a.lead || '',
+    sub: a.sub || '',
     thumb: a.thumb || a.cover || '',
     label: isNext ? '다음 에피소드' : (_catLabelSafe(a.cat || a.category) || '추천 콘텐츠'),
     isNext: !!isNext
@@ -467,7 +468,7 @@ function renderPodcast(id, d) {
   eyebrowParts.push('LOCALLAYER Audio');
   const eyebrow = eyebrowParts.join(' · ');
 
-  const subText = d.sub || d.lead || '';
+  const subText = d.sub || '';
   const subHTML = subText ? `<p class="pod-sub">${escHTML(subText).replace(/\n/g, '<br/>')}</p>` : '';
 
   const viewNum = (typeof d.viewCount === 'number' ? d.viewCount : 0) + 1;
@@ -485,7 +486,7 @@ function renderPodcast(id, d) {
     </section>` : '';
 
   // 본문(스크립트)
-  const leadHTML = d.lead ? `<p class="lead">${escHTML(d.lead).replace(/\n/g, '<br/>')}</p>` : '';
+  const leadHTML = '';   // 리드 문장 폐지
   const bodyHTML = d.bodyHtml || '';
   const scriptSection = (bodyHTML || leadHTML) ? `
     <section class="pod-section">
@@ -687,7 +688,8 @@ function renderArticle(id, d) {
   const viewNum = (typeof d.viewCount === 'number' ? d.viewCount : 0) + 1;
   const viewsHTML = `<span class="article-views" aria-label="조회수"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${viewNum.toLocaleString()}</span>`;
 
-  const leadHTML = d.lead ? `<p class="article-lead">${escHTML(d.lead).replace(/\n/g, '<br/>')}</p>` : '';
+  // 리드 문장은 폐지한 기능. 예전 글에 남아 있는 lead 값도 더는 노출하지 않는다.
+  const leadHTML = '';
   // 프리릴리즈 단계에서 적어둔 '이 콘텐츠가 어떤 내용일지'(intent)를
   // 발행된 글에서는 본문 상단의 흰색 박스(에디터 노트)로 보여준다.
   const intentText = d.intent || '';
