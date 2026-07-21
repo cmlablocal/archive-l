@@ -11,7 +11,7 @@
    조회가 방문자 통계에 섞이면 수치를 신뢰할 수 없다.
    ========================================================= */
 (function () {
-  var MEASUREMENT_ID = '';   // 예: 'G-XXXXXXXXXX'
+  var MEASUREMENT_ID = 'G-C4EKZJWD2D';   // LOCALLAYERS (locallayers.kr)
 
   if (!MEASUREMENT_ID) return;
   // 어드민 경로에서는 수집하지 않는다 (직접 열었을 때 대비한 이중 안전장치)
