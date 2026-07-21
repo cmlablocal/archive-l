@@ -6217,3 +6217,21 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 /* ===== 브랜드 명의 작성자 표기 — 로고와 같은 결(LOCAL 얇게 · LAYERS 굵게) ===== */
 .article-author strong { font-weight: 800; }
 .card-author strong { font-weight: 700; color: #fff; }
+
+/* ===== 모바일 가로 오버플로 방지 (전수 점검에서 발견) =====
+   에디터에서 넣은 표·코드 블록은 폭 제한이 없어 좁은 화면에서 페이지 전체를
+   옆으로 밀어냈다. 블록 안에서만 가로 스크롤되도록 가둔다. */
+.article-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.article-body pre,
+.article-body code {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-wrap: break-word;
+}
+/* 페이지 제목도 한국어 어절 단위로 끊기게 (카테고리명이 길어질 때) */
+.page-title { word-break: keep-all; }
