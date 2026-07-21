@@ -1469,31 +1469,22 @@
   }
   .card-free i { font-size: 14px; line-height: 1; }
 
-  /* 히어로는 'VIDEO' 같은 텍스트 칩과 함께 쓰이므로 칩 형태를 유지한다. */
-  .featured-free {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 11px 5px 9px;
-    background: transparent;
-    color: rgba(255,255,255,0.95);
-    border: 1px solid rgba(255,255,255,0.55);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    border-radius: 999px;
-    line-height: 1;
+  /* 히어로도 카드와 같은 규칙 — 우측에 포맷 라벨 + 픽토그램만 나란히 */
+  .featured-marks {
+    display: inline-flex; align-items: center; gap: 14px;
     flex-shrink: 0;
   }
-  .featured-free i {
-    font-size: 10px;
+  .featured-format { letter-spacing: inherit; }
+  .featured-free,
+  .featured-place {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.85);
     line-height: 1;
+    flex-shrink: 0;
+    pointer-events: none;
   }
-  .featured-free {
-    display: inline-flex;
-    margin-bottom: 18px;
-    padding: 6px 12px 6px 10px;
-    font-size: 10.5px;
-  }
-  .featured-free i { font-size: 11px; }
+  .featured-free i,
+  .featured-place i { font-size: 14px; line-height: 1; }
 
   .gate-cta {
     padding: 8px 0 80px;
@@ -2765,6 +2756,8 @@
     }
     .carousel { margin-bottom: 48px; }
     .featured-top { top: 20px; left: 20px; right: 20px; font-size: 10px; letter-spacing: 0.18em; }
+    .featured-marks { gap: 10px; }
+    .featured-free i, .featured-place i { font-size: 12.5px; }
     .featured-bottom { bottom: 70px; left: 20px; right: 20px; }
     .featured-meta { gap: 10px; margin-bottom: 14px; font-size: 10px; }
     .featured-meta .divider { width: 14px; }

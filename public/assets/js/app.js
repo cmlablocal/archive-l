@@ -6155,6 +6155,16 @@
   }
   function _buildHeroSlide(a) {
     const seriesLabel = _heroLabelFor(a);
+    // 카드와 동일한 규칙: 우측에 픽토그램만 나란히 (모두에게 공개 · 지도 있음)
+    const heroFree = a.free
+      ? '<span class="featured-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>'
+      : '';
+    const _hp = a.place;
+    const heroPlace = (_hp && isFinite(parseFloat(_hp.lat)) && isFinite(parseFloat(_hp.lng)))
+      ? '<span class="featured-place" aria-label="지도 있음" title="지도 있음"><i class="fa-solid fa-location-dot"></i></span>'
+      : '';
+    const heroMarks = '<span class="featured-marks"><span class="featured-format">'
+      + escHTML(_heroFormatLabel(a)) + '</span>' + heroFree + heroPlace + '</span>';
     // 영상 콘텐츠 — 전체화면 비디오 모달로 재생
     if (a.videoMode && a.videoId) {
       _heroVideoMap[a.id] = {
@@ -6174,7 +6184,7 @@
         <div class="video-play-btn"><i class="fa-solid fa-play"></i></div>
         <div class="featured-top">
           <span class="badge">VIDEO</span>
-          <span>${escHTML(_heroFormatLabel(a))}</span>
+          ${heroMarks}
         </div>
         <div class="featured-bottom">
           <div class="featured-meta">
@@ -6191,9 +6201,6 @@
         </div>
       </article>`;
     }
-    const freeBadge = a.free
-      ? `<span class="featured-free"><i class="fa-solid fa-lock-open"></i>모두에게</span>`
-      : '';
     const safeId = String(a.id || '').replace(/'/g, "\\'");
     return `
       <article class="featured carousel-slide" onclick="showArticle('${safeId}')">
@@ -6201,10 +6208,9 @@
         <div class="featured-overlay"></div>
         <div class="featured-top">
           <span class="badge">FEATURED</span>
-          <span>${escHTML(_heroFormatLabel(a))}</span>
+          ${heroMarks}
         </div>
         <div class="featured-bottom">
-          ${freeBadge}
           <div class="featured-meta">
             <span>${escHTML(a.cat || '')}</span>
             <span class="divider"></span>
@@ -6269,6 +6275,7 @@
           videoMode: !!d.videoMode,
           podcastMode: !!d.podcastMode,
           videoId: d.videoId || _parseYouTubeId(d.videoUrl || ''),
+          place: d.place || null,
           hasBody: _hasBodyContent(d.bodyHtml)
         };
       }
@@ -6287,6 +6294,7 @@
           videoMode: !!a.videoMode,
           podcastMode: !!a.podcastMode,
           videoId: a.videoId || _parseYouTubeId(a.videoUrl || ''),
+          place: a.place || null,
           hasBody: _hasBodyContent(a.bodyHtml)
         };
       }
