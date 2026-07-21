@@ -5650,15 +5650,18 @@
     }
   });
 
-  // 오프라인 주소 박스 → 구글맵 열기 (무료, API 키 불필요)
+  // 장소 카드 → 카카오맵 열기.
+  // 현재 에디터가 삽입하는 카드는 <a href="map.kakao.com/...">라서 이 핸들러가 필요 없다.
+  // 여기서는 링크가 없던 구버전 카드(<div class="map-box">)만 보조로 처리한다.
   document.addEventListener('click', e => {
     const box = e.target.closest('.map-box');
     if (!box) return;
+    if (box.closest('a') || box.tagName === 'A') return;   // 링크형 카드는 브라우저에 맡긴다
     const addrEl = box.querySelector('.map-box-addr');
     const nameEl = box.querySelector('.map-box-name');
     const query = ((addrEl && addrEl.textContent) || (nameEl && nameEl.textContent) || '').trim();
     if (!query) return;
-    window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query), '_blank', 'noopener');
+    window.open('https://map.kakao.com/link/search/' + encodeURIComponent(query), '_blank', 'noopener');
   });
 
   // initial sync

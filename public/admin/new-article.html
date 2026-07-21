@@ -275,6 +275,83 @@
   }
   .series-info-box strong { color: var(--admin-accent); font-weight: 700; }
   .series-info-box.empty { color: var(--muted); }
+  /* ===== TinyMCE 다이얼로그 — 어드민 톤에 맞춰 재정의 =====
+     기본 스킨은 파란 강조색·둥근 버튼이라 흑백 기조의 어드민과 겉돈다.
+     .tox 루트에만 적용되므로 링크·이미지·표 등 다른 다이얼로그도 함께 정돈된다. */
+  .tox .tox-dialog {
+    border: 1px solid var(--admin-border);
+    border-radius: 14px;
+    box-shadow: 0 18px 48px rgba(0,0,0,.18);
+    background: var(--bg);
+    font-family: inherit;
+    max-width: 460px;
+  }
+  .tox .tox-dialog__header {
+    padding: 22px 26px 6px;
+    background: transparent;
+    border-bottom: none;
+    color: var(--fg);
+  }
+  .tox .tox-dialog__title {
+    font-family: inherit;
+    font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .tox .tox-dialog__body { color: var(--fg); }
+  .tox .tox-dialog__body-content { padding: 12px 26px 4px; }
+  .tox .tox-form__group { margin-bottom: 15px; }
+  .tox .tox-label {
+    font-family: inherit;
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    margin-bottom: 6px; text-transform: none; letter-spacing: 0;
+  }
+  .tox .tox-textfield,
+  .tox .tox-textarea {
+    font-family: inherit;
+    font-size: 13.5px;
+    padding: 10px 12px;
+    min-height: 0;
+    color: var(--fg);
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    box-shadow: none;
+  }
+  .tox .tox-textfield:focus,
+  .tox .tox-textarea:focus {
+    border-color: var(--fg);
+    box-shadow: none;
+    outline: none;
+  }
+  .tox .tox-textfield::placeholder { color: var(--muted); opacity: .7; }
+
+  /* 버튼 — 기본(삽입)은 검정, 보조(취소·주소 검색)는 외곽선만 */
+  .tox .tox-button {
+    font-family: inherit;
+    font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+    padding: 9px 18px;
+    border-radius: 8px;
+    box-shadow: none;
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+  .tox .tox-button:hover:not(:disabled) { background: var(--fg); opacity: .85; }
+  .tox .tox-button--secondary {
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    color: var(--fg);
+  }
+  .tox .tox-button--secondary:hover:not(:disabled) {
+    background: var(--hover);
+    border-color: var(--fg);
+  }
+  .tox .tox-dialog__footer {
+    padding: 14px 26px 20px;
+    background: transparent;
+    border-top: none;
+  }
+  /* 다이얼로그 안 안내문 */
+  .tox .tox-html-panel p { font-family: inherit; }
 </style>
 </head>
 <body class="admin composer">
@@ -838,7 +915,7 @@ function initEditor() {
     toolbar: [
       'undo redo | styles fontsizeinput lineheight | removeformat',
       'bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright',
-      'bullist numlist | link image media table | pelem toc | charmap code'
+      'bullist numlist | link image media table | placecard pelem toc | charmap code'
     ],
     toolbar_mode: 'wrap',
     font_size_input_default_unit: 'px',
@@ -928,6 +1005,13 @@ function initEditor() {
     },
     setup: function(ed) {
       editor = ed;
+      // "장소" 버튼 — 본문 중간에 넣는 장소 카드
+      ed.ui.registry.addButton('placecard', {
+        text: '장소',
+        icon: 'location',
+        tooltip: '장소 카드 삽입 (주소 · 카카오맵 링크)',
+        onAction: function () { openPlaceCardDialog(ed); }
+      });
       // "요소" 메뉴 — 간단 편집 요소
       ed.ui.registry.addMenuButton('pelem', {
         text: '요소',
@@ -937,8 +1021,7 @@ function initEditor() {
             { type: 'menuitem', text: '구분선', onAction: () => insertTemplate('<hr class="divider"/><p><br/></p>') },
             { type: 'menuitem', text: '풀쿼트(인용)', onAction: () => insertTemplate('<blockquote class="pull-quote"><p>인용문</p><cite>출처</cite></blockquote><p><br/></p>') },
             { type: 'menuitem', text: '콜아웃(강조 박스)', onAction: () => insertTemplate('<aside class="callout"><strong>핵심</strong><p>내용</p></aside><p><br/></p>') },
-            { type: 'menuitem', text: '2단 비교', onAction: () => insertTemplate('<div class="two-col"><div><p>좌</p></div><div><p>우</p></div></div><p><br/></p>') },
-            { type: 'menuitem', text: '장소 카드 (주소 · 지도 링크)', onAction: () => openPlaceCardDialog(ed) }
+            { type: 'menuitem', text: '2단 비교', onAction: () => insertTemplate('<div class="two-col"><div><p>좌</p></div><div><p>우</p></div></div><p><br/></p>') }
           ]);
         }
       });
@@ -983,9 +1066,9 @@ function openPlaceCardDialog(ed) {
       type: 'panel',
       items: [
         { type: 'input', name: 'name', label: '지역명 · 장소명', placeholder: '예: 제주 서귀포 · 소리소문' },
-        { type: 'input', name: 'address', label: '주소', placeholder: '주소를 직접 입력하거나 아래 버튼으로 검색' },
-        { type: 'button', name: 'search', text: '주소 검색', buttonType: 'secondary' },
-        { type: 'htmlpanel', html: '<p style="margin:6px 0 0;font-size:12px;opacity:.7;">카드를 누르면 카카오맵에서 이 주소가 열립니다. 수정하려면 카드를 지우고 다시 넣어주세요.</p>' }
+        { type: 'input', name: 'address', label: '주소', placeholder: '예: 제주특별자치도 서귀포시 ○○로 12' },
+        { type: 'button', name: 'search', text: '주소 검색으로 채우기', buttonType: 'secondary' },
+        { type: 'htmlpanel', html: '<p style="margin:14px 0 2px;font-size:11.5px;line-height:1.6;color:#8A8A85;">본문 중간에 사각 카드로 삽입됩니다. 발행 후 카드를 누르면 카카오맵에서 이 주소가 열립니다.<br/>내용을 바꾸려면 카드를 지우고 다시 넣어주세요.</p>' }
       ]
     },
     buttons: [
