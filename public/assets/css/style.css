@@ -1458,7 +1458,19 @@
   .av-unmute--gone { opacity: 0; transform: translateY(6px); pointer-events: none; }
 
   /* Free / Open badge — outline only with unlock icon */
-  .card-free, .featured-free {
+  /* 카드의 공개 표시 — 영상·장소 아이콘과 같은 규칙(픽토그램만).
+     .card-marks 한 줄 안에서 크기·색이 나란히 맞는다. */
+  .card-free {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.85);
+    line-height: 1;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+  .card-free i { font-size: 14px; line-height: 1; }
+
+  /* 히어로는 'VIDEO' 같은 텍스트 칩과 함께 쓰이므로 칩 형태를 유지한다. */
+  .featured-free {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 11px 5px 9px;
     background: transparent;
@@ -1471,7 +1483,7 @@
     line-height: 1;
     flex-shrink: 0;
   }
-  .card-free i, .featured-free i {
+  .featured-free i {
     font-size: 10px;
     line-height: 1;
   }

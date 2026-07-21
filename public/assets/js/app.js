@@ -1313,7 +1313,7 @@
       const cat = a.category || a.cat || '';
       const top = _topCat(cat);
       const catHTML = _cardCatHTML(a);
-      const freeMark = a.free ? '<span class="card-free"><i class="fa-solid fa-lock-open"></i>모두에게</span>' : '';
+      const freeMark = a.free ? '<span class="card-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>' : '';
       const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       return `
         <article class="card dyn-card" data-cat="${escHTML(top)}" onclick="openCardVideo('${escHTML(a.id)}')">
@@ -1347,7 +1347,7 @@
     const top = candidates.slice(0, 6);
     grid.innerHTML = top.map((a, idx) => {
       const catHTML = _cardCatHTML(a);
-      const freeMark = a.free ? '<span class="card-free"><i class="fa-solid fa-lock-open"></i>모두에게</span>' : '';
+      const freeMark = a.free ? '<span class="card-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>' : '';
       const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       const views = (a.viewCount || 0).toLocaleString('ko-KR');
       return `
@@ -1703,7 +1703,7 @@
       const cat = a.category || a.cat || '';
       const top = _topCat(cat);
       const catHTML = _cardCatHTML(a);
-      const freeMark = a.free ? '<span class="card-free"><i class="fa-solid fa-lock-open"></i>모두에게</span>' : '';
+      const freeMark = a.free ? '<span class="card-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>' : '';
       const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       return `
         <article class="card${dim}" data-cat="${escHTML(top)}" onclick="${click}">
