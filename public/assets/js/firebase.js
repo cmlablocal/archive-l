@@ -215,15 +215,91 @@
     }
   }
 
+  /* ===== 업로드 전 이미지 축소 =====
+     폰으로 찍은 사진은 4000px대·수 MB라 그대로 올리면 모바일에서 눈에 띄게 느려진다.
+     업로드 직전 캔버스로 긴 변을 MAX_EDGE로 줄이고 다시 인코딩한다.
+
+     - GIF(움직임 소실) · SVG(벡터) · 이미지가 아닌 첨부파일은 손대지 않는다
+     - 이미 충분히 작으면(긴 변 이하 + 용량 이하) 원본을 그대로 쓴다
+     - WebP를 우선 시도한다. 알파를 보존하면서 가장 작다.
+       인코딩을 지원하지 않는 브라우저는 JPEG로 떨어지며,
+       이때는 투명 영역이 검게 나오지 않도록 흰 배경을 먼저 깐다
+     - 줄인 결과가 원본보다 크면 원본을 쓴다 (작은 PNG 아이콘 등) */
+  const IMG_MAX_EDGE = 1920;      // 긴 변 상한
+  const IMG_SKIP_BYTES = 300 * 1024; // 이 아래면 굳이 건드리지 않음
+  const IMG_QUALITY = 0.85;
+
+  function _loadBitmap(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽지 못했습니다.')); };
+      img.src = url;
+    });
+  }
+
+  function _canvasToBlob(canvas, type, quality) {
+    return new Promise(resolve => {
+      try { canvas.toBlob(b => resolve(b), type, quality); }
+      catch (_) { resolve(null); }
+    });
+  }
+
+  async function shrinkImage(file) {
+    if (!file || !file.type || !file.type.startsWith('image/')) return file;
+    if (file.type === 'image/gif' || file.type === 'image/svg+xml') return file;
+
+    let img;
+    try { img = await _loadBitmap(file); }
+    catch (_) { return file; }   // 못 읽으면 원본 그대로 진행
+
+    const w = img.naturalWidth, h = img.naturalHeight;
+    if (!w || !h) return file;
+    const longEdge = Math.max(w, h);
+    if (longEdge <= IMG_MAX_EDGE && file.size <= IMG_SKIP_BYTES) return file;
+
+    const scale = Math.min(1, IMG_MAX_EDGE / longEdge);
+    const tw = Math.round(w * scale), th = Math.round(h * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = tw; canvas.height = th;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+
+    ctx.drawImage(img, 0, 0, tw, th);
+
+    let blob = await _canvasToBlob(canvas, 'image/webp', IMG_QUALITY);
+    let outType = 'image/webp', outExt = 'webp';
+    // WebP 미지원(또는 실패) → JPEG. 투명 배경이 검게 변하지 않도록 흰색을 먼저 칠한다.
+    if (!blob || blob.type !== 'image/webp') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, tw, th);
+      ctx.restore();
+      blob = await _canvasToBlob(canvas, 'image/jpeg', IMG_QUALITY);
+      outType = 'image/jpeg'; outExt = 'jpg';
+    }
+    if (!blob || blob.size >= file.size) return file;   // 이득이 없으면 원본
+
+    const base = (file.name || 'image').replace(/\.[^.]+$/, '');
+    console.log('[uploadImage] 축소:', `${w}x${h} ${(file.size/1024).toFixed(0)}KB`,
+                '→', `${tw}x${th} ${(blob.size/1024).toFixed(0)}KB`);
+    return new File([blob], base + '.' + outExt, { type: outType, lastModified: Date.now() });
+  }
+
   // ===== Storage 헬퍼 =====
   async function uploadImage(file, folder) {
     if (!storage) throw new Error('Firebase Storage가 로드되지 않았습니다.');
     folder = folder || 'misc';
-    const ext = (file.name || 'image.jpg').split('.').pop();
+    // 첨부파일 폴더는 원본 보존(문서·zip 등 이미지가 아닌 파일이 올라온다).
+    // 그 외 이미지는 업로드 전에 축소한다.
+    const payload = (folder === 'attachments') ? file : await shrinkImage(file);
+    const ext = (payload.name || 'image.jpg').split('.').pop();
     const filename = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const path = `articles/${folder}/${filename}`;
     const ref = storage.ref(path);
-    const snap = await ref.put(file);
+    const snap = await ref.put(payload);
     return await snap.ref.getDownloadURL();
   }
 

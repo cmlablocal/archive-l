@@ -509,7 +509,7 @@
             <div class="thumb-upload-empty" id="thumbEmpty">
               <i class="fa-solid fa-cloud-arrow-up"></i>
               <p>이미지 드래그 또는 클릭</p>
-              <div class="field-help">JPG, PNG, WebP (최대 5MB)</div>
+              <div class="field-help">JPG, PNG, WebP (최대 20MB) · 업로드 시 자동으로 축소·압축됩니다</div>
             </div>
             <div class="thumb-preview" id="thumbPreview" hidden>
               <img id="thumbImg" alt="썸네일" />
@@ -728,7 +728,7 @@
             <div class="thumb-upload-empty" id="ogEmpty">
               <i class="fa-solid fa-cloud-arrow-up"></i>
               <p>이미지 드래그 또는 클릭</p>
-              <div class="field-help">권장 1200×630 · JPG, PNG, WebP (최대 5MB)</div>
+              <div class="field-help">권장 1200×630 · JPG, PNG, WebP (최대 20MB) · 업로드 시 자동으로 축소·압축됩니다</div>
             </div>
             <div class="thumb-preview" id="ogPreview" hidden>
               <img id="ogImg" alt="공유 이미지" />
@@ -991,7 +991,7 @@ function initEditor() {
       input.onchange = async () => {
         const file = input.files[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { showToast('이미지는 5MB 이하만 가능합니다.', 'error'); return; }
+        if (file.size > 20 * 1024 * 1024) { showToast('이미지는 20MB 이하만 가능합니다.', 'error'); return; }
         try {
           showToast('이미지 업로드 중...', 'info');
           const url = await fb.uploadImage(file, 'body');
@@ -1806,7 +1806,7 @@ function setupThumbnailUpload() {
   function handleThumbnail(file) {
     const validTypes = ['image/jpeg','image/png','image/webp'];
     if (!validTypes.includes(file.type)) { showToast('JPG, PNG, WebP만 가능합니다.', 'error'); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast('5MB 이하만 가능합니다.', 'error'); return; }
+    if (file.size > 20 * 1024 * 1024) { showToast('20MB 이하만 가능합니다.', 'error'); return; }
     thumbnailFile = file;
     thumbnailUrl = null; // 새 파일이라 URL 무효화 → 저장 시 업로드
     const reader = new FileReader();
@@ -1867,7 +1867,7 @@ function setupOgImageUpload() {
   function handleOgImage(file) {
     const validTypes = ['image/jpeg','image/png','image/webp'];
     if (!validTypes.includes(file.type)) { showToast('JPG, PNG, WebP만 가능합니다.', 'error'); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast('5MB 이하만 가능합니다.', 'error'); return; }
+    if (file.size > 20 * 1024 * 1024) { showToast('20MB 이하만 가능합니다.', 'error'); return; }
     ogImageFile = file;
     ogImageUrl = null; // 새 파일이라 URL 무효화 → 저장 시 업로드
     const reader = new FileReader();
@@ -1919,7 +1919,7 @@ function setupThumbMobileUpload() {
   function handleThumbMobile(file) {
     const validTypes = ['image/jpeg','image/png','image/webp'];
     if (!validTypes.includes(file.type)) { showToast('JPG, PNG, WebP만 가능합니다.', 'error'); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast('5MB 이하만 가능합니다.', 'error'); return; }
+    if (file.size > 20 * 1024 * 1024) { showToast('20MB 이하만 가능합니다.', 'error'); return; }
     thumbMobileFile = file;
     thumbMobileUrl = null; // 새 파일이라 URL 무효화 → 저장 시 업로드
     const reader = new FileReader();
