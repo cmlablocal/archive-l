@@ -117,6 +117,7 @@
   let currentCat = 'all';
   let currentSeries = 'all';
   let seriesMap = {}; // code -> name
+  let catList = []; // 카테고리 컬렉션 원본 (1차/2차 전체)
   let firestoreArticles = []; // [{ id, src:'firestore', data }]
   const STATIC_ARTICLES = Object.entries(window.ARTICLES || {}).map(([id, a]) => ({
     id, src: 'static', data: a
@@ -199,6 +200,12 @@
   function catOf(item) {
     return (item.data.cat || item.data.category || '').trim();
   }
+  // 1차 카테고리를 고르면 그 아래 2차 카테고리 글도 함께 잡는다(공개 목록과 동일한 규칙).
+  function catMatch(item) {
+    const c = catOf(item);
+    if (c === currentCat) return true;
+    return catList.some(x => x && x.name === c && (x.parent || '').trim() === currentCat);
+  }
   function seriesCodeOf(item) {
     return (item.data.series || '').trim();
   }
@@ -218,15 +225,41 @@
     document.getElementById('cntSTATIC').textContent = counts.STATIC;
   }
 
-  // 카테고리 드롭다운 옵션 채우기 (현재 데이터 기준)
+  // 카테고리 드롭다운 옵션 채우기.
+  // 카테고리 관리에 등록된 전체 목록을 1차 > 2차 순서 그대로 보여준다.
+  // (글이 아직 없는 카테고리도 골라둘 수 있어야 하므로 '사용 중인 값'만 뽑지 않는다)
+  // 카테고리에서 지워졌지만 글에는 남아 있는 값은 뒤에 따로 붙여, 그 글을 못 찾는 일이 없게 한다.
   function refreshFilterOptions(all) {
     const catSel = document.getElementById('catFilter');
     if (!catSel) return;
 
-    const cats = Array.from(new Set(all.map(catOf).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ko'));
+    const ordered = [];
+    const seen = new Set();
+    const tops = catList.filter(c => !(c.parent || '').trim());
+    const kids = catList.filter(c => (c.parent || '').trim());
+    const byOrder = (a, b) => {
+      const oa = a.order != null ? a.order : 0, ob = b.order != null ? b.order : 0;
+      if (oa !== ob) return oa - ob;
+      return (a.name || '').localeCompare(b.name || '', 'ko');
+    };
+    tops.sort(byOrder).forEach(t => {
+      if (t.name && !seen.has(t.name)) { seen.add(t.name); ordered.push({ name: t.name, sub: false }); }
+      kids.filter(k => (k.parent || '').trim() === t.name).sort(byOrder).forEach(k => {
+        if (k.name && !seen.has(k.name)) { seen.add(k.name); ordered.push({ name: k.name, sub: true }); }
+      });
+    });
+    // 카테고리 목록에 없는데 글에 쓰인 값 (삭제된 카테고리 등)
+    Array.from(new Set(all.map(catOf).filter(Boolean)))
+      .filter(c => !seen.has(c))
+      .sort((a, b) => a.localeCompare(b, 'ko'))
+      .forEach(c => { seen.add(c); ordered.push({ name: c, sub: false, orphan: true }); });
 
+    const cats = ordered.map(o => o.name);
     catSel.innerHTML = '<option value="all">전체 카테고리</option>' +
-      cats.map(c => `<option value="${adminEscHTML(c)}">${adminEscHTML(c)}</option>`).join('');
+      ordered.map(o => {
+        const label = (o.sub ? '\u00a0\u00a0\u2514 ' : '') + o.name + (o.orphan ? ' (미등록)' : '');
+        return `<option value="${adminEscHTML(o.name)}">${adminEscHTML(label)}</option>`;
+      }).join('');
 
     // 선택값 복원 (없어졌으면 all)
     catSel.value = cats.includes(currentCat) ? currentCat : 'all';
@@ -240,7 +273,7 @@
 
     const rows = all.filter(item => {
       if (currentFilter !== 'all' && statusOf(item) !== currentFilter) return false;
-      if (currentCat !== 'all' && catOf(item) !== currentCat) return false;
+      if (currentCat !== 'all' && !catMatch(item)) return false;
       if (currentSeries !== 'all' && seriesCodeOf(item) !== currentSeries) return false;
       return true;
     });
@@ -370,6 +403,14 @@
       });
   }
 
+  // 카테고리 컬렉션 구독 — 드롭다운을 등록된 전체 카테고리로 채우기 위해
+  function subscribeCategories() {
+    fb.db.collection('categories').onSnapshot(snap => {
+      catList = snap.docs.map(doc => doc.data() || {}).filter(c => c && c.name);
+      renderTable();
+    }, err => { console.warn('[articles] 카테고리 로드 실패:', err.message); });
+  }
+
   // 시리즈 컬렉션 로드 → code→name 매핑 (드롭다운 라벨용)
   function subscribeSeries() {
     fb.db.collection('series').onSnapshot(snap => {
@@ -404,7 +445,7 @@
   // Initial render (with only static items) then start subscription
   renderTable();
   fb.authReady.then(user => {
-    if (user && fb.isAdmin()) { subscribeArticles(); subscribeSeries(); }
+    if (user && fb.isAdmin()) { subscribeArticles(); subscribeSeries(); subscribeCategories(); }
   });
 </script>
 </body>
