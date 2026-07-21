@@ -993,16 +993,40 @@
     return all.sort((a, b) => _pubMs(b) - _pubMs(a));
   }
 
-  // Firestore에서 발행된 글을 불러와 목록에 병합
-  async function loadPublishedArticles() {
-    if (!window.fb) return;
-    try {
-      const snap = await fb.db.collection('articles').where('status', '==', 'PUBLISHED').get();
-      _fsListArticles = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      _fsArticlesLoaded = true; // 성공적으로 라이브 인덱스 확보 → 아카이브 차감 활성화
-    } catch (err) {
-      console.warn('[list] 발행 글 로드 실패:', err.message);
-    }
+  // 발행 글 목록이 바뀌었을 때 다시 그려야 하는 화면들.
+  // 해당 요소가 없는 페이지에서는 자동으로 건너뛴다.
+  function _rerenderArticleSurfaces() {
+    if (typeof renderHomeLatest === 'function' && document.getElementById('latestGrid')) renderHomeLatest();
+    if (typeof renderHomePopular === 'function' && document.getElementById('popularGrid')) renderHomePopular();
+    if (typeof renderList === 'function' && document.getElementById('listRows')) renderList();
+  }
+
+  // Firestore 발행 글을 실시간 구독해 목록에 병합.
+  // 어드민에서 발행·수정·삭제하면 방문자가 새로고침하지 않아도 반영된다.
+  // 첫 스냅샷에서 resolve하므로 기존 await 호출부는 그대로 동작한다.
+  let _articlesUnsub = null;
+  function loadPublishedArticles() {
+    if (!window.fb) return Promise.resolve();
+    return new Promise(resolve => {
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(); } };
+      try {
+        if (_articlesUnsub) _articlesUnsub();
+        _articlesUnsub = fb.db.collection('articles').where('status', '==', 'PUBLISHED')
+          .onSnapshot(snap => {
+            _fsListArticles = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            _fsArticlesLoaded = true; // 라이브 인덱스 확보 → 아카이브 차감 활성화
+            done();
+            _rerenderArticleSurfaces();
+          }, err => {
+            console.warn('[list] 발행 글 구독 실패:', err.message);
+            done();
+          });
+      } catch (err) {
+        console.warn('[list] 발행 글 구독 실패:', err.message);
+        done();
+      }
+    });
   }
 
   // 현재 노출 가능한(발행된) 글 id 집합 — 정적 + Firestore PUBLISHED
@@ -4925,16 +4949,20 @@
     if (!tag) { tag = document.createElement('meta'); tag.setAttribute(attr, key); document.head.appendChild(tag); }
     tag.setAttribute('content', content);
   }
-  async function applySeoMeta() {
+  // site/seo 를 실시간 구독 — 어드민 SEO·메타에서 저장하면 즉시 반영된다.
+  let _seoUnsub = null;
+  function applySeoMeta() {
     if (!window.fb || !fb.db) return;
     const key = _seoPageKey();
     if (!key) return;
-    let data;
-    try {
-      const snap = await fb.db.collection('site').doc('seo').get();
+    if (_seoUnsub) _seoUnsub();
+    _seoUnsub = fb.db.collection('site').doc('seo').onSnapshot(snap => {
       if (!snap.exists) return;
-      data = snap.data() || {};
-    } catch (e) { return; }
+      _applySeoData(snap.data() || {}, key);
+    }, err => { console.warn('[seo] 구독 실패:', err.message); });
+  }
+
+  function _applySeoData(data, key) {
     const pg = (data.pages || {})[key] || {};
     const title = pg.title || data.defaultTitle || '';
     const desc = pg.desc || data.defaultDesc || '';
@@ -6192,21 +6220,28 @@
       </article>`;
   }
 
-  async function loadHeroArticles() {
+  // site/hero 를 실시간 구독한다.
+  // 어드민 '히어로 관리'에서 저장하면 방문자 화면이 새로고침 없이 바뀐다.
+  let _heroUnsub = null;
+  function loadHeroArticles() {
     const track = document.getElementById('carouselTrack');
     if (!track) return; // 홈이 아니면 스킵
     if (!window.fb || !fb.db) return;
-    let heroDoc;
-    try {
-      heroDoc = await fb.db.collection('site').doc('hero').get();
-    } catch (err) {
-      console.warn('[hero] site/hero 로드 실패:', err.message);
-      return;
-    }
-    if (!heroDoc || !heroDoc.exists) return;
-    const data = heroDoc.data() || {};
-    const ids = Array.isArray(data.items) ? data.items.filter(x => typeof x === 'string') : [];
-    if (ids.length === 0) return;
+    if (_heroUnsub) _heroUnsub();
+    _heroUnsub = fb.db.collection('site').doc('hero').onSnapshot(doc => {
+      if (!doc || !doc.exists) return;
+      const data = doc.data() || {};
+      const ids = Array.isArray(data.items) ? data.items.filter(x => typeof x === 'string') : [];
+      if (ids.length === 0) return;
+      _renderHeroFromIds(ids);
+    }, err => {
+      console.warn('[hero] site/hero 구독 실패:', err.message);
+    });
+  }
+
+  async function _renderHeroFromIds(ids) {
+    const track = document.getElementById('carouselTrack');
+    if (!track) return;
 
     // Firestore에서 PUBLISHED 글을 일괄 조회 (개별 fetch)
     const promises = ids.map(id => fb.db.collection('articles').doc(id).get()
