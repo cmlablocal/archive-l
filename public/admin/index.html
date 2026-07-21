@@ -133,7 +133,7 @@
     { label: '신규 가입 · 7일', value: '—', delta: '최근 7일 가입한 독자', id: 'statNewUsers7', href: '/admin/users.html' },
     { label: '총 발행 글', value: '—', delta: '발행 콘텐츠 합계', id: 'statPubArticles' },
     { label: '총 독자', value: '—', delta: '가입한 독자 수', id: 'statReaders' },
-    { label: '총 책갈피', value: '—', delta: '독자들이 저장한 글', id: 'statBookmarks' }
+    { label: '총 좋아요', value: '—', delta: '독자들이 누른 좋아요', id: 'statLikes' }
   ];
   document.getElementById('dashboardStats').innerHTML = stats.map(s => {
     const inner = `
@@ -229,13 +229,13 @@
       if (card) card.classList.toggle('is-alert', unread > 0);
     }, err => console.warn('[dashboard] inquiries:', err.message));
 
-    // 총 책갈피 — PUBLISHED 글의 bookmarkCount 합계 + 인기 아티클(조회수)
+    // 총 좋아요 — PUBLISHED 글의 rcNew 합계 + 인기 아티클(조회수)
     fb.db.collection('articles').where('status', '==', 'PUBLISHED').onSnapshot(snap => {
-      const total = snap.docs.reduce((s, d) => s + (d.data().bookmarkCount || 0), 0);
-      const cell = document.querySelector('#statBookmarks .admin-stat-value');
+      const total = snap.docs.reduce((s, d) => s + (Number(d.data().rcNew) || 0), 0);
+      const cell = document.querySelector('#statLikes .admin-stat-value');
       if (cell) cell.textContent = fmtNum(total);
       renderPopular(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, err => console.warn('[dashboard] bookmarks:', err.message));
+    }, err => console.warn('[dashboard] likes:', err.message));
 
     // 최근 발행 — Firestore PUBLISHED + 정적 글 병합, 날짜 내림차순 Top 5
     try {
