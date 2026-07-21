@@ -1171,11 +1171,12 @@
     return { minutes: minutes, depth: depth };
   }
   // 카드용 읽기 시간 배지. 영상/팟캐스트 등 본문이 없는 글은 빈 문자열.
-  function _cardReadBadge(a) {
-    if (!a || a.videoMode || a.podcastMode) return '';
-    const m = _readMetaFromHtml(a.bodyHtml || '');
-    if (!m) return '';
-    return '<span class="card-readtime"><i class="fa-regular fa-clock"></i>약 ' + m.minutes + '분</span>';
+  // 카드 메타 우측에 붙는 작성자명. 값이 없으면 아무것도 그리지 않아
+  // 날짜만 있는 카드의 레이아웃이 흔들리지 않는다.
+  function _cardAuthor(a) {
+    const name = (a && a.author ? String(a.author) : '').trim();
+    if (!name) return '';
+    return '<span class="card-author">' + escHTML(name) + '</span>';
   }
 
   // 홈 탭 선택에 따라 카드 표시/숨김. 선택된 1차 카테고리에 속한 카드만 노출.
@@ -1280,7 +1281,7 @@
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
             <p class="card-sub">${escHTML(a.sub || '')}</p>
-            <div class="card-meta">${escHTML(a.date || '')}${_cardReadBadge(a)}</div>
+            <div class="card-meta">${escHTML(a.date || '')}${_cardAuthor(a)}</div>
           </div>
         </article>`;
     }).join('');
@@ -1319,7 +1320,7 @@
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
             <p class="card-sub">${escHTML(a.sub || '')}</p>
-            <div class="card-meta">조회 ${views}${_cardReadBadge(a)}</div>
+            <div class="card-meta">조회 ${views}${_cardAuthor(a)}</div>
           </div>
         </article>`;
     }).join('');
@@ -1672,7 +1673,7 @@
           <div class="card-bottom">
             <h3 class="card-title">${escHTML(a.title || '')}</h3>
             <p class="card-sub">${escHTML(a.sub || '')}</p>
-            <div class="card-meta">${escHTML(a.date || '')}</div>
+            <div class="card-meta">${escHTML(a.date || '')}${_cardAuthor(a)}</div>
           </div>
         </article>`;
     }).join('');

@@ -790,17 +790,19 @@
     text-overflow: ellipsis;
     min-height: 1.4em; /* 서브타이틀 미입력 시에도 한 줄 공간 예약 → 헤드타이틀 위치 고정 */
   }
+  /* 날짜(좌) · 작성자명(우) 한 줄. 작성자가 없으면 자식이 하나뿐이라
+     space-between이어도 날짜가 그대로 좌측에 남는다. */
   .card-meta {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px;
     font-size: 11px; letter-spacing: 0.08em;
     color: rgba(255,255,255,0.65);
   }
-  .card-readtime {
-    display: inline-flex; align-items: center; gap: 4px;
-    margin-left: 8px; padding-left: 8px;
-    border-left: 1px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.78);
+  .card-author {
+    flex: 0 1 auto; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: rgba(255,255,255,0.82);
   }
-  .card-readtime i { font-size: 10px; opacity: 0.8; }
 
   /* placeholder cards */
   .ph {
@@ -5974,10 +5976,19 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
 }
 
 /* ===== 로고 옆 캐치프레이즈 (Local Layers) ===== */
-.brand-lockup { display: flex; align-items: flex-end; gap: 11px; }
+/* 캐치프레이즈는 로고 글자의 아랫선에 맞춘다.
+   .logo는 display:block 이미지만 담고 있어 인라인 라인박스가 없으므로
+   플렉스 베이스라인이 곧 이미지의 아래 모서리가 된다 →
+   align-items:baseline 이면 캐치프레이즈 베이스라인 = 로고 하단.
+   로고 PNG 자체에 아래쪽 투명 여백이 약간 있어(193px 중 7px, 26px 렌더 시 ≈1px)
+   그만큼만 내려 실제 글자 아랫선과 맞춘다. flex-end로 박스 하단을 맞추면
+   폰트 디센더 공간 때문에 캐치프레이즈가 떠 보인다. */
+.brand-lockup { display: flex; align-items: baseline; gap: 11px; }
 .brand-msg {
   font-size: 9pt; line-height: 1; color: var(--muted);
-  letter-spacing: -0.01em; white-space: nowrap; padding-bottom: 0;
+  letter-spacing: -0.01em; white-space: nowrap;
+  padding-bottom: 0;
+  position: relative; top: 1px;
 }
 @media (max-width: 760px) { .brand-msg { display: none; } }
 
