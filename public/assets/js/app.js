@@ -174,7 +174,7 @@
     }
   })();
 
-  /* ===== Another Movement 브랜드 스토리 모달 (푸터 archive-l.web.app 클릭) ===== */
+  /* ===== LOCALLAYER 브랜드 스토리 모달 (푸터 archive-l.web.app 클릭) ===== */
 
   // initial theme
   (function() {
@@ -1159,7 +1159,7 @@
     return parent || name;
   }
 
-  // 본문 HTML로 예상 읽기 시간/깊이를 산출. 한국어 디자인 콘텐츠 기준 ~500자/분.
+  // 본문 HTML로 예상 읽기 시간/깊이를 산출. 한국어 콘텐츠 기준 ~500자/분.
   function _readMetaFromHtml(html) {
     const text = String(html || '').replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
     if (!text) return null;
@@ -1886,7 +1886,7 @@
     ctx.fillText('LOCALLAYER', padX, H - 96);
     ctx.fillStyle = muted;
     ctx.font = '400 24px Pretendard, sans-serif';
-    ctx.fillText('Another Movement · archive-l.web.app', padX, H - 60);
+    ctx.fillText('LOCALLAYER · archive-l.web.app', padX, H - 60);
 
     return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
   }
@@ -2209,7 +2209,7 @@
       if (a) html += '    <p class="recap-quote-src">— ' + escHTML(a.title || '') + '</p>';
       html += '  </div>';
     }
-    html += '  <div class="recap-foot">Another Movement · archive-l.web.app</div>';
+    html += '  <div class="recap-foot">LOCALLAYER · archive-l.web.app</div>';
     html += '</div>';
     html += '<p class="recap-note">올해 ' + YEAR + '년 동안 쌓아온 나의 기록을 모았어요.</p>';
 
@@ -3384,7 +3384,7 @@
       '<div class="ep-edit-field">' +
         '<label class="ep-edit-label" for="epEditInterests">관심사 태그 <span class="ep-edit-hint">쉼표(,)로 구분</span></label>' +
         '<input type="text" id="epEditInterests" class="sys-prompt-input ep-edit-input" maxlength="120" ' +
-          'placeholder="예: 디자인, 사진, 도시, 영화" value="' + escHTML(curInterests) + '" />' +
+          'placeholder="예: 공간, 카페, 여행, 로컬" value="' + escHTML(curInterests) + '" />' +
       '</div>';
     openConfirm({
       title: '프로필 편집',
@@ -7426,7 +7426,7 @@
   };
 
   /* ===========================================================
-     문의(컨택) 폼 — 4종 + About:Another Movement 모달
+     문의(컨택) 폼 — 4종
      - 로그인 사용자만 접수 가능 → inquiries 컬렉션에 저장 → 어드민 수신
      - 트리거: [data-inquiry="general|b2b|lecture|curation"],
               푸터 'Contact' 링크(전체 페이지), [data-about-movement],
@@ -7462,8 +7462,8 @@
         ]
       },
       lecture: {
-        title: '브랜드 · 디자인 강의 / 워크숍 제안',
-        intro: '디자인과 브랜드를 ‘생각하는 방식’으로 전하는 강의·워크숍을 설계합니다. 대상과 목적에 맞춰 맞춤 커리큘럼도 가능합니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
+        title: '로컬 · 공간 강의 / 워크숍 제안',
+        intro: '공간과 로컬을 ‘읽어내는 방식’으로 전하는 강의·워크숍을 설계합니다. 대상과 목적에 맞춰 맞춤 커리큘럼도 가능합니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '제안 보내기',
         fields: [
           { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
@@ -7476,8 +7476,8 @@
         ]
       },
       curation: {
-        title: '디자인 기획 · 전략 큐레이션 문의',
-        intro: '브랜드 고유의 맥락을 분석해 시각 언어로 풀어내는 전략을 함께 큐레이션합니다. ‘실행’ 전 ‘방향’을 정리하고 싶은 브랜드를 위한 전략적 시각을 제안합니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
+        title: '공간 기획 · 로컬 큐레이션 문의',
+        intro: '공간이 놓인 지역의 맥락을 읽어내고, 그곳만의 경험으로 풀어내는 방향을 함께 큐레이션합니다. ‘실행’ 전 ‘관점’을 정리하고 싶은 공간과 브랜드를 위한 제안입니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
@@ -7500,9 +7500,9 @@
           { id: 'name', label: '이름', type: 'text', required: true, isName: true },
           { id: 'email', label: '이메일', type: 'email', required: true, isEmail: true },
           { id: 'phone', label: '전화번호', type: 'text', required: true, placeholder: '010-0000-0000', format: 'phone' },
-          { id: 'formats', label: '발행하고 싶은 콘텐츠 포맷', type: 'checkboxes', required: true, options: ['시리즈', '아티클', '영상'] },
-          { id: 'topic', label: '발행하고 싶은 디자인 주제 및 내용', type: 'textarea', required: true, placeholder: '어떤 주제로, 어떤 관점의 콘텐츠를 발행하고 싶은지 자유롭게 적어주세요.' },
-          { id: 'contentPlan', label: '발행하고 싶은 콘텐츠 수', type: 'text', required: true, placeholder: '예) 시리즈 5편 중 3편, 단독 아티클 2건' },
+          { id: 'formats', label: '발행하고 싶은 콘텐츠 포맷', type: 'checkboxes', required: true, options: ['아티클', '영상'] },
+          { id: 'topic', label: '발행하고 싶은 주제 및 내용', type: 'textarea', required: true, placeholder: '어떤 지역과 공간을, 어떤 관점으로 기록하고 싶은지 자유롭게 적어주세요.' },
+          { id: 'contentPlan', label: '발행하고 싶은 콘텐츠 수', type: 'text', required: true, placeholder: '예) 아티클 3건, 영상 1건' },
           { id: 'cycle', label: '발행 주기', type: 'text', required: true, placeholder: '예) 주 1회 · 격주 1회 · 월 2회 등' }
         ]
       }
@@ -7557,26 +7557,6 @@
             </form>
           </div>
         </div>
-        <div class="inq-modal" id="aboutMovementModal" aria-hidden="true">
-          <div class="inq-modal-inner about-mv" role="dialog" aria-modal="true" aria-labelledby="amvTitle">
-            <button type="button" class="inq-close" id="amvCloseBtn" aria-label="닫기">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
-            <span class="meta-label">ABOUT</span>
-            <h2 class="inq-title" id="amvTitle">another movement</h2>
-            <div class="amv-body">
-              <p>LOCALLAYER 아티클은 <strong>(주)시엔플레이스(Another Movement)</strong>가 발행하는 디자인 인사이트 채널입니다.</p>
-              <p>우리는 디자인을 단순한 결과물이 아니라 ‘생각하는 방식’과 ‘문제를 푸는 프레임’으로 바라봅니다. 브랜드의 철학과 맥락을 읽어내고, 이를 시각 언어와 콘텐츠로 풀어내는 일을 합니다.</p>
-              <p>관점을 함께 나누고, 디자인으로 한 걸음 더 나아가고자 하는 모든 분들과 연결되기를 바랍니다.</p>
-              <div class="amv-meta">
-                <div><span class="meta-label">CONTACT</span><a href="#" data-inquiry="general">문의하기 →</a></div>
-                <div><span class="meta-label">EMAIL</span>cmlab.local@gmail.com</div>
-                <div><span class="meta-label">WEB</span>archive-l.web.app</div>
-                <div><span class="meta-label">INSTAGRAM</span>@perspectice.article</div>
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="inq-modal" id="inqNoticeModal" aria-hidden="true">
           <div class="inq-modal-inner inq-notice" role="dialog" aria-modal="true" aria-labelledby="inqNoticeTitle">
             <button type="button" class="inq-close" id="inqNoticeCloseBtn" aria-label="닫기">
@@ -7591,19 +7571,15 @@
 
       // 닫기 바인딩
       const inqM = document.getElementById('inquiryModal');
-      const amvM = document.getElementById('aboutMovementModal');
       const notM = document.getElementById('inqNoticeModal');
       document.getElementById('inqCloseBtn').addEventListener('click', closeInquiry);
-      document.getElementById('amvCloseBtn').addEventListener('click', () => toggleModal(amvM, false));
       document.getElementById('inqNoticeCloseBtn').addEventListener('click', () => toggleModal(notM, false));
       document.getElementById('inqNoticeOk').addEventListener('click', () => toggleModal(notM, false));
       inqM.addEventListener('click', e => { if (e.target === inqM) closeInquiry(); });
-      amvM.addEventListener('click', e => { if (e.target === amvM) toggleModal(amvM, false); });
       notM.addEventListener('click', e => { if (e.target === notM) toggleModal(notM, false); });
       document.addEventListener('keydown', e => {
         if (e.key !== 'Escape') return;
         if (inqM.classList.contains('open')) closeInquiry();
-        if (amvM.classList.contains('open')) toggleModal(amvM, false);
         if (notM.classList.contains('open')) toggleModal(notM, false);
       });
 
@@ -7877,8 +7853,6 @@
       document.addEventListener('click', e => {
         const inqEl = e.target.closest('[data-inquiry]');
         if (inqEl) { e.preventDefault(); openInquiry(inqEl.getAttribute('data-inquiry')); return; }
-        const amvEl = e.target.closest('[data-about-movement]');
-        if (amvEl) { e.preventDefault(); ensureModal(); toggleModal(document.getElementById('aboutMovementModal'), true); return; }
       });
     }
 
@@ -7898,7 +7872,7 @@
           a.addEventListener('click', e => { e.preventDefault(); openInquiry('general'); });
         }
       });
-      // 푸터 하단 주소(archive-l.web.app) 클릭 → Another Movement 브랜드 스토리 모달
+      // 푸터 하단 주소(archive-l.web.app) 클릭 → LOCALLAYER 브랜드 스토리 모달
       // (openBrandModal 캐러셀 하나만 사용 — aboutMovementModal 중복 트리거 제거)
     }
 
