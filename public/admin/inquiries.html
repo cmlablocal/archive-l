@@ -201,9 +201,6 @@
 
   const TYPE_LABELS = {
     general: '콘텐츠 이용 문의',
-    b2b: 'B2B 콘텐츠 제작',
-    lecture: '로컬 · 공간 강의 제안',
-    curation: '공간 기획 · 로컬 큐레이션'
   };
 
   let inqList = [];          // [{id, data}]
@@ -428,9 +425,6 @@
   /* ===== 문의 기능 ON/OFF · 안내메시지 ===== */
   const INQ_FEATURES = [
     { key: 'general',  label: '문의하기 (일반)',           flag: 'inqGeneralEnabled',  msg: 'inqGeneralMsg' },
-    { key: 'b2b',      label: 'B2B 콘텐츠 제작',           flag: 'inqB2bEnabled',      msg: 'inqB2bMsg' },
-    { key: 'lecture',  label: '로컬 · 공간 강의 제안',          flag: 'inqLectureEnabled',  msg: 'inqLectureMsg' },
-    { key: 'curation', label: '공간 기획 · 로컬 큐레이션', flag: 'inqCurationEnabled', msg: 'inqCurationMsg' }
   ];
   let _inqMsgDirty = {};   // { key: true } — 편집 중인 메시지는 onSnapshot이 덮어쓰지 않음
 

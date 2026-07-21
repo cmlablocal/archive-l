@@ -6042,3 +6042,61 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
     font-variant-numeric: tabular-nums;
   }
   .action-btn.like-btn.active svg { fill: currentColor; }
+
+/* ===== 햄버거 메뉴 — 풀스크린 다크 오버레이 (위에서 내려옴, 흰 글자 중앙정렬)
+   프로토타입(.ll-menu) 디자인을 기존 .drawer 마크업에 적용.
+   라이트/다크 테마와 무관하게 항상 어두운 배경이므로 var(--fg) 대신 고정 색을 쓴다. ===== */
+.drawer {
+  background: rgba(15, 15, 15, 0.97);
+  opacity: 1; visibility: hidden; pointer-events: none;
+  transform: translateY(-100%);
+  transition: transform .5s cubic-bezier(.4, 0, .1, 1), visibility .5s;
+}
+.drawer.open {
+  visibility: visible; pointer-events: auto;
+  transform: translateY(0);
+}
+.drawer-inner {
+  position: relative;
+  justify-content: center; align-items: center;
+  transform: none;
+}
+.drawer.open .drawer-inner { transform: none; }
+
+/* 로고·닫기 버튼은 상단에 고정하고, 메뉴는 화면 정중앙에 */
+.drawer-top {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 60px;
+}
+.drawer-top .logo .logo-black { display: none; }
+.drawer-top .logo .logo-white { display: block; }
+.drawer-top .icon-btn { color: #fff; border-color: rgba(255,255,255,.28); }
+.drawer-top .icon-btn:hover { background: rgba(255,255,255,.12); }
+
+.drawer-nav {
+  flex: none;
+  align-items: center; text-align: center;
+  gap: 4px; padding-top: 0;
+}
+.drawer-nav a,
+.drawer-nav .nav-soon {
+  border-bottom: none;
+  padding: 9px 0;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 500; letter-spacing: -0.02em;
+  color: #fff; opacity: .82;
+  transition: opacity .2s;
+}
+.drawer-nav a:hover { opacity: 1; }
+.drawer-nav .nav-soon { opacity: .42; }
+
+.drawer-foot {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  justify-content: center;
+  padding: 24px 0 40px;
+}
+.drawer-foot button {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+.drawer-foot button:hover { background: rgba(255,255,255,.2); }

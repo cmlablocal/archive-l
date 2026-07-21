@@ -5056,19 +5056,13 @@
    * 브라우저 탭·구글(JS 렌더) 즉시 반영. 아티클 페이지는 서버(Cloud Function)에서
    * 별도 주입하므로 여기서는 건너뜀. */
   function _seoPageKey() {
-    if (/\/perspective\/articles\//.test(location.pathname)) return null; // SSR 담당
-    const p = location.pathname.replace(/\/+$/, '') || '/perspective';
+    if (/^\/articles\//.test(location.pathname)) return null; // 아티클은 글 자체 메타 사용
+    const p = location.pathname.replace(/\/+$/, '') || '/';
     const map = {
-      '/perspective': 'home', '/index.html': 'home',
+      '/': 'home', '/index.html': 'home',
       '/list': 'list', '/list.html': 'list',
-      '/series': 'series', '/series.html': 'series',
-      '/notes': 'notes', '/notes.html': 'notes',
       '/about': 'about', '/about.html': 'about',
       '/notices': 'notices', '/notices.html': 'notices',
-      
-      '/opinion': 'opinion', '/opinion.html': 'opinion',
-      '/opinion-lounge': 'opinion', '/opinion-lounge.html': 'opinion',
-      '/mypage': 'mypage', '/mypage.html': 'mypage',
       '/terms': 'terms', '/terms.html': 'terms',
       '/privacy': 'privacy', '/privacy.html': 'privacy'
     };
@@ -6626,9 +6620,6 @@
     pollsEnabled: true,
     recapEnabled: true,
     inqGeneralEnabled: true,
-    inqB2bEnabled: true,
-    inqLectureEnabled: true,
-    inqCurationEnabled: true,
     homeLatestRowsPC: 4,
     homeLatestMobileCount: 6,
     homeLatestMobilePaginate: false,
@@ -7428,7 +7419,7 @@
   /* ===========================================================
      문의(컨택) 폼 — 4종
      - 로그인 사용자만 접수 가능 → inquiries 컬렉션에 저장 → 어드민 수신
-     - 트리거: [data-inquiry="general|b2b|lecture|curation"],
+     - 트리거: [data-inquiry="general"],
               푸터 'Contact' 링크(전체 페이지), [data-about-movement],
               푸터 'archive-l.web.app' 주소
      =========================================================== */
@@ -7446,48 +7437,6 @@
           { id: 'email', label: '이메일', type: 'email', required: true, isEmail: true },
           { id: 'contentTitle', label: '관련 콘텐츠 제목', type: 'text', required: false, placeholder: '특정 아티클 관련 문의라면 제목을 적어주세요 (선택)' },
           { id: 'message', label: '문의 내용', type: 'textarea', required: true }
-        ]
-      },
-      b2b: {
-        title: 'B2B 콘텐츠 제작 문의',
-        intro: '브랜드의 철학과 스토리를 콘텐츠 전략·기획·제작으로 함께 설계합니다. 아래 내용을 남겨주시면 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
-        submit: '문의 보내기',
-        fields: [
-          { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
-          { id: 'org', label: '소속 및 부서', type: 'text', required: true },
-          { id: 'email', label: '연락 받으실 이메일', type: 'email', required: true, isEmail: true },
-          { id: 'background', label: '의뢰 배경 및 프로젝트 목적', type: 'textarea', required: true },
-          { id: 'format', label: '희망하는 콘텐츠 형태', type: 'textarea', required: true },
-          { id: 'schedule', label: '예상 일정 (런칭 시기)', type: 'textarea', required: false }
-        ]
-      },
-      lecture: {
-        title: '로컬 · 공간 강의 / 워크숍 제안',
-        intro: '공간과 로컬을 ‘읽어내는 방식’으로 전하는 강의·워크숍을 설계합니다. 대상과 목적에 맞춰 맞춤 커리큘럼도 가능합니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
-        submit: '제안 보내기',
-        fields: [
-          { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
-          { id: 'org', label: '기관 및 조직 부서명', type: 'text', required: true },
-          { id: 'email', label: '연락 받으실 이메일', type: 'email', required: true, isEmail: true },
-          { id: 'topic', label: '강의 또는 워크숍 주제', type: 'textarea', required: true },
-          { id: 'target', label: '대상 (학생 / 실무자 / 창업희망자 등)', type: 'textarea', required: true },
-          { id: 'schedule', label: '강의 희망 일정 / 시간 / 형태 (온·오프라인)', type: 'textarea', required: true },
-          { id: 'budget', label: '예산 및 진행 방식 참고 사항', type: 'textarea', required: true }
-        ]
-      },
-      curation: {
-        title: '공간 기획 · 로컬 큐레이션 문의',
-        intro: '공간이 놓인 지역의 맥락을 읽어내고, 그곳만의 경험으로 풀어내는 방향을 함께 큐레이션합니다. ‘실행’ 전 ‘관점’을 정리하고 싶은 공간과 브랜드를 위한 제안입니다. 검토 후 답변은 메시지함에서 확인하실 수 있습니다.',
-        submit: '문의 보내기',
-        fields: [
-          { id: 'name', label: '담당자 성함', type: 'text', required: true, isName: true },
-          { id: 'org', label: '소속 및 조직 부서', type: 'text', required: true },
-          { id: 'email', label: '연락 받으실 이메일', type: 'email', required: true, isEmail: true },
-          { id: 'brand', label: '기업 및 브랜드명', type: 'text', required: true },
-          { id: 'background', label: '의뢰 배경 및 목적', type: 'textarea', required: true },
-          { id: 'deliverable', label: '희망하는 결과물 / 산출물', type: 'textarea', required: true },
-          { id: 'schedule', label: '예상 일정', type: 'textarea', required: false },
-          { id: 'budget', label: '예산 및 진행 방식 참고 사항', type: 'textarea', required: false }
         ]
       },
       editor: {
@@ -7511,9 +7460,6 @@
     // 문의별 ON/OFF 플래그 키 + 안내메시지 키 (site/settings 문서)
     const INQ_FLAGS = {
       general:  { flag: 'inqGeneralEnabled',  msg: 'inqGeneralMsg' },
-      b2b:      { flag: 'inqB2bEnabled',       msg: 'inqB2bMsg' },
-      lecture:  { flag: 'inqLectureEnabled',   msg: 'inqLectureMsg' },
-      curation: { flag: 'inqCurationEnabled',  msg: 'inqCurationMsg' }
     };
     const INQ_DEFAULT_MSG = '현재 이 문의는 일시적으로 받지 않고 있습니다.\n잠시 후 다시 시도해 주세요.';
 
