@@ -486,16 +486,15 @@
             <input type="text" id="fAuthor" value="LOCALLAYERS" />
           </div>
         </div>
-        <div class="field">
-          <label class="checkbox-row">
-            <input type="checkbox" id="fScheduled" />
-            <span>예약 발행 (지정한 시각 이후 자동 공개)</span>
-          </label>
-        </div>
-        <div class="field" id="fScheduledWrap" hidden>
-          <label for="fScheduledAt">예약 발행 시각</label>
-          <input type="datetime-local" id="fScheduledAt" />
-          <div class="field-help">"게시하기"를 누르면 SCHEDULED 상태로 저장됩니다. 시각 이후 게시 상태로 전환되어야 공개됩니다.</div>
+        <!-- 예약 발행 제거.
+             지정 시각에 SCHEDULED -> PUBLISHED 로 바꿔주는 주체(스케줄러)가 없어
+             예약한 글이 영원히 공개되지 않았다. 서버 스케줄러를 붙이기 전까지는
+             '게시하기 = 즉시 공개'로 일원화한다.
+             입력 요소는 남긴다 — F.scheduled/F.scheduledAt 을 참조하는 코드가
+             널 가드 없이 여러 곳에 있어 지우면 작성 화면이 통째로 죽는다. -->
+        <div class="field" hidden>
+          <input type="checkbox" id="fScheduled" />
+          <div id="fScheduledWrap" hidden><input type="datetime-local" id="fScheduledAt" /></div>
         </div>
       </div>
 
@@ -3206,19 +3205,10 @@ async function saveArticle(targetStatus, silent) {
 
   const user = fb.currentUser();
 
-  // 예약 발행 — targetStatus가 PUBLISHED인데 scheduled가 켜져 있고 미래 시각이면 SCHEDULED로 저장
+  // 게시 = 즉시 공개. (예약 발행은 스케줄러가 없어 제거)
   let finalStatus = targetStatus;
   let publishedAtTs = null;
-  if (targetStatus === 'PUBLISHED' && data.scheduled && data.scheduledAt) {
-    const now = Date.now();
-    if (data.scheduledAt.getTime() > now) {
-      finalStatus = 'SCHEDULED';
-      publishedAtTs = fb.Timestamp.fromDate(data.scheduledAt);
-    } else {
-      // 과거 시각이면 즉시 게시
-      publishedAtTs = fb.FieldValue.serverTimestamp();
-    }
-  } else if (targetStatus === 'PUBLISHED') {
+  if (targetStatus === 'PUBLISHED') {
     publishedAtTs = fb.FieldValue.serverTimestamp();
   }
 
@@ -3341,21 +3331,10 @@ async function saveDraft() {
 }
 
 async function publishPost() {
-  const isScheduled = !!(F.scheduled && F.scheduled.checked && F.scheduledAt && F.scheduledAt.value
-    && new Date(F.scheduledAt.value).getTime() > Date.now());
-  const confirmMsg = isScheduled
-    ? '이 글을 예약 발행하시겠습니까?\n지정한 시각에 자동으로 공개됩니다. (그 전까지는 비공개)'
-    : '이 글을 게시하시겠습니까?';
-  if (!(await sysConfirm(confirmMsg))) return;
+  if (!(await sysConfirm('이 글을 게시하시겠습니까?'))) return;
   const id = await saveArticle('PUBLISHED', false);
   if (!id) return;
-  if (isScheduled) {
-    // SCHEDULED 글은 아직 공개되지 않으므로 공개 URL로 보내지 않고 콘텐츠 관리로 이동
-    showToast('예약 발행으로 저장되었습니다. 지정 시각에 자동 공개됩니다.', 'success');
-    setTimeout(() => {
-      window.location.href = '/admin/articles.html';
-    }, 1400);
-  } else {
+  {
     // 발행 후에도 어드민 안에 머무르도록 콘텐츠 관리로 이동한다.
     // (공개 글은 콘텐츠 관리 목록에서 바로 열어볼 수 있다)
     showToast('게시되었습니다.', 'success');
