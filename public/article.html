@@ -355,6 +355,23 @@ async function initArticleMap() {
   const lat = parseFloat(el.dataset.lat);
   const lng = parseFloat(el.dataset.lng);
   if (!isFinite(lat) || !isFinite(lng)) return;
+
+  // 독자 전용 글을 비로그인으로 보는 중이면 지도를 그리지 않는다.
+  // CSS로 숨기기만 하면 크기 0인 컨테이너에 지도가 그려져, 로그인 후 드러났을 때
+  // 타일이 어긋난 채로 나온다. 아예 초기화하지 않고 로그인 시점에 다시 시도한다.
+  const gated = el.closest('.article-content:not([data-free="true"]):not([data-prerelease="true"])');
+  if (gated && !document.body.classList.contains('logged-in')) {
+    if (!initArticleMap._waiting) {
+      initArticleMap._waiting = new MutationObserver(() => {
+        if (!document.body.classList.contains('logged-in')) return;
+        initArticleMap._waiting.disconnect();
+        initArticleMap._waiting = null;
+        initArticleMap();
+      });
+      initArticleMap._waiting.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+    return;
+  }
   let kakao;
   try {
     kakao = await window.loadKakaoMaps();

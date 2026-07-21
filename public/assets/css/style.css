@@ -1405,6 +1405,19 @@
   body:not(.logged-in) .article-content[data-free="true"] .gate-cta,
   body:not(.logged-in) .article-content[data-prerelease="true"] .gate-cta { display: none; }
 
+  /* 독자 전용 글의 '본문 아래' 부가 정보도 함께 잠근다.
+     게이트가 .article-body 에만 걸려 있어 장소 지도·첨부파일이 그대로 노출됐다.
+     (자유 공개글 data-free / 프리릴리즈는 위 규칙대로 예외) */
+  body:not(.logged-in) .article-content:not([data-free="true"]):not([data-prerelease="true"]) .article-map,
+  body:not(.logged-in) .article-content:not([data-free="true"]):not([data-prerelease="true"]) .article-attachments {
+    display: none;
+  }
+  /* 잘린 본문 위쪽에 남아 보이는 장소 카드는 눌러도 지도가 열리지 않게 한다. */
+  body:not(.logged-in) .article-content:not([data-free="true"]):not([data-prerelease="true"]) .article-body .map-box {
+    pointer-events: none;
+    cursor: default;
+  }
+
   /* 영상 임베드 여백 — 위 패딩은 본문 상단(72px)에서 25% 줄이고(-18px), 아래는 100px */
   .article-video-embed { margin: -18px 0 100px; }
 
