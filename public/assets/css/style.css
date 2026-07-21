@@ -4990,6 +4990,9 @@ body.dark .inq-modal { background: rgba(0,0,0,0.7); }
 .inq-modal-inner.inq-notice .inq-submit { width: 100%; }
 .inq-fields { display: flex; flex-direction: column; gap: 16px; }
 .inq-field { display: flex; flex-direction: column; gap: 6px; }
+/* display:flex 가 브라우저 기본 [hidden]{display:none} 을 덮어써서
+   조건부 필드(기업명 등)가 항상 보였다. hidden 일 때 확실히 숨긴다. */
+.inq-field[hidden] { display: none !important; }
 .inq-label { font-size: 12.5px; color: var(--fg); font-weight: 500; }
 .inq-req { color: #dc2626; font-style: normal; }
 .inq-opt { color: var(--muted); font-style: normal; font-size: 11px; font-weight: 400; }
