@@ -832,7 +832,14 @@ function initEditor() {
     branding: false,
     promotion: false,
     plugins: 'lists link image media table code autoresize quickbars wordcount toc charmap',
-    toolbar: 'undo redo | styles blocks fontfamily fontsizeinput lineheight | bold italic underline strikethrough forecolor backcolor | bullist numlist | alignleft aligncenter alignright | link image media table toc | pelem | removeformat charmap code',
+    // 3줄로 역할을 나눠 배치: ① 서식 지정 ② 글자 꾸미기 ③ 삽입·정리
+    // 'blocks'(단락)는 'styles'(스타일)와 기능이 겹쳐 제거,
+    // 'fontfamily'는 사이트가 Pretendard 한 벌만 쓰므로 제거해 서체 혼용을 막는다.
+    toolbar: [
+      'undo redo | styles fontsizeinput lineheight | removeformat',
+      'bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright',
+      'bullist numlist | link image media table | pelem toc | charmap code'
+    ],
     toolbar_mode: 'wrap',
     font_size_input_default_unit: 'px',
     font_size_formats: '12px 14px 15px 16px 18px 20px 24px 28px 32px 40px',
