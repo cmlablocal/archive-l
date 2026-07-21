@@ -7326,13 +7326,14 @@
     const INQUIRY_FORMS = {
       general: {
         title: 'LOCALLAYERS 콘텐츠 이용 문의',
-        intro: 'LOCALLAYERS를 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 메시지함에서 확인하실 수 있습니다.',
+        intro: 'LOCALLAYERS를 이용해 주셔서 감사합니다. 아래 양식으로 문의를 남겨주시면 휴일을 제외하고 2~3일 내 확인 후 답변드립니다. 답변은 메시지함에서 확인하실 수 있으며, 내용에 따라 남겨주신 이메일이나 휴대전화로 직접 연락드릴 수 있습니다. 이름과 이메일은 가입 정보로 자동 입력되며 수정할 수 없습니다.',
         submit: '문의 보내기',
         fields: [
           { id: 'category', label: '문의 유형', type: 'select', required: true,
             options: ['저작권 침해 신고', '콘텐츠 활용 문의', '콘텐츠 제작 협업 문의', '기타 저작권 문의', '오류 리포트 (오타·잘못된 정보 등)', '콘텐츠 제안', '서비스 개선 아이디어'] },
           { id: 'name', label: '이름', type: 'text', required: true, isName: true },
           { id: 'email', label: '이메일', type: 'email', required: true, isEmail: true },
+          { id: 'phone', label: '연락 받으실 휴대전화', type: 'text', required: false, placeholder: '010-0000-0000', format: 'phone' },
           { id: 'contentTitle', label: '관련 콘텐츠 제목', type: 'text', required: false, placeholder: '특정 아티클 관련 문의라면 제목을 적어주세요 (선택)' },
           { id: 'message', label: '문의 내용', type: 'textarea', required: true }
         ]
@@ -7394,7 +7395,7 @@
               <div class="inq-file-list" id="inqFileList"></div>
               <label class="inq-consent">
                 <input type="checkbox" id="inqAgree" />
-                <span>개인정보 수집 및 이용에 동의합니다. <a href="/privacy.html" target="_blank" rel="noopener">전문 보기</a> <em class="inq-req">*</em></span>
+                <span>문의 답변을 위해 이름·이메일·휴대전화를 수집·이용하는 데 동의합니다. <a href="/privacy.html" target="_blank" rel="noopener">전문 보기</a> <em class="inq-req">*</em></span>
               </label>
               <div class="inq-err" id="inqErr"></div>
               <button type="submit" class="inq-submit" id="inqSubmit"></button>
@@ -7596,6 +7597,7 @@
         const val = (el && el.value || '').trim();
         if (f.required && !val) { errEl.textContent = `‘${f.label}’ 항목을 입력해주세요.`; el?.focus(); return; }
         if (f.isEmail && val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { errEl.textContent = '이메일 형식을 확인해주세요.'; el?.focus(); return; }
+        if (f.format === 'phone' && val && !/^01[016789]-\d{3,4}-\d{4}$/.test(val)) { errEl.textContent = '휴대전화 번호를 확인해주세요. (예: 010-0000-0000)'; el?.focus(); return; }
         if (val) fieldsMap[f.label] = val;
         structured[f.id] = val;
         if (f.isName) name = val;
