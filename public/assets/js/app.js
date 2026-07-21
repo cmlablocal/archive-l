@@ -545,7 +545,8 @@
           '<i class="fa-regular fa-envelope"></i> 메시지함</button>' +
         '<button type="button" class="account-menu-item account-menu-profile" role="menuitem">' +
           '<i class="fa-solid fa-user-pen"></i> 개인정보 수정</button>' +
-        '<a class="account-menu-item account-menu-admin" href="/admin/index.html" role="menuitem" style="display:none;">' +
+        // 어드민은 새 탭으로 — 보고 있던 공개 페이지를 잃지 않게 한다.
+        '<a class="account-menu-item account-menu-admin" href="/admin/index.html" target="_blank" rel="noopener" role="menuitem" style="display:none;">' +
           '<i class="fa-solid fa-gear"></i> 관리자 모드</a>' +
         '<button type="button" class="account-menu-item account-menu-logout" role="menuitem">' +
           '<i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃</button>';
@@ -1313,7 +1314,7 @@
       const cat = a.category || a.cat || '';
       const top = _topCat(cat);
       const catHTML = _cardCatHTML(a);
-      const freeMark = a.free ? '<span class="card-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>' : '';
+      const freeMark = a.free ? '' : '<span class="card-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
       const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       return `
         <article class="card dyn-card" data-cat="${escHTML(top)}" onclick="openCardVideo('${escHTML(a.id)}')">
@@ -1347,7 +1348,7 @@
     const top = candidates.slice(0, 6);
     grid.innerHTML = top.map((a, idx) => {
       const catHTML = _cardCatHTML(a);
-      const freeMark = a.free ? '<span class="card-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>' : '';
+      const freeMark = a.free ? '' : '<span class="card-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
       const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       const views = (a.viewCount || 0).toLocaleString('ko-KR');
       return `
@@ -1703,7 +1704,7 @@
       const cat = a.category || a.cat || '';
       const top = _topCat(cat);
       const catHTML = _cardCatHTML(a);
-      const freeMark = a.free ? '<span class="card-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>' : '';
+      const freeMark = a.free ? '' : '<span class="card-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
       const videoBadge = a.videoMode ? '<div class="card-video-badge"><i class="fa-solid fa-play"></i></div>' : (a.podcastMode ? '<div class="card-audio-badge"><i class="fa-solid fa-microphone"></i></div>' : '');
       return `
         <article class="card${dim}" data-cat="${escHTML(top)}" onclick="${click}">
@@ -6157,8 +6158,8 @@
     const seriesLabel = _heroLabelFor(a);
     // 카드와 동일한 규칙: 우측에 픽토그램만 나란히 (모두에게 공개 · 지도 있음)
     const heroFree = a.free
-      ? '<span class="featured-free" aria-label="모두에게 공개" title="모두에게 공개"><i class="fa-solid fa-lock-open"></i></span>'
-      : '';
+      ? ''
+      : '<span class="featured-lock" aria-label="독자 전용" title="로그인한 독자만 볼 수 있어요"><i class="fa-solid fa-lock"></i></span>';
     const _hp = a.place;
     const heroPlace = (_hp && isFinite(parseFloat(_hp.lat)) && isFinite(parseFloat(_hp.lng)))
       ? '<span class="featured-place" aria-label="지도 있음" title="지도 있음"><i class="fa-solid fa-location-dot"></i></span>'

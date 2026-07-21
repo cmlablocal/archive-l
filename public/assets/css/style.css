@@ -1457,17 +1457,17 @@
   .av-unmute svg { width: 18px; height: 18px; }
   .av-unmute--gone { opacity: 0; transform: translateY(6px); pointer-events: none; }
 
-  /* Free / Open badge — outline only with unlock icon */
-  /* 카드의 공개 표시 — 영상·장소 아이콘과 같은 규칙(픽토그램만).
-     .card-marks 한 줄 안에서 크기·색이 나란히 맞는다. */
-  .card-free {
+  /* 독자 전용 표시 — 로그인해야 읽을 수 있는 글에만 닫힌 자물쇠.
+     공개글에는 아무 표시도 하지 않아 잠긴 글만 눈에 띈다.
+     영상·장소 아이콘과 같은 픽토그램 규칙을 쓴다. */
+  .card-lock {
     display: inline-flex; align-items: center; justify-content: center;
     color: rgba(255,255,255,0.85);
     line-height: 1;
     flex-shrink: 0;
     pointer-events: none;
   }
-  .card-free i { font-size: 14px; line-height: 1; }
+  .card-lock i { font-size: 13.5px; line-height: 1; }
 
   /* 히어로도 카드와 같은 규칙 — 우측에 포맷 라벨 + 픽토그램만 나란히 */
   .featured-marks {
@@ -1475,7 +1475,7 @@
     flex-shrink: 0;
   }
   .featured-format { letter-spacing: inherit; }
-  .featured-free,
+  .featured-lock,
   .featured-place {
     display: inline-flex; align-items: center; justify-content: center;
     color: rgba(255,255,255,0.85);
@@ -1483,7 +1483,7 @@
     flex-shrink: 0;
     pointer-events: none;
   }
-  .featured-free i,
+  .featured-lock i,
   .featured-place i { font-size: 14px; line-height: 1; }
 
   .gate-cta {
@@ -2757,7 +2757,7 @@
     .carousel { margin-bottom: 48px; }
     .featured-top { top: 20px; left: 20px; right: 20px; font-size: 10px; letter-spacing: 0.18em; }
     .featured-marks { gap: 10px; }
-    .featured-free i, .featured-place i { font-size: 12.5px; }
+    .featured-lock i, .featured-place i { font-size: 12.5px; }
     .featured-bottom { bottom: 70px; left: 20px; right: 20px; }
     .featured-meta { gap: 10px; margin-bottom: 14px; font-size: 10px; }
     .featured-meta .divider { width: 14px; }
