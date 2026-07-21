@@ -3346,9 +3346,11 @@ async function publishPost() {
       window.location.href = '/admin/articles.html';
     }, 1400);
   } else {
+    // 발행 후에도 어드민 안에 머무르도록 콘텐츠 관리로 이동한다.
+    // (공개 글은 콘텐츠 관리 목록에서 바로 열어볼 수 있다)
     showToast('게시되었습니다.', 'success');
     setTimeout(() => {
-      window.location.href = `/articles/${id}`;
+      window.location.href = '/admin/articles.html';
     }, 1200);
   }
 }
@@ -3359,7 +3361,8 @@ async function savePrerelease() {
   if (!id) return;
   showToast('프리릴리즈로 등록되었습니다.', 'success');
   setTimeout(() => {
-    window.location.href = '/admin/upcoming.html';
+    // 업커밍 관리 페이지는 삭제됐으므로 콘텐츠 관리로 보낸다.
+    window.location.href = '/admin/articles.html';
   }, 1200);
 }
 window.savePrerelease = savePrerelease;
