@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['cmlab.local@gmail.com'];
+    }
+
+    // 업로드 용량 상한 (첨부파일 20MB 정책과 동일)
+    function underSizeLimit() {
+      return request.resource.size < 20 * 1024 * 1024;
+    }
+
+    // 독자 문의 첨부 — 로그인한 사용자면 업로드 가능
+    match /articles/inquiries/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && underSizeLimit();
+    }
+
+    // 콘텐츠 이미지·첨부(thumbnails, body, og, attachments 등) — 관리자 전용
+    match /articles/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && underSizeLimit();
+    }
+
+    // 그 외 경로는 모두 차단
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
