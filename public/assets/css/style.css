@@ -5980,15 +5980,13 @@ body.dark .cheer-notice-item .cheer-notice-badge { background: rgba(46, 160, 67,
    .logo는 display:block 이미지만 담고 있어 인라인 라인박스가 없으므로
    플렉스 베이스라인이 곧 이미지의 아래 모서리가 된다 →
    align-items:baseline 이면 캐치프레이즈 베이스라인 = 로고 하단.
-   로고 PNG 자체에 아래쪽 투명 여백이 약간 있어(193px 중 7px, 26px 렌더 시 ≈1px)
-   그만큼만 내려 실제 글자 아랫선과 맞춘다. flex-end로 박스 하단을 맞추면
-   폰트 디센더 공간 때문에 캐치프레이즈가 떠 보인다. */
+   로고 PNG는 투명 여백 없이 글자에 딱 맞게 잘라 두었으므로 보정값이 필요 없다.
+   flex-end로 박스 하단을 맞추면 폰트 디센더 공간 때문에 캐치프레이즈가 떠 보인다. */
 .brand-lockup { display: flex; align-items: baseline; gap: 11px; }
 .brand-msg {
   font-size: 9pt; line-height: 1; color: var(--muted);
   letter-spacing: -0.01em; white-space: nowrap;
   padding-bottom: 0;
-  position: relative; top: 1px;
 }
 @media (max-width: 760px) { .brand-msg { display: none; } }
 
